@@ -1,273 +1,198 @@
-v<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>404 • Not Found</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>404</title>
 <style>
+  /* GitHub Pages 404 vibe (light, centered) */
   :root{
-    --bg:#0d1117;
-    --panel:#0d1117;
-    --ink:#c9d1d9;
-    --muted:#8b949e;
-    --edge:#30363d;
-    --accent:#58a6ff;
-    --btn:#21262d;
-    --btn-hover:#30363d;
-    --ok:#a7ffb1;
-    --weird:0;          /* 0..100 */
-    --skew:0deg;
-    --blur:0px;
-    --sat:1;
-    --hue:0deg;
-    --jitter:0px;
-    --tilt:0deg;
+    --ink:#0D1117; --muted:#57606a; --link:#0969da; --bg:#ffffff;
+    --weird:0;           /* 0..100 */
+    --skew:0deg; --rot:0deg; --blur:0px; --sat:1; --hue:0deg; --crt:0;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  a{color:var(--accent);text-decoration:none}
-  a:hover{opacity:.9}
-  .navbar{
-    background:#161b22;border-bottom:1px solid var(--edge);
-    display:flex;align-items:center;gap:16px;padding:10px 16px;position:sticky;top:0;z-index:10
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+  a{color:var(--link);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{min-height:100%;display:grid;place-items:center;padding:32px}
+  .card{max-width:720px;text-align:center;transform:skew(var(--skew)) rotate(var(--rot));
+    filter:hue-rotate(var(--hue)) saturate(var(--sat)) blur(var(--blur));}
+  h1{font-weight:500;font-size:72px;line-height:1;margin:0 0 4px}
+  h2{font-weight:600;font-size:22px;margin:8px 0 12px}
+  p{margin:8px 0;color:var(--muted)}
+  .links{margin-top:18px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .foot{margin-top:26px;color:var(--muted);font-size:14px}
+  .dot{margin:0 12px;color:#d0d7de}
+  .scan{position:fixed;inset:0;pointer-events:none;opacity:calc(var(--crt));
+        background-image:repeating-linear-gradient( to bottom,
+          rgba(0,0,0,.035), rgba(0,0,0,.035) 1px, transparent 1px, transparent 3px);}
+  .shake{animation:sh .2s linear 1}
+  @keyframes sh{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}100%{transform:translateX(0)}}
+
+  /* subtle text corruption overlays */
+  .glitch{
+    position:relative;display:inline-block
   }
-  .logo{display:inline-flex;align-items:center;gap:8px;color:#e6edf3;font-weight:700}
-  .logo .mark{display:inline-grid;place-items:center;width:28px;height:28px;border:1px solid var(--edge);border-radius:6px;background:#0d1117}
-  .navlinks a{color:var(--muted);margin-right:14px}
-  .search{flex:1;display:flex;justify-content:flex-end}
-  .search input{background:#0d1117;border:1px solid var(--edge);border-radius:6px;padding:6px 10px;color:#e6edf3;min-width:220px}
-  .container{max-width:960px;margin:40px auto;padding:0 16px;transform:skew(var(--skew)) rotate(var(--tilt));filter:hue-rotate(var(--hue)) saturate(var(--sat)) blur(var(--blur))}
-  .card{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:24px}
-  h1{font-size:28px;margin:0 0 8px;letter-spacing:.2px}
-  .sub{color:var(--muted);margin-bottom:16px}
-  .row{display:flex;gap:24px;flex-wrap:wrap}
-  .column{flex:1;min-width:260px}
-  .box{border:1px solid var(--edge);border-radius:10px;padding:14px;background:#0b1320;box-shadow:0 0 0 0 rgba(0,0,0,0)}
-  .suggest a.btn{display:inline-block;background:var(--btn);border:1px solid var(--edge);padding:8px 12px;border-radius:8px;margin:6px 6px 0 0;color:#e6edf3}
-  .suggest a.btn:hover{background:var(--btn-hover)}
-  .deadlist a{display:block;padding:6px 0;border-bottom:1px dashed var(--edge)}
-  .deadlist a:last-child{border-bottom:none}
-  .muted{color:var(--muted)}
-  .crumbs{font-family:ui-monospace,Menlo,Consolas,monospace;border:1px dashed var(--edge);border-radius:8px;padding:10px;background:#0a0f18;margin:14px 0;color:#cde1ff;max-height:160px;overflow:auto}
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 2px}
-  .tag{display:inline-block;border:1px solid var(--edge);border-radius:999px;padding:4px 10px;color:var(--muted);background:#0d1117}
-  .badimg{display:grid;place-items:center;border:1px dashed var(--edge);border-radius:10px;aspect-ratio:16/9;background:#0a0f18;color:#6a7b95;margin-top:10px;position:relative;overflow:hidden}
-  .badimg::after{content:"🖼️ ×";position:absolute;bottom:8px;left:8px;opacity:.7}
-  .glitchy{position:relative}
-  .glitchy::before,.glitchy::after{
-    content:attr(data-text);
-    position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:calc(var(--weird)/140);
-    text-shadow:calc(var(--jitter)*-1) 0 #f0f, var(--jitter) 0 #0ff;
-    clip-path:polygon(0 0,100% 0,100% 45%,0 55%);
+  .glitch::before,.glitch::after{
+    content:attr(data-text);position:absolute;inset:0;pointer-events:none;opacity:calc(var(--weird)/160);
+    mix-blend-mode:multiply;color:#ff006c;clip-path:polygon(0 0,100% 0,100% 48%,0 52%);
   }
-  .glitchy::after{clip-path:polygon(0 60%,100% 50%,100% 100%,0 100%)}
-  .shake{animation:shake .2s linear 1}
-  @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}100%{transform:translateX(0)}}
-  .scanlines{position:fixed;inset:0;pointer-events:none;background-image:repeating-linear-gradient(to bottom, rgba(255,255,255,0.045), rgba(255,255,255,0.045) 1px, transparent 1px, transparent 3px);opacity:.12}
-  .footer{color:var(--muted);text-align:center;margin:22px 0}
-  .warn{color:#ffb86b}
-  .ok{color:var(--ok)}
+  .glitch::after{color:#00d0ff;clip-path:polygon(0 58%,100% 54%,100% 100%,0 100%)}
+  .badge{display:inline-block;border:1px solid #d0d7de;border-radius:999px;padding:4px 10px;margin-top:6px;color:#57606a}
 </style>
 </head>
 <body>
-  <div class="navbar">
-    <div class="logo"><span class="mark">&lt;&gt;</span> Hub</div>
-    <div class="navlinks">
-      <a href="#" class="nav n1">Issues</a>
-      <a href="#" class="nav n2">Pull requests</a>
-      <a href="#" class="nav n3">Actions</a>
-      <a href="#" class="nav n4">Projects</a>
-      <a href="#" class="nav n5">Wiki</a>
-    </div>
-    <div class="search"><input placeholder="Search…" disabled></div>
-  </div>
+<div class="wrap">
+  <div class="card" id="card">
+    <h1 class="glitch" id="big404" data-text="404">404</h1>
+    <h2 id="fileTitle">File not found</h2>
 
-  <div class="container">
-    <div class="card">
-      <h1 id="title" class="glitchy" data-text="404 — This is not the web page you are looking for">404 — This is not the web page you are looking for</h1>
-      <div class="sub">You followed a link into a void. Every new link you click will take you <em>deeper</em> — and reality will bend a little more each time.</div>
+    <p id="line1">The site configured at this address does not contain the requested file.</p>
+    <p id="line2">If this is your site, make sure that the filename case matches the URL as well as any file permissions.</p>
+    <p id="line3">For root URLs (like <code>http://example.com/</code>) you must provide an <code>index.html</code> file.</p>
+    <p><a href="#" class="deep link-doc">Read the full documentation</a> for more information about using GitHub Pages.</p>
 
-      <div class="toolbar">
-        <span class="tag">Depth: <strong id="depth">0</strong></span>
-        <span class="tag">Weirdness: <strong id="weirdness">0%</strong></span>
-        <a href="#" id="btnBack" class="tag">⬅ Back (B)</a>
-        <a href="#" id="btnScan" class="tag">Scanlines (E)</a>
-      </div>
-
-      <div class="crumbs" id="crumbs" aria-live="polite">path: /</div>
-
-      <div class="row">
-        <div class="column suggest">
-          <h3>Try these</h3>
-          <p class="muted">They might help… or break further.</p>
-          <div id="suggest"></div>
-        </div>
-
-        <div class="column">
-          <h3>Popular dead ends</h3>
-          <div id="deadList" class="deadlist"></div>
-          <div class="badimg">image failed to load: header-octo.webp</div>
-        </div>
-      </div>
+    <!-- “extra” links to go deeper like the real page would hint -->
+    <div class="links" id="deepLinks">
+      <a href="#" class="deep">/docs</a>
+      <a href="#" class="deep">/help</a>
+      <a href="#" class="deep">/readme</a>
+      <a href="#" class="deep">/settings</a>
+      <a href="#" class="deep">/status</a>
+      <a href="#" class="deep">/index.html</a>
     </div>
 
-    <div class="footer muted">Tip: Each click increases <span class="warn">distortion</span>. If the page becomes unreadable, go Back.</div>
+    <div class="badge" id="badge">Depth: <span id="depth">0</span> · Weirdness: <span id="weird">0%</span> — <a href="#" id="back">Back</a> · <a href="#" id="scan">Scanlines</a></div>
+
+    <div class="foot">
+      <a href="#" class="deep">@githubstatus</a>
+      <span class="dot">—</span>
+      <a href="#" class="deep">GitHub Status</a>
+      <div style="margin-top:6px"><a href="#" class="deep" id="octo">🐙</a></div>
+    </div>
   </div>
+</div>
+
+<div class="scan" id="scanLayer" hidden></div>
 
 <script>
-  // ===== State =====
+  // State
   let depth = 0;
-  const maxDepth = 30;
-  const path = [];
-  let scanLayer = null;
+  const maxDepth = 40; // plenty of weird
+  const els = {
+    depth: document.getElementById('depth'),
+    weird: document.getElementById('weird'),
+    big404: document.getElementById('big404'),
+    fileTitle: document.getElementById('fileTitle'),
+    l1: document.getElementById('line1'),
+    l2: document.getElementById('line2'),
+    l3: document.getElementById('line3'),
+    card: document.getElementById('card'),
+    scanLayer: document.getElementById('scanLayer'),
+    badge: document.getElementById('badge')
+  };
 
-  const elDepth = document.getElementById('depth');
-  const elWeird = document.getElementById('weirdness');
-  const elCrumbs = document.getElementById('crumbs');
-  const elSuggest = document.getElementById('suggest');
-  const elDead = document.getElementById('deadList');
-  const title = document.getElementById('title');
-  const btnBack = document.getElementById('btnBack');
-  const btnScan = document.getElementById('btnScan');
+  // Helpers
+  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+  const rand=(a,b)=>Math.random()*(b-a)+a;
 
-  // ===== Utilities =====
-  const rand = (a,b)=> Math.random()*(b-a)+a;
-  const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
-  const clamp = (n,min,max)=> Math.max(min, Math.min(max,n));
-
-  function scramble(text, intensity){
-    // replace some characters to look corrupted
-    const swaps = {'a':'@','e':'€','i':'¡','o':'0','u':'ü','s':'$','t':'†','l':'|','n':'∩','r':'Я'};
+  function scramble(text, p){
+    const swap = {'a':'Ⱥ','e':'Ɇ','i':'į','o':'Ø','u':'Ü','s':'§','t':'Ŧ','l':'∣','n':'И','r':'Я'};
     return text.split('').map(ch=>{
-      if (/[a-zA-Z]/.test(ch) && Math.random() < intensity) {
-        return swaps[ch.toLowerCase()] || ch.toUpperCase();
-      }
-      if (Math.random() < intensity/4) return ['‧','·','•','░','▒','▓','█','~','^'][Math.floor(Math.random()*9)];
+      if(/[A-Za-z]/.test(ch) && Math.random()<p) return (swap[ch.toLowerCase()]||ch).toString();
+      if(Math.random()<p/4) return ['·','•','░','▒','▓','~','^','/','\\'][Math.floor(Math.random()*9)];
       return ch;
     }).join('');
   }
 
-  function makeSlug(){
-    const words = ["docs","guide","monorepo","workflow","actions","octo","readme","issues","pulls","milestones","hooks","bots","secrets","packages","graph","release"];
-    return pick(words)+"-"+Math.random().toString(36).slice(2,6);
-  }
-
-  function renderCrumbs(){
-    elCrumbs.textContent = "path: /" + path.join("/");
-  }
-
-  function renderLinks(){
-    // clean and build fresh links each depth
-    elSuggest.innerHTML = "";
-    elDead.innerHTML = "";
-
-    const base = [
-      "Go to Home","Explore Repositories","Read the Docs","Open an Issue",
-      "Search Topics","Visit Wiki","View Releases","Check Actions"
-    ];
-    const intensity = clamp(depth/20, 0, 0.9);
-
-    // Suggest buttons (like GitHub helper buttons)
-    base.slice(0,5).forEach((label,i)=>{
-      const a = document.createElement('a');
-      a.href="#";
-      a.className="btn link";
-      a.textContent = scramble(label, intensity*0.5);
-      a.dataset.slug = makeSlug();
-      elSuggest.appendChild(a);
-    });
-
-    // Dead-end list (like a list of links)
-    for (let i=0;i<6;i++){
-      const a = document.createElement('a');
-      a.href="#";
-      a.className="link";
-      a.textContent = scramble("/"+makeSlug(), intensity*0.8);
-      a.dataset.slug = makeSlug();
-      elDead.appendChild(a);
-    }
-
-    // Bind all links
-    document.querySelectorAll('a.link').forEach(a=>{
-      a.addEventListener('click', (e)=> {
-        e.preventDefault();
-        goDeeper(a.dataset.slug, a);
-      });
-    });
-  }
-
-  function setWeirdness(){
-    // Map depth -> CSS vars
-    const w = clamp(depth*4, 0, 100);          // percent
-    const hue = depth * 7;                      // degrees
-    const blur = depth > 6 ? (depth-6) * 0.2 : 0;
-    const sat = 1 + depth * 0.03;
-    const skew = clamp(depth*0.1, 0, 6);
-    const tilt = depth > 10 ? clamp((depth-10)*0.2, 0, 4) : 0;
-    const jitter = clamp(depth*0.3, 0, 10);
+  function updateWeird(){
+    const w = clamp(depth*3.2,0,100); // %
+    const blur = depth>6 ? (depth-6)*0.12 : 0;
+    const sat = 1 + depth*0.015;
+    const hue = depth*2; // subtle on white
+    const skew = clamp(depth*0.1,0,4);
+    const rot  = depth>20 ? clamp((depth-20)*0.15,0,3) : 0;
 
     document.documentElement.style.setProperty('--weird', w);
-    document.documentElement.style.setProperty('--hue', hue+'deg');
     document.documentElement.style.setProperty('--blur', blur+'px');
     document.documentElement.style.setProperty('--sat', sat.toFixed(2));
+    document.documentElement.style.setProperty('--hue', hue+'deg');
     document.documentElement.style.setProperty('--skew', skew+'deg');
-    document.documentElement.style.setProperty('--tilt', tilt+'deg');
-    document.documentElement.style.setProperty('--jitter', jitter+'px');
+    document.documentElement.style.setProperty('--rot', rot+'deg');
 
-    elDepth.textContent = depth;
-    elWeird.textContent = Math.round(w) + "%";
+    els.depth.textContent = depth;
+    els.weird.textContent = Math.round(w)+'%';
 
-    // Title corruption level
-    const baseTitle = "404 — This is not the web page you are looking for";
-    const t = scramble(baseTitle, clamp(depth/18,0,0.8));
-    title.textContent = t;
-    title.dataset.text = t;
+    // Gradual copy corruption
+    const pow = clamp(depth/24,0,0.75);
+    els.big404.dataset.text = els.big404.textContent = depth<2 ? '404' : scramble('404', pow*0.6);
+    els.fileTitle.textContent = depth<3 ? 'File not found' : scramble('File not found', pow);
+    els.l1.textContent = depth<5 ? 'The site configured at this address does not contain the requested file.' :
+                          scramble('The site configured at this address does not contain the requested file.', pow);
+    els.l2.textContent = depth<7 ? 'If this is your site, make sure that the filename case matches the URL as well as any file permissions.' :
+                          scramble('If this is your site, make sure that the filename case matches the URL as well as any file permissions.', pow);
+    els.l3.innerHTML = depth<9 ? 'For root URLs (like <code>http://example.com/</code>) you must provide an <code>index.html</code> file.' :
+                          scramble('For root URLs (like http://example.com/) you must provide an index.html file.', pow);
 
-    // Occasional layout twitch
-    if (depth > 0 && Math.random() < 0.2) {
-      title.classList.add('shake');
-      setTimeout(()=>title.classList.remove('shake'),220);
+    // Small occasional shake
+    if (Math.random()<0.18 && depth>0) {
+      els.card.classList.add('shake');
+      setTimeout(()=>els.card.classList.remove('shake'),220);
     }
   }
 
-  function goDeeper(slug, el){
-    if (depth >= maxDepth) return;
-    depth++;
-    path.push(slug);
-    renderCrumbs();
-    renderLinks();
-    setWeirdness();
-    if (el) el.classList.add('shake');
+  function addDepth(n=1){
+    depth = clamp(depth + n, 0, maxDepth);
+    updateWeird();
+    mutateLinks();
   }
 
-  function goBack(){
-    if (depth <= 0) return;
-    depth--;
-    path.pop();
-    renderCrumbs();
-    renderLinks();
-    setWeirdness();
+  function back(){
+    addDepth(-1);
   }
 
-  // ===== init =====
-  renderCrumbs();
-  renderLinks();
-  setWeirdness();
+  function mutateLinks(){
+    // Scramble visible "deep" links progressively
+    const p = clamp(depth/18,0,0.85);
+    document.querySelectorAll('a.deep').forEach(a=>{
+      const label = a.dataset.base ?? a.textContent;
+      a.dataset.base = label;
+      a.textContent = scramble(label, p);
+    });
+  }
 
-  // ===== controls =====
-  btnBack.addEventListener('click', (e)=>{ e.preventDefault(); goBack(); });
-  btnScan.addEventListener('click', (e)=>{ e.preventDefault(); toggleScan(); });
-
-  window.addEventListener('keydown', (e)=>{
-    const k = e.key.toLowerCase();
-    if (k==='b') goBack();
-    if (k==='e') toggleScan();
+  // Bind actions
+  document.querySelectorAll('a.deep').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      addDepth(1);
+    });
   });
 
-  function toggleScan(){
-    if (scanLayer) { scanLayer.remove(); scanLayer=null; }
-    else { scanLayer = document.createElement('div'); scanLayer.className='scanlines'; document.body.appendChild(scanLayer); }
-  }
+  document.getElementById('back').addEventListener('click', (e)=>{ e.preventDefault(); back(); });
+  document.getElementById('scan').addEventListener('click', (e)=>{
+    e.preventDefault();
+    const on = els.scanLayer.hasAttribute('hidden') ? 1 : 0;
+    document.documentElement.style.setProperty('--crt', on? .18 : 0);
+    els.scanLayer.toggleAttribute('hidden');
+  });
+
+  // Keyboard shortcuts
+  window.addEventListener('keydown',(e)=>{
+    const k=e.key.toLowerCase();
+    if(k==='b') back();
+    if(k==='e'){
+      const on = els.scanLayer.hasAttribute('hidden') ? 1 : 0;
+      document.documentElement.style.setProperty('--crt', on? .18 : 0);
+      els.scanLayer.toggleAttribute('hidden');
+    }
+  });
+
+  // Init
+  updateWeird();
+  mutateLinks();
 </script>
 </body>
 </html>
