@@ -1,203 +1,149 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Glitch Garden</title>
 <style>
-  :root { --sky:#0e0f1a; --earth:#0a0d12; --ui:#141927; --ink:#e8f1ff; --muted:#97a7c0; }
-  body { margin: 0; background: linear-gradient(180deg, var(--sky), var(--earth)); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
-  .wrap { min-height: 100svh; display: grid; grid-template-rows: auto 1fr auto; }
-  header, footer { padding: 12px 16px; background: var(--ui); border-bottom: 1px solid #1f2740; }
-  footer { border-top: 1px solid #1f2740; border-bottom: none; display: flex; gap: 8px; align-items: center; }
-  h1 { margin: 0; font-size: 1.1rem; }
-  .hud { display:flex; gap:16px; align-items:center; font-size: 0.95rem; color: var(--muted); }
-  .garden { position: relative; display: grid; place-items: center; padding: 12px; }
-  canvas { width: min(900px, 94vw); height: min(520px, 60vh); border: 1px solid #253152; border-radius: 14px; background: #0b0e16; }
-  button { background: #0d1320; color: var(--ink); border: 1px solid #2a375a; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
-  button:hover { background: #111a2d; }
-  .msg { margin-left: 8px; color: var(--muted); }
+  body {
+    margin: 0;
+    background: linear-gradient(#0e0f1a, #0a0d12);
+    color: #eaf3ff;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { margin: 12px; }
+  #garden {
+    border: 2px solid #2a375a;
+    border-radius: 12px;
+    background: #0b0e16;
+    width: 90vw;
+    height: 60vh;
+    max-width: 900px;
+    max-height: 500px;
+    cursor: crosshair;
+  }
+  .controls {
+    margin: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    padding: 8px 12px;
+    background: #111a2d;
+    color: white;
+    border: 1px solid #2a375a;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:hover { background: #162034; }
+  #stats { margin: 10px; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="hud">
-      <h1>Glitch Garden</h1>
-      <div>Plants: <span id="plantCount">0</span></div>
-      <div>Water used: <span id="waterCount">0</span></div>
-      <div>Weirdness: <span id="weird">0%</span></div>
-    </div>
-  </header>
-
-  <div class="garden">
-    <canvas id="c" width="900" height="520" aria-label="A glitched garden canvas"></canvas>
+  <h1>🌱 Glitch Garden</h1>
+  <canvas id="garden"></canvas>
+  <div class="controls">
+    <button onclick="plantSeed()">Plant Seed</button>
+    <button onclick="waterAll()">Water All</button>
+    <button onclick="resetGarden()">Reset</button>
   </div>
-
-  <footer>
-    <button id="plant">Plant Seed (P)</button>
-    <button id="water">Water All (W)</button>
-    <button id="prune">Prune (R)</button>
-    <button id="reset">Reset</button>
-    <span class="msg">Tip: Click the soil to plant exactly where you want.</span>
-  </footer>
-</div>
+  <div id="stats">Plants: 0 | Waterings: 0 | Weirdness: 0%</div>
 
 <script>
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-const plantCountEl = document.getElementById('plantCount');
-const waterCountEl = document.getElementById('waterCount');
-const weirdEl = document.getElementById('weird');
-const btnPlant = document.getElementById('plant');
-const btnWater = document.getElementById('water');
-const btnPrune = document.getElementById('prune');
-const btnReset = document.getElementById('reset');
+const canvas = document.getElementById("garden");
+const ctx = canvas.getContext("2d");
+resizeCanvas();
 
 let plants = [];
-let waterCount = 0;
-let weirdness = 0; // 0..100
+let waterings = 0;
+let weirdness = 0;
 
-function rand(a,b){ return Math.random()*(b-a)+a; }
-function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+// resize canvas when window size changes
+window.addEventListener("resize", resizeCanvas);
+function resizeCanvas() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
 
-canvas.addEventListener('click', (e) => {
+// clicking plants a seed at that location
+canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-  plantSeed(x,y);
+  plantSeed(e.clientX - rect.left, e.clientY - rect.top);
 });
 
-function plantSeed(x = rand(80, canvas.width-80), y = rand(canvas.height-120, canvas.height-60)) {
-  plants.push({
-    x, y,
-    age: 0,
-    height: rand(20, 40),
-    hue: rand(80, 160),
-    sway: rand(0.5, 1.5),
-    petals: Math.floor(rand(3,7)),
-  });
-  updateHUD();
+// add a new seed
+function plantSeed(x=Math.random()*canvas.width, y=canvas.height-20) {
+  plants.push({x,y,height:20,hue:120});
+  updateStats();
 }
+
+// water all plants → they grow & weirdness rises
 function waterAll() {
-  waterCount++;
-  // Growth
+  waterings++;
   plants.forEach(p => {
-    p.age += rand(0.5, 1.5);
-    p.height += rand(6, 12);
-    p.hue += rand(-5, 5);
-    p.sway += rand(-0.1, 0.2);
+    p.height += 10 + Math.random()*10;
+    p.hue += Math.random()*40 - 20;
   });
-  // Induce glitches proportional to activity
-  weirdness = clamp(weirdness + rand(3, 9), 0, 100);
-  applyGlitches(weirdness);
-  updateHUD();
+  weirdness = Math.min(100, weirdness + 5 + Math.random()*10);
+  updateStats();
 }
-function prune() {
-  plants = plants.filter((_,i) => i % 2 === 0);
-  weirdness = clamp(weirdness - 8, 0, 100);
-  applyGlitches(weirdness);
-  updateHUD();
-}
+
+// reset the garden
 function resetGarden() {
   plants = [];
-  waterCount = 0;
+  waterings = 0;
   weirdness = 0;
-  applyGlitches(weirdness);
-  updateHUD();
+  document.body.style.filter = "none";
+  updateStats();
 }
 
-function updateHUD() {
-  plantCountEl.textContent = plants.length;
-  waterCountEl.textContent = waterCount;
-  weirdEl.textContent = Math.round(weirdness) + "%";
+// update the stats HUD
+function updateStats() {
+  document.getElementById("stats").textContent =
+    `Plants: ${plants.length} | Waterings: ${waterings} | Weirdness: ${Math.round(weirdness)}%`;
 }
 
+// draw loop
 function draw() {
-  // background soil gradient with slight noise
-  const grd = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grd.addColorStop(0, "#0b0e16");
-  grd.addColorStop(1, "#0a0d12");
-  ctx.fillStyle = grd;
+  ctx.fillStyle = "#0b0e16";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // soil specks
-  for (let i = 0; i < 120; i++) {
-    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.03})`;
-    ctx.fillRect(rand(0,canvas.width), rand(canvas.height-120, canvas.height), 1, 1);
-  }
-
   // draw plants
-  const t = performance.now()/1000;
   plants.forEach(p => {
-    const sway = Math.sin(t * p.sway + p.x*0.01) * 6;
-    // stem
+    ctx.strokeStyle = `hsl(${p.hue}, 60%, 50%)`;
     ctx.lineWidth = 3;
-    ctx.strokeStyle = `hsl(${p.hue}, 40%, 55%)`;
     ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    ctx.quadraticCurveTo(p.x + sway, p.y - p.height/2, p.x, p.y - p.height);
+    ctx.moveTo(p.x,p.y);
+    ctx.lineTo(p.x,p.y - p.height);
     ctx.stroke();
 
-    // flower
-    const fx = p.x + sway*0.6;
-    const fy = p.y - p.height - 6;
-    for (let i=0;i<p.petals;i++){
-      const ang = (i / p.petals) * Math.PI*2 + (t*0.4);
-      const px = fx + Math.cos(ang)*8;
-      const py = fy + Math.sin(ang)*8;
-      ctx.fillStyle = `hsl(${p.hue+rand(-10,10)}, 70%, 70%)`;
-      ctx.beginPath();
-      ctx.arc(px, py, 5 + Math.sin(t*2+i)*0.8, 0, Math.PI*2);
-      ctx.fill();
-    }
-    // center
-    ctx.fillStyle = `hsl(${p.hue}, 40%, 50%)`;
-    ctx.beginPath(); ctx.arc(fx, fy, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = `hsl(${p.hue+60},80%,60%)`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - p.height, 8, 0, Math.PI*2);
+    ctx.fill();
   });
 
-  // gentle CRT-like scanline if weird
+  // glitch effects
   if (weirdness > 0) {
-    ctx.globalAlpha = clamp(weirdness/140, 0, 0.4);
-    for (let y=0; y<canvas.height; y+=2){
-      ctx.fillStyle = "rgba(255,255,255,0.05)";
-      ctx.fillRect(0,y,canvas.width,1);
+    ctx.globalAlpha = weirdness/100 * 0.3;
+    ctx.fillStyle = "magenta";
+    for (let i=0;i<weirdness/5;i++) {
+      let x = Math.random()*canvas.width;
+      let y = Math.random()*canvas.height;
+      ctx.fillRect(x,y,4,2);
     }
     ctx.globalAlpha = 1;
+    document.body.style.filter =
+      `hue-rotate(${weirdness*3}deg) contrast(${1+weirdness/200})`;
   }
 
   requestAnimationFrame(draw);
 }
 
-function applyGlitches(level) {
-  const body = document.body;
-  const wrap = document.querySelector('.wrap');
-  // CSS filters intensify with weirdness
-  const blur = clamp(level/60, 0, 1.2);
-  const sat = clamp(1 + level/80, 1, 1.8);
-  const hue = Math.round(level * 0.8);
-  body.style.filter = `blur(${blur}px) saturate(${sat}) hue-rotate(${hue}deg)`;
-
-  // random text shifts / letterspacing when high
-  if (level > 50) {
-    document.querySelector('h1').style.letterSpacing = Math.round(level/40) + "px";
-  } else {
-    document.querySelector('h1').style.letterSpacing = "0";
-  }
-
-  // occasional layout nudge
-  wrap.style.transform = level > 30 ? `translateY(${Math.sin(performance.now()/300)*2}px)` : "none";
-}
-
-function loop() { draw(); }
-loop();
-
-// Buttons & keys
-btnPlant.addEventListener('click', () => plantSeed());
-btnWater.addEventListener('click', waterAll);
-btnPrune.addEventListener('click', prune);
-btnReset.addEventListener('click', resetGarden);
-
-window.addEventListener('keydown', (e) => {
-  if (e.key.toLowerCase() === 'p') plantSeed();
-  if (e.key.toLowerCase() === 'w') waterAll();
+draw();
+</script>
+</body>
+</html>
