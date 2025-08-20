@@ -1,189 +1,101 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
 <title>Inbox of the Unknown</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  :root {
-    --bg: #0b0f14;
-    --panel: #141a22;
-    --ink: #d7e3f1;
-    --muted: #8aa0b8;
-    --accent: #6ee7ff;
+  body {
+    margin:0; background:#0d0d0d; color:#f5f5f5;
+    font-family: system-ui, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
   }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
-  .app { display: grid; grid-template-columns: 320px 1fr; height: 100%; }
-  aside { background: var(--panel); border-right: 1px solid #1e2835; overflow: auto; }
-  header { padding: 16px; border-bottom: 1px solid #1e2835; display: flex; align-items: center; gap: 8px; }
-  header input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #2a3648; background: #0d131a; color: var(--ink); }
-  .list { display: grid; }
-  .item { padding: 14px 16px; border-bottom: 1px solid #1e2835; cursor: pointer; transition: background .15s ease; }
-  .item:hover, .item[aria-selected="true"] { background: #101722; }
-  .item .from { font-weight: 600; }
-  .item .subject { color: var(--ink); margin-top: 4px; }
-  .item .preview { color: var(--muted); font-size: 0.9rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  main { display: grid; grid-template-rows: auto 1fr; }
-  .readhead { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #1e2835; }
-  .pill { font-size: 12px; padding: 4px 8px; border: 1px solid #2a3648; border-radius: 999px; color: var(--muted); }
-  article { padding: 24px 20px 40px; overflow: auto; line-height: 1.6; }
-  a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed currentColor; }
-  a:hover { opacity: .8; }
-  .hint { color: var(--muted); font-size: 0.9rem; margin-top: 10px; }
-  .muted { color: var(--muted); }
-  .toolbar { display: flex; gap: 8px; }
-  button { background: #0d131a; border: 1px solid #2a3648; color: var(--ink); padding: 8px 12px; border-radius: 10px; cursor: pointer; }
-  button:hover { background: #111924; }
-  .msg-title { margin: 0; font-size: 1.25rem; }
+  h1 { margin:10px; }
+  #emails { width:80%; max-width:800px; margin-top:20px; }
+  .email {
+    background:#1a1a1a; border:1px solid #444; margin:8px 0;
+    padding:12px; border-radius:8px; cursor:pointer;
+  }
+  .hidden { display:none; }
+  #popup {
+    position:fixed; top:20px; right:20px; background:#fff; color:#000;
+    padding:10px 14px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,.4);
+    display:none; z-index:10;
+  }
+  #glitch {
+    position:fixed; inset:0; background:#000; color:#f00;
+    display:flex; align-items:center; justify-content:center;
+    font-size:4em; font-weight:bold; text-shadow:2px 2px #fff;
+    display:none; z-index:20;
+  }
 </style>
 </head>
 <body>
-  <div class="app">
-    <aside>
-      <header>
-        <input id="q" type="search" placeholder="Search mail…" />
-      </header>
-      <div id="list" class="list" role="listbox" aria-label="Inbox"></div>
-    </aside>
-    <main>
-      <div class="readhead">
-        <div>
-          <div class="pill" id="meta">Inbox · 3 unread</div>
-        </div>
-        <div class="toolbar">
-          <button id="btn-light">Toggle Dim</button>
-          <button id="btn-shift">Shift Reality</button>
-          <button id="btn-reset">Hard Reset</button>
-        </div>
-      </div>
-      <article id="reader" tabindex="0" aria-live="polite">
-        <h2 class="msg-title">Welcome to the Unknown</h2>
-        <p class="muted">Select an email on the left.</p>
-      </article>
-    </main>
-  </div>
+<h1>📧 Inbox</h1>
+<div id="popup"></div>
+<div id="emails"></div>
+<div id="glitch">LOOK BEHIND YOU</div>
 
 <script>
-const emails = [
-  {
-    id: "a1",
-    from: "root@vault-7",
-    subject: "Your decision was recorded.",
-    preview: "You won’t remember choosing. That’s the point.",
-    body: `
-      <p>We noticed your <em>unconscious</em> preference. Consider this a receipt.</p>
-      <p class="hint">Action: <a href="#" data-action="tint" data-value="#151114">darken the mood</a> · 
-      <a href="#" data-action="tint" data-value="#0b0f14">return to default</a></p>
-      <p>PS: If the room looks different next time, it wasn’t us.</p>
-    `
-  },
-  {
-    id: "b2",
-    from: "postmaster@liminal.space",
-    subject: "Link routing anomaly detected",
-    preview: "A link you almost clicked changed the hallway.",
-    body: `
-      <p>There’s a <a href="#" data-action="accent" data-value="#ffd166">golden thread</a> running through your choices.</p>
-      <p>Pull it again to see what unravels.</p>
-      <p class="hint">UI trick: <a href="#" data-action="panel" data-value="#0f1320">deeper blue</a> or <a href="#" data-action="panel" data-value="#141a22">reset</a></p>
-    `
-  },
-  {
-    id: "c3",
-    from: "archive@eraser.gov",
-    subject: "Redaction request: Memory 32B",
-    preview: "Erase a room to fix the corridor.",
-    body: `
-      <p>Approve redaction? <a href="#" data-action="erase">[ERASE NAMELESS ROOM]</a></p>
-      <p>Consequences are <strong>persisted</strong> locally. You can attempt a <a href="#" data-action="reset">hard reset</a>.</p>
-      <p class="hint">Tip: Search for “redaction” in the left pane.</p>
-    `
-  }
-];
+const emails = document.getElementById("emails");
+const popup = document.getElementById("popup");
+const glitch = document.getElementById("glitch");
 
-const state = JSON.parse(localStorage.getItem("inboxUnknownState") || "{}");
-function persist() { localStorage.setItem("inboxUnknownState", JSON.stringify(state)); }
+let emailStage = 0;
 
-const listEl = document.getElementById("list");
-const reader = document.getElementById("reader");
-const q = document.getElementById("q");
-const btnLight = document.getElementById("btn-light");
-const btnShift = document.getElementById("btn-shift");
-const btnReset = document.getElementById("btn-reset");
+// fake notification sound
+const ding = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 
-function applyTheme() {
-  if (state.tint) document.documentElement.style.setProperty("--bg", state.tint);
-  else document.documentElement.style.setProperty("--bg", "#0b0f14");
-
-  if (state.panel) document.documentElement.style.setProperty("--panel", state.panel);
-  else document.documentElement.style.setProperty("--panel", "#141a22");
-
-  if (state.accent) document.documentElement.style.setProperty("--accent", state.accent);
-  else document.documentElement.style.setProperty("--accent", "#6ee7ff");
-
-  document.title = state.erased ? "Inbox of the Unknown • (room erased)" : "Inbox of the Unknown";
+function showPopup(msg) {
+  popup.innerText = msg;
+  popup.style.display="block";
+  setTimeout(()=>popup.style.display="none",4000);
 }
-applyTheme();
 
-function renderList(filter = "") {
-  listEl.innerHTML = "";
-  emails
-    .filter(e => (e.subject + e.from + e.preview + e.body).toLowerCase().includes(filter.toLowerCase()))
-    .forEach((e, i) => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.role = "option";
-      div.dataset.id = e.id;
-      if (state.selected === e.id) div.setAttribute("aria-selected", "true");
-      div.innerHTML = `
-        <div class="from">${e.from}</div>
-        <div class="subject">${e.subject}${state.erased && e.id === "c3" ? " <span class='muted'>(redacted)</span>" : ""}</div>
-        <div class="preview">${e.preview}</div>
-      `;
-      div.addEventListener("click", () => openEmail(e.id));
-      listEl.appendChild(div);
+function addEmail(from, subject, body, action) {
+  let div=document.createElement("div");
+  div.className="email";
+  div.innerHTML=`<b>${from}</b><br><i>${subject}</i><p>${body}</p>`;
+  div.onclick=()=>{ if(action) action(div); };
+  emails.appendChild(div);
+  ding.play();
+}
+
+// Game flow
+function nextEmail() {
+  emailStage++;
+  if(emailStage===1){
+    addEmail("Alice – HR","Welcome!","Welcome to the team 🎉",()=>nextEmail());
+  } else if(emailStage===2){
+    addEmail("Bob – Dev","Quick Task","Can you connect these dots?",()=>{alert("Dots connected ✅"); nextEmail();});
+  } else if(emailStage===3){
+    addEmail("Claire – Ops","Another favor","Click me to sort files.",()=>{alert("Files sorted 📂"); nextEmail();});
+  } else if(emailStage===4){
+    addEmail("System","🎁 Free Prize","Click to claim your prize!",(el)=>{
+      document.body.style.background="black";
+      emails.innerHTML="";
+      setTimeout(()=> {
+        addEmail("???","YOUR COMPUTER IS NOW MINE","...",()=>creepyPhase());
+      },1500);
     });
-}
-renderList(q.value || "");
-
-function openEmail(id) {
-  const e = emails.find(x => x.id === id);
-  if (!e) return;
-  state.selected = id; persist();
-  [...listEl.children].forEach(n => n.setAttribute("aria-selected", n.dataset.id === id ? "true" : "false"));
-  const alteredBody = state.erased && id === "c3"
-    ? `<p><em>This content was erased.</em></p><p class="hint">Try a hard reset to restore.</p>`
-    : e.body;
-  reader.innerHTML = `<h2 class="msg-title">${e.subject}</h2>${alteredBody}`;
-  reader.querySelectorAll("a[data-action]").forEach(a => a.addEventListener("click", handleAction));
+  }
 }
 
-function handleAction(ev) {
-  ev.preventDefault();
-  const a = ev.currentTarget;
-  const action = a.dataset.action;
-  const val = a.dataset.value;
-  if (action === "tint") { state.tint = val; persist(); applyTheme(); }
-  if (action === "panel") { state.panel = val; persist(); applyTheme(); }
-  if (action === "accent") { state.accent = val; persist(); applyTheme(); }
-  if (action === "erase") { state.erased = true; persist(); applyTheme(); openEmail("c3"); }
-  if (action === "reset") { Object.keys(state).forEach(k => delete state[k]); persist(); location.reload(); }
+function creepyPhase() {
+  document.body.style.background="#111";
+  setTimeout(()=>{
+    emails.innerHTML="";
+    setTimeout(()=> {
+      glitch.style.display="flex";
+    },2000);
+  },2000);
 }
 
-q.addEventListener("input", () => renderList(q.value));
-btnLight.addEventListener("click", () => {
-  document.body.style.filter = document.body.style.filter ? "" : "brightness(0.85) contrast(1.05)";
-});
-btnShift.addEventListener("click", () => {
-  // subtle layout reality shift
-  document.querySelector(".app").style.gridTemplateColumns =
-    getComputedStyle(document.querySelector(".app")).gridTemplateColumns.startsWith("320px") ? "360px 1fr" : "320px 1fr";
-});
-btnReset.addEventListener("click", () => { Object.keys(state).forEach(k => delete state[k]); persist(); location.reload(); });
-
-// open last viewed email or first
-openEmail(state.selected || emails[0].id);
+// start
+window.onload=()=>{
+  showPopup("You work at {REDACTED}. Position: {REDACTED}");
+  setTimeout(()=>nextEmail(),3000);
+};
 </script>
 </body>
 </html>
