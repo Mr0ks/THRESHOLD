@@ -5,194 +5,298 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>404</title>
 <style>
-  /* GitHub Pages 404 vibe (light, centered) */
+  /* --- Base: GitHub Pages 404 vibe --- */
   :root{
-    --ink:#0D1117; --muted:#57606a; --link:#0969da; --bg:#ffffff;
-    --weird:0;           /* 0..100 */
-    --skew:0deg; --rot:0deg; --blur:0px; --sat:1; --hue:0deg; --crt:0;
+    --bg:#ffffff; --ink:#0d1117; --muted:#57606a; --link:#0969da; --panel:#fff;
+    --edge:#d0d7de; --depth:0; --vignette:0; --tint:0deg; --sat:1;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
     font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
   a{color:var(--link);text-decoration:none}
   a:hover{text-decoration:underline}
-  .wrap{min-height:100%;display:grid;place-items:center;padding:32px}
-  .card{max-width:720px;text-align:center;transform:skew(var(--skew)) rotate(var(--rot));
-    filter:hue-rotate(var(--hue)) saturate(var(--sat)) blur(var(--blur));}
-  h1{font-weight:500;font-size:72px;line-height:1;margin:0 0 4px}
-  h2{font-weight:600;font-size:22px;margin:8px 0 12px}
+  .wrap{min-height:100%;display:grid;place-items:center;padding:32px;position:relative;overflow:hidden}
+  .card{max-width:760px;text-align:center;border-radius:12px;padding:0 16px;position:relative}
+  h1{font-weight:500;font-size:72px;line-height:1;margin:0 0 6px}
+  h2{font-weight:600;font-size:22px;margin:4px 0 12px}
   p{margin:8px 0;color:var(--muted)}
   .links{margin-top:18px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
   .foot{margin-top:26px;color:var(--muted);font-size:14px}
   .dot{margin:0 12px;color:#d0d7de}
-  .scan{position:fixed;inset:0;pointer-events:none;opacity:calc(var(--crt));
-        background-image:repeating-linear-gradient( to bottom,
-          rgba(0,0,0,.035), rgba(0,0,0,.035) 1px, transparent 1px, transparent 3px);}
-  .shake{animation:sh .2s linear 1}
-  @keyframes sh{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}100%{transform:translateX(0)}}
-
-  /* subtle text corruption overlays */
-  .glitch{
-    position:relative;display:inline-block
+  .badge{display:inline-block;border:1px solid var(--edge);border-radius:999px;padding:4px 10px;margin-top:10px;color:var(--muted)}
+  .gallery{display:grid;grid-template-columns:repeat(3,minmax(120px,1fr));gap:10px;max-width:760px;margin:18px auto 0}
+  canvas.thumb{width:100%;aspect-ratio:4/3;height:auto;border:1px solid var(--edge);border-radius:10px;background:#0a0f18}
+  /* --- Darkness layers (increase with depth) --- */
+  .noise, .vignette, .tint {
+    position:fixed; inset:0; pointer-events:none; z-index:0;
   }
-  .glitch::before,.glitch::after{
-    content:attr(data-text);position:absolute;inset:0;pointer-events:none;opacity:calc(var(--weird)/160);
-    mix-blend-mode:multiply;color:#ff006c;clip-path:polygon(0 0,100% 0,100% 48%,0 52%);
+  .noise{opacity:0; mix-blend-mode:multiply}
+  .vignette{
+    background: radial-gradient(ellipse at center,
+      rgba(0,0,0,0) 40%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.6) 100%);
+    opacity:var(--vignette);
   }
-  .glitch::after{color:#00d0ff;clip-path:polygon(0 58%,100% 54%,100% 100%,0 100%)}
-  .badge{display:inline-block;border:1px solid #d0d7de;border-radius:999px;padding:4px 10px;margin-top:6px;color:#57606a}
+  .tint{background:transparent; filter:hue-rotate(var(--tint)) saturate(var(--sat));}
+  /* --- Foreground container on top of layers --- */
+  .content{position:relative; z-index:1;}
+  /* --- Cursor watcher --- */
+  .watcher{
+    position:fixed; width:18px; height:18px; border-radius:50%;
+    box-shadow:0 0 18px 6px rgba(0,0,0,.25);
+    transform:translate(-50%,-50%); pointer-events:none; z-index:2;
+    background: radial-gradient(circle at 45% 40%, #222 0%, #000 60%, #0000 65%);
+    opacity:0;
+  }
+  /* --- Depth-driven theme switches (no blur or text mangling) --- */
+  .stage-1{ --bg:#ffffff; --panel:#fff; --ink:#0d1117; --muted:#57606a; --link:#0969da; --edge:#d0d7de; }
+  .stage-2{ --bg:#f6f8fa; --panel:#fefefe; }
+  .stage-3{ --bg:#0b0f13; --panel:#0f141a; --ink:#e6edf3; --muted:#9aa5b1; --link:#7db7ff; --edge:#243044; }
+  .stage-4{ --bg:#06080c; --panel:#0a0f16; }
+  /* Accessibility note */
+  .sr{position:absolute;left:-9999px}
 </style>
 </head>
-<body>
+<body class="stage-1">
 <div class="wrap">
-  <div class="card" id="card">
-    <h1 class="glitch" id="big404" data-text="404">404</h1>
-    <h2 id="fileTitle">File not found</h2>
+  <!-- Darkness layers -->
+  <canvas class="noise" id="noise"></canvas>
+  <div class="vignette" id="vignette"></div>
+  <div class="tint" id="tint"></div>
+  <div class="watcher" id="watcher" aria-hidden="true"></div>
 
-    <p id="line1">The site configured at this address does not contain the requested file.</p>
-    <p id="line2">If this is your site, make sure that the filename case matches the URL as well as any file permissions.</p>
-    <p id="line3">For root URLs (like <code>http://example.com/</code>) you must provide an <code>index.html</code> file.</p>
-    <p><a href="#" class="deep link-doc">Read the full documentation</a> for more information about using GitHub Pages.</p>
+  <div class="content">
+    <div class="card">
+      <h1>404</h1>
+      <h2>File not found</h2>
+      <p>The site configured at this address does not contain the requested file.</p>
+      <p>If this is your site, make sure that the filename case matches the URL as well as any file permissions.</p>
+      <p>For root URLs (like <code>http://example.com/</code>) you must provide an <code>index.html</code> file.</p>
+      <p><a href="#" class="deep">Read the full documentation</a> for more information about using GitHub Pages.</p>
 
-    <!-- “extra” links to go deeper like the real page would hint -->
-    <div class="links" id="deepLinks">
-      <a href="#" class="deep">/docs</a>
-      <a href="#" class="deep">/help</a>
-      <a href="#" class="deep">/readme</a>
-      <a href="#" class="deep">/settings</a>
-      <a href="#" class="deep">/status</a>
-      <a href="#" class="deep">/index.html</a>
-    </div>
+      <div class="links" id="deepLinks">
+        <a href="#" class="deep">/docs</a>
+        <a href="#" class="deep">/help</a>
+        <a href="#" class="deep">/readme</a>
+        <a href="#" class="deep">/settings</a>
+        <a href="#" class="deep">/status</a>
+        <a href="#" class="deep">/index.html</a>
+      </div>
 
-    <div class="badge" id="badge">Depth: <span id="depth">0</span> · Weirdness: <span id="weird">0%</span> — <a href="#" id="back">Back</a> · <a href="#" id="scan">Scanlines</a></div>
+      <div class="badge">Depth: <span id="depth">0</span> — <a href="#" id="back">Back</a> · <a href="#" id="mute">Mute</a></div>
 
-    <div class="foot">
-      <a href="#" class="deep">@githubstatus</a>
-      <span class="dot">—</span>
-      <a href="#" class="deep">GitHub Status</a>
-      <div style="margin-top:6px"><a href="#" class="deep" id="octo">🐙</a></div>
+      <!-- generated “scary images” appear here as you go deeper -->
+      <div class="gallery" id="gallery" aria-live="polite"></div>
+
+      <div class="foot">
+        <a href="#" class="deep">@githubstatus</a>
+        <span class="dot">—</span>
+        <a href="#" class="deep">GitHub Status</a>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="scan" id="scanLayer" hidden></div>
-
 <script>
-  // State
-  let depth = 0;
-  const maxDepth = 40; // plenty of weird
-  const els = {
-    depth: document.getElementById('depth'),
-    weird: document.getElementById('weird'),
-    big404: document.getElementById('big404'),
-    fileTitle: document.getElementById('fileTitle'),
-    l1: document.getElementById('line1'),
-    l2: document.getElementById('line2'),
-    l3: document.getElementById('line3'),
-    card: document.getElementById('card'),
-    scanLayer: document.getElementById('scanLayer'),
-    badge: document.getElementById('badge')
-  };
+/* ====== State ====== */
+let depth = 0;
+const maxDepth = 40;
+const dEl = document.getElementById('depth');
+const gallery = document.getElementById('gallery');
+const watcher = document.getElementById('watcher');
+const noiseCanvas = document.getElementById('noise');
+const noiseCtx = noiseCanvas.getContext('2d');
+const vignette = document.getElementById('vignette');
+const tint = document.getElementById('tint');
 
-  // Helpers
-  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
-  const rand=(a,b)=>Math.random()*(b-a)+a;
+/* ====== Audio (starts on first click only) ====== */
+let ac=null, master=null, humOsc=null, hiss=null, muted=false;
+function ensureAudio(){
+  if (ac) return;
+  ac = new (window.AudioContext||window.webkitAudioContext)();
+  master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
 
-  function scramble(text, p){
-    const swap = {'a':'Ⱥ','e':'Ɇ','i':'į','o':'Ø','u':'Ü','s':'§','t':'Ŧ','l':'∣','n':'И','r':'Я'};
-    return text.split('').map(ch=>{
-      if(/[A-Za-z]/.test(ch) && Math.random()<p) return (swap[ch.toLowerCase()]||ch).toString();
-      if(Math.random()<p/4) return ['·','•','░','▒','▓','~','^','/','\\'][Math.floor(Math.random()*9)];
-      return ch;
-    }).join('');
+  // deep hum (detuned sines)
+  const o1 = ac.createOscillator(); o1.type='sine'; o1.frequency.value=38;
+  const o2 = ac.createOscillator(); o2.type='sine'; o2.frequency.value=41;
+  const gHum = ac.createGain(); gHum.gain.value = 0.0;
+  o1.connect(gHum); o2.connect(gHum); gHum.connect(master); o1.start(); o2.start(); humOsc = gHum;
+
+  // soft hiss (noise buffer)
+  const b = ac.createBuffer(1, ac.sampleRate*2, ac.sampleRate);
+  const data = b.getChannelData(0);
+  for (let i=0;i<data.length;i++){ data[i] = (Math.random()*2-1)*0.12; }
+  const n = ac.createBufferSource(); n.buffer=b; n.loop=true;
+  const gHiss = ac.createGain(); gHiss.gain.value=0.0; n.connect(gHiss); gHiss.connect(master); n.start(); hiss=gHiss;
+}
+
+/* ====== Depth progression (no blur or text distortion) ====== */
+function setStage(){
+  dEl.textContent = depth;
+
+  // Theme stages
+  document.body.className =
+    depth < 2 ? 'stage-1' :
+    depth < 5 ? 'stage-2' :
+    depth < 9 ? 'stage-3' : 'stage-4';
+
+  // Darkness controls
+  const noiseLevel = Math.min(1, Math.max(0, (depth-2)/12)); // 0..1
+  noiseCanvas.style.opacity = noiseLevel*0.85;
+
+  const vig = Math.min(0.85, Math.max(0, (depth-3)/8));
+  document.documentElement.style.setProperty('--vignette', vig);
+
+  const hue = (depth-6)*7; // subtle tinting as we go down
+  const sat = 1 + Math.max(0,(depth-6))*0.02;
+  document.documentElement.style.setProperty('--tint', hue+'deg');
+  document.documentElement.style.setProperty('--sat', sat);
+
+  // Watcher opacity & speed
+  watcher.style.opacity = Math.min(1, Math.max(0,(depth-5)/10));
+
+  // Audio levels
+  if (ac && !muted){
+    master.gain.linearRampToValueAtTime(Math.min(0.5, depth*0.02), ac.currentTime+0.2);
+    humOsc.gain.linearRampToValueAtTime(Math.min(0.3, depth*0.015), ac.currentTime+0.2);
+    hiss.gain.linearRampToValueAtTime(Math.min(0.2, depth*0.01), ac.currentTime+0.2);
   }
 
-  function updateWeird(){
-    const w = clamp(depth*3.2,0,100); // %
-    const blur = depth>6 ? (depth-6)*0.12 : 0;
-    const sat = 1 + depth*0.015;
-    const hue = depth*2; // subtle on white
-    const skew = clamp(depth*0.1,0,4);
-    const rot  = depth>20 ? clamp((depth-20)*0.15,0,3) : 0;
+  // Generate/refresh “images” with depth
+  renderGallery();
+}
 
-    document.documentElement.style.setProperty('--weird', w);
-    document.documentElement.style.setProperty('--blur', blur+'px');
-    document.documentElement.style.setProperty('--sat', sat.toFixed(2));
-    document.documentElement.style.setProperty('--hue', hue+'deg');
-    document.documentElement.style.setProperty('--skew', skew+'deg');
-    document.documentElement.style.setProperty('--rot', rot+'deg');
+/* ====== Rorschach-style image generation ====== */
+function drawRorschach(ctx, w, h, seed){
+  function rnd(){ seed = (seed*1664525 + 1013904223) % 4294967296; return seed/4294967296; }
+  ctx.fillStyle = '#0a0f18'; ctx.fillRect(0,0,w,h);
 
-    els.depth.textContent = depth;
-    els.weird.textContent = Math.round(w)+'%';
+  // background haze
+  for (let i=0;i<120;i++){
+    ctx.fillStyle = `rgba(255,255,255,${rnd()*0.03})`;
+    ctx.fillRect(rnd()*w, rnd()*h, 1, 1);
+  }
 
-    // Gradual copy corruption
-    const pow = clamp(depth/24,0,0.75);
-    els.big404.dataset.text = els.big404.textContent = depth<2 ? '404' : scramble('404', pow*0.6);
-    els.fileTitle.textContent = depth<3 ? 'File not found' : scramble('File not found', pow);
-    els.l1.textContent = depth<5 ? 'The site configured at this address does not contain the requested file.' :
-                          scramble('The site configured at this address does not contain the requested file.', pow);
-    els.l2.textContent = depth<7 ? 'If this is your site, make sure that the filename case matches the URL as well as any file permissions.' :
-                          scramble('If this is your site, make sure that the filename case matches the URL as well as any file permissions.', pow);
-    els.l3.innerHTML = depth<9 ? 'For root URLs (like <code>http://example.com/</code>) you must provide an <code>index.html</code> file.' :
-                          scramble('For root URLs (like http://example.com/) you must provide an index.html file.', pow);
+  // dark blot
+  const layers = 5 + Math.floor(depth/3);
+  for (let L=0; L<layers; L++){
+    const cx = w*0.25 + rnd()*w*0.25;
+    const cy = h*0.25 + rnd()*h*0.5;
+    const r  = (Math.min(w,h)*0.1) + rnd()*Math.min(w,h)*0.25;
+    const ang= rnd()*Math.PI*2;
+    const kx = Math.cos(ang), ky = Math.sin(ang);
 
-    // Small occasional shake
-    if (Math.random()<0.18 && depth>0) {
-      els.card.classList.add('shake');
-      setTimeout(()=>els.card.classList.remove('shake'),220);
+    ctx.beginPath();
+    for (let a=0;a<Math.PI*2; a+=Math.PI/24){
+      const rr = r*(0.6 + rnd()*0.8);
+      const x = cx + Math.cos(a)*rr + kx*rnd()*10;
+      const y = cy + Math.sin(a)*rr + ky*rnd()*10;
+      if (a===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    const shade = Math.floor(20 + rnd()*40);
+    ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+    ctx.fill();
+
+    // mirror to right side
+    const img = ctx.getImageData(0,0,w/2,h);
+    ctx.save();
+    ctx.scale(-1,1); // mirror horizontally
+    ctx.putImageData(img, -w, 0);
+    ctx.restore();
+  }
+
+  // occasional "eye-like" hints (just circles)
+  if (depth>8 && rnd()<0.8){
+    const ex = w*0.33, ey = h*0.42;
+    ctx.fillStyle = 'rgba(240,240,240,0.08)';
+    ctx.beginPath(); ctx.arc(ex,ey, 8+rnd()*5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w-ex,ey, 8+rnd()*5,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function renderGallery(){
+  // Number of thumbs increases with depth
+  const need = Math.min(9, Math.max(0, Math.floor((depth-3)/2)));
+  const current = gallery.querySelectorAll('canvas.thumb').length;
+  if (need !== current){
+    gallery.innerHTML = '';
+    for (let i=0;i<need;i++){
+      const c = document.createElement('canvas');
+      c.className = 'thumb';
+      c.width = 320; c.height = 240;
+      gallery.appendChild(c);
     }
   }
-
-  function addDepth(n=1){
-    depth = clamp(depth + n, 0, maxDepth);
-    updateWeird();
-    mutateLinks();
-  }
-
-  function back(){
-    addDepth(-1);
-  }
-
-  function mutateLinks(){
-    // Scramble visible "deep" links progressively
-    const p = clamp(depth/18,0,0.85);
-    document.querySelectorAll('a.deep').forEach(a=>{
-      const label = a.dataset.base ?? a.textContent;
-      a.dataset.base = label;
-      a.textContent = scramble(label, p);
-    });
-  }
-
-  // Bind actions
-  document.querySelectorAll('a.deep').forEach(a=>{
-    a.addEventListener('click', (e)=>{
-      e.preventDefault();
-      addDepth(1);
-    });
+  // (re)draw all thumbs
+  gallery.querySelectorAll('canvas.thumb').forEach((c, i)=>{
+    const ctx = c.getContext('2d');
+    drawRorschach(ctx, c.width, c.height, (i+1)*123456 + depth*777);
   });
+}
 
-  document.getElementById('back').addEventListener('click', (e)=>{ e.preventDefault(); back(); });
-  document.getElementById('scan').addEventListener('click', (e)=>{
-    e.preventDefault();
-    const on = els.scanLayer.hasAttribute('hidden') ? 1 : 0;
-    document.documentElement.style.setProperty('--crt', on? .18 : 0);
-    els.scanLayer.toggleAttribute('hidden');
-  });
+/* ====== Noise animation ====== */
+function resizeNoise(){
+  noiseCanvas.width = window.innerWidth;
+  noiseCanvas.height = window.innerHeight;
+}
+function loopNoise(){
+  const w = noiseCanvas.width, h = noiseCanvas.height;
+  const img = noiseCtx.createImageData(w, h);
+  for (let i=0; i<img.data.length; i+=4){
+    const v = (Math.random()*255)|0;
+    img.data[i]=v; img.data[i+1]=v; img.data[i+2]=v; img.data[i+3]=28; // faint static
+  }
+  noiseCtx.putImageData(img,0,0);
+  requestAnimationFrame(loopNoise);
+}
 
-  // Keyboard shortcuts
-  window.addEventListener('keydown',(e)=>{
-    const k=e.key.toLowerCase();
-    if(k==='b') back();
-    if(k==='e'){
-      const on = els.scanLayer.hasAttribute('hidden') ? 1 : 0;
-      document.documentElement.style.setProperty('--crt', on? .18 : 0);
-      els.scanLayer.toggleAttribute('hidden');
-    }
-  });
+/* ====== Cursor watcher ====== */
+let tx=0, ty=0, wx=0, wy=0;
+window.addEventListener('mousemove', (e)=>{
+  tx = e.clientX; ty = e.clientY;
+});
+function animateWatcher(){
+  const speed = 0.06 + Math.max(0,(depth-5))*0.002;
+  wx += (tx - wx) * speed;
+  wy += (ty - wy) * speed;
+  watcher.style.left = wx + 'px';
+  watcher.style.top  = wy + 'px';
+  requestAnimationFrame(animateWatcher);
+}
 
-  // Init
-  updateWeird();
-  mutateLinks();
+/* ====== Link handling ====== */
+function goDeeper(){
+  ensureAudio();
+  if (depth < maxDepth) depth++;
+  setStage();
+}
+function goBack(){
+  if (depth>0) depth--;
+  setStage();
+}
+document.querySelectorAll('.deep').forEach(a=>{
+  a.addEventListener('click', (e)=>{ e.preventDefault(); goDeeper(); });
+});
+document.getElementById('back').addEventListener('click', (e)=>{ e.preventDefault(); goBack(); });
+
+/* mute / unmute */
+document.getElementById('mute').addEventListener('click', (e)=>{
+  e.preventDefault();
+  if (!ac) { ensureAudio(); }
+  muted = !muted;
+  if (muted){ master.gain.linearRampToValueAtTime(0, ac.currentTime+0.2); e.target.textContent='Unmute'; }
+  else { master.gain.linearRampToValueAtTime(Math.min(0.5, depth*0.02), ac.currentTime+0.2); e.target.textContent='Mute'; }
+});
+
+/* Keyboard shortcuts */
+window.addEventListener('keydown', (e)=>{
+  const k = e.key.toLowerCase();
+  if (k==='b') goBack();
+  if (k==='m'){ const evt=new Event('click'); document.getElementById('mute').dispatchEvent(evt); }
+});
+
+/* ====== Init ====== */
+resizeNoise(); loopNoise(); animateWatcher(); setStage();
+window.addEventListener('resize', resizeNoise);
 </script>
 </body>
 </html>
