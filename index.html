@@ -9,12 +9,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f1226;
-      --accent: #78e0ff;
-      --accent-2: #ff7ad9;
-      --text: #f7f8ff;
-      --muted: #cfd2ff;
-      --glow: 0 0 24px rgba(120, 224, 255, 0.45);
+      --bg: #000000;
+      --accent: #ffffff;
+      --accent-2: #cccccc;
+      --text: #ffffff;
+      --muted: #aaaaaa;
+      --glow: 0 0 24px rgba(255, 255, 255, 0.45);
     }
 
     * { box-sizing: border-box; }
@@ -27,9 +27,7 @@
 
     body {
       font-family: "Fredoka", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 20% 10%, #1a1f49 0%, #0f1226 60%),
-                  radial-gradient(800px 600px at 95% 5%, #1a1f49 0%, transparent 60%),
-                  var(--bg);
+      background: var(--bg);
       color: var(--text);
       display: grid;
       place-items: center;
@@ -38,12 +36,12 @@
 
     /* Floating background bubbles */
     .bubbles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
-    .bubble { position: absolute; border-radius: 999px; opacity: .35; filter: blur(1px); animation: floatUp linear infinite; }
-    .bubble:nth-child(1){ width: 140px; height: 140px; background: var(--accent); left: 6%; bottom: -160px; animation-duration: 18s; animation-delay: 0s; }
-    .bubble:nth-child(2){ width: 90px; height: 90px; background: var(--accent-2); left: 24%; bottom: -120px; animation-duration: 15s; animation-delay: 2s; }
-    .bubble:nth-child(3){ width: 170px; height: 170px; background: var(--accent); left: 66%; bottom: -200px; animation-duration: 22s; animation-delay: 1s; }
-    .bubble:nth-child(4){ width: 110px; height: 110px; background: var(--accent-2); left: 84%; bottom: -130px; animation-duration: 16s; animation-delay: 4s; }
-    .bubble:nth-child(5){ width: 70px; height: 70px; background: var(--accent); left: 48%; bottom: -90px; animation-duration: 13s; animation-delay: 6s; }
+    .bubble { position: absolute; border-radius: 999px; opacity: .15; filter: blur(1px); animation: floatUp linear infinite; background: var(--accent); }
+    .bubble:nth-child(1){ width: 140px; height: 140px; left: 6%; bottom: -160px; animation-duration: 18s; animation-delay: 0s; }
+    .bubble:nth-child(2){ width: 90px; height: 90px; left: 24%; bottom: -120px; animation-duration: 15s; animation-delay: 2s; }
+    .bubble:nth-child(3){ width: 170px; height: 170px; left: 66%; bottom: -200px; animation-duration: 22s; animation-delay: 1s; }
+    .bubble:nth-child(4){ width: 110px; height: 110px; left: 84%; bottom: -130px; animation-duration: 16s; animation-delay: 4s; }
+    .bubble:nth-child(5){ width: 70px; height: 70px; left: 48%; bottom: -90px; animation-duration: 13s; animation-delay: 6s; }
 
     @keyframes floatUp {
       0% { transform: translateY(0) translateX(0) scale(1); }
@@ -62,7 +60,7 @@
       line-height: 1.05;
       margin: 0 0 .25em 0;
       letter-spacing: .5px;
-      text-shadow: 0 2px 0 rgba(0,0,0,.2), 0 6px 24px rgba(120, 224, 255, .25);
+      text-shadow: 0 2px 0 rgba(255,255,255,.2), 0 6px 24px rgba(255,255,255,.25);
     }
     .subtitle {
       font-size: clamp(1rem, 1.8vw, 1.25rem);
@@ -84,27 +82,26 @@
     svg.trolley {
       width: 100%;
       height: auto;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+      filter: drop-shadow(0 10px 18px rgba(255,255,255,.35));
     }
 
     .actions { margin-top: 1.8em; }
 
     .start-btn {
-      --btn-bg: linear-gradient(135deg, var(--accent), #a2f0ff 60%);
       display: inline-block;
       font-weight: 700;
       font-size: clamp(1.4rem, 3vw, 1.8rem);
       padding: 1.2em 2.4em;
       border-radius: 999px;
-      color: #0b1220;
+      color: #000000;
       text-decoration: none;
-      background: var(--btn-bg);
-      box-shadow: 0 8px 20px rgba(120, 224, 255, .45), inset 0 -3px 0 rgba(0,0,0,.15);
+      background: #ffffff;
+      box-shadow: 0 8px 20px rgba(255, 255, 255, .45), inset 0 -3px 0 rgba(0,0,0,.15);
       border: 0;
       transition: transform .08s ease, filter .2s ease;
       will-change: transform;
     }
-    .start-btn:hover { transform: translateY(-1px) scale(1.02); filter: saturate(1.05); }
+    .start-btn:hover { transform: translateY(-1px) scale(1.02); filter: brightness(1.1); }
     .start-btn:active { transform: translateY(1px) scale(.99); }
 
     .note { font-size: .95rem; color: var(--muted); display: block; margin-top: 0.6em; }
@@ -129,48 +126,32 @@
 
     <div class="copy">
       <p>In <strong>Absurd Trolley</strong>, you steer a spirited trolley through ridiculous dilemmas, questionable upgrades, and glorious chaos. Choices matter… except when they don’t. 🤷‍♂️</p>
-      <p>Tap <em>Start</em> to roll out. You’ll be asked to make split‑second calls, collect shiny trinkets, and occasionally honk at sentient signage. It’s trolley time.</p>
+      <p>Tap <em>Start</em> to roll out. You’ll be asked to make split-second calls, collect shiny trinkets, and occasionally honk at sentient signage. It’s trolley time.</p>
     </div>
 
     <div class="trolley-wrap">
       <!-- Large trolley illustration (SVG) -->
       <svg class="trolley" viewBox="0 0 560 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cartoon trolley illustration">
-        <defs>
-          <linearGradient id="car" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#a2f0ff"/>
-            <stop offset="100%" stop-color="#78e0ff"/>
-          </linearGradient>
-          <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#ffb0e7"/>
-            <stop offset="100%" stop-color="#ff7ad9"/>
-          </linearGradient>
-        </defs>
-        <!-- body -->
-        <rect x="90" y="90" rx="20" ry="20" width="320" height="120" fill="url(#car)" stroke="#0b1220" stroke-width="10"/>
-        <!-- handle -->
-        <path d="M410 105 L470 60" stroke="url(#accent)" stroke-width="16" stroke-linecap="round"/>
-        <path d="M470 60 Q488 48 500 65" stroke="#0b1220" stroke-width="10" fill="none" stroke-linecap="round"/>
-        <!-- grill lines -->
-        <g stroke="#0b1220" stroke-width="6" opacity=".35">
+        <rect x="90" y="90" rx="20" ry="20" width="320" height="120" fill="#ffffff" stroke="#000000" stroke-width="10"/>
+        <path d="M410 105 L470 60" stroke="#cccccc" stroke-width="16" stroke-linecap="round"/>
+        <path d="M470 60 Q488 48 500 65" stroke="#000000" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <g stroke="#000000" stroke-width="6" opacity=".35">
           <path d="M120 120 H385" />
           <path d="M120 145 H385" />
           <path d="M120 170 H385" />
         </g>
-        <!-- wheels -->
         <g>
-          <circle cx="170" cy="235" r="34" fill="#0b1220" />
-          <circle cx="170" cy="235" r="18" fill="#1c2540" />
-          <circle cx="330" cy="235" r="34" fill="#0b1220" />
-          <circle cx="330" cy="235" r="18" fill="#1c2540" />
+          <circle cx="170" cy="235" r="34" fill="#000000" />
+          <circle cx="170" cy="235" r="18" fill="#555555" />
+          <circle cx="330" cy="235" r="34" fill="#000000" />
+          <circle cx="330" cy="235" r="18" fill="#555555" />
         </g>
-        <!-- sparkles -->
-        <g fill="url(#accent)">
+        <g fill="#cccccc">
           <circle cx="70" cy="90" r="6" />
           <circle cx="500" cy="120" r="5" />
           <circle cx="430" cy="40" r="4" />
         </g>
-        <!-- tiny tracks -->
-        <g stroke="#0b1220" stroke-width="10" opacity=".25">
+        <g stroke="#000000" stroke-width="10" opacity=".25">
           <path d="M80 280 H480" />
           <path d="M120 300 H520" />
         </g>
