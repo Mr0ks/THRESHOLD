@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>404 Adventure • Escape the Error</title>
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#111726; --edge:#24324f; --ink:#eaf3ff; --muted:#90a0b8; --accent:#7dd3fc; --ok:#a7ffb1;
+  }
+  *{ box-sizing: border-box }
+  html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+  .wrap{ min-height:100%; display:grid; place-items:center; padding:28px 16px; }
+  .card{ width:min(940px,96vw); background:var(--panel); border:1px solid var(--edge); border-radius:16px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+  h1{ margin:0 0 12px; font-size: clamp(22px, 3vw, 30px); letter-spacing:.3px }
+  p{ margin:0 0 12px; color:var(--muted); line-height:1.6 }
+  a{ color:var(--accent); text-decoration:none; border-bottom:1px dashed currentColor }
+  a:hover{ opacity:.85 }
+  .term{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0a0f18; padding:12px; border-radius:10px; border:1px dashed var(--edge); margin:14px 0; color:#cde1ff; max-height:160px; overflow:auto }
+  .grid{ display:grid; gap:10px; grid-template-columns: repeat(3, 1fr); margin-top:10px }
+  .btn{ display:inline-block; padding:10px 12px; border-radius:10px; border:1px solid var(--edge); background:#0e1420; color:var(--ink); }
+  .btn:hover{ background:#121a2b }
+  .links{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px }
+  .tile{ border:1px dashed var(--edge); border-radius:10px; aspect-ratio: 1.6/1; display:grid; place-items:center; color:#7b8ca8; background:#0a0f18; position:relative; overflow:hidden }
+  .tile img{ width:100%; height:100%; object-fit:cover; display:block }
+  .tile.broken::before{ content:"🖼️ ×"; position:absolute; inset:auto auto 8px 8px; font-size:1rem; color:#5a6d8d }
+  .hidden{ display:none }
+  .ok{ color:var(--ok) }
+  .section{ margin-top:14px }
+  .kbd{ padding:2px 6px; border:1px solid var(--edge); border-radius:6px; background:#0b1220; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .portal{ display:none; margin-top:16px; padding:14px; border-radius:12px; background: #0b1220; border:1px solid #2a3a5e }
+  .scanlines{ position:fixed; inset:0; pointer-events:none; background-image: repeating-linear-gradient( to bottom, rgba(255,255,255,0.04), rgba(255,255,255,0.04) 1px, transparent 1px, transparent 3px ); opacity:.15 }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>404 — You slipped through a broken link.</h1>
+    <p>Find the hidden <strong>3-digit escape code</strong> scattered across the wreckage of this page and open the portal home. Each digit hides in a different kind of <em>brokenness</em>.</p>
+
+    <div class="term" id="log" aria-live="polite">
+      <div>system: route lost. collect 3 digits — then <a href="#" id="open">open portal</a>.</div>
+      <div>hint: try honest dead links, failed images, and noisy consoles.</div>
+      <div>tip: press <span class="kbd">E</span> to toggle scanlines (purely cosmetic).</div>
+    </div>
+
+    <div class="section">
+      <h3>1) Dead Links</h3>
+      <p>Some links lie; one confesses. Click around.</p>
+      <div class="links">
+        <a class="btn dead" href="javascript:history.back()">/goback</a>
+        <a class="btn dead" href="#undef">/undef</a>
+        <a class="btn dead" href="//">/root</a>
+        <a class="btn dead honest" href="#" data-digit="2">/honest-404</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>2) Broken Images</h3>
+      <p>The pictures won’t load, but their <em>alt text</em> tries to help.</p>
+      <div class="grid" aria-label="broken image grid">
+        <div class="tile broken"><img src="no-such-file-a.png" alt="fog rolls in at  <DIGIT: 7>  minutes past"></div>
+        <div class="tile broken"><img src="no-such-file-b.png" alt="ticket stub # 4 9 "></div>
+        <div class="tile broken"><img src="no-such-file-c.png" alt="elevator halts on floor [?]"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>3) Fake Error Console</h3>
+      <p>Click to “copy” the stack trace. Sometimes, debug logs whisper numbers.</p>
+      <div class="term" id="console" role="button" tabindex="0">
+        <div>&gt; error: cannot GET /home</div>
+        <div>&gt; warn: fallback route engaged</div>
+        <div>&gt; info: node <span class="ok">5</span> acknowledged</div>
+      </div>
+    </div>
+
+    <div id="portal" class="portal">
+      <div class="ok">portal: OPEN</div>
+      <div>Success. Head <a href="./">home</a> or <a href="#" id="again">play again</a>.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const log = document.getElementById('log');
+const portal = document.getElementById('portal');
+const openBtn = document.getElementById('open');
+const consoleBox = document.getElementById('console');
+
+let digits = { dead:null, alt:null, console:null };
+let scanlines;
+
+function write(msg){
+  const d=document.createElement('div'); d.innerHTML=msg; log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+}
+
+document.querySelectorAll('.dead').forEach(a=>{
+  a.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if (a.classList.contains('honest')) {
+      digits.dead = a.dataset.digit || '2';
+      write(`dead-link confessed: <strong class="ok">${digits.dead}</strong>`);
+      a.style.filter='brightness(1.4)';
+      a.style.borderColor='#3b8bd6';
+    } else {
+      write(`"${a.textContent}" went nowhere…`);
+      shake(a);
+    }
+  });
+});
+
+function parseAlts(){
+  const alts = [...document.querySelectorAll('img')].map(img=>img.alt||'').join(' ');
+  const m = alts.match(/DIGIT:\s*([0-9])/);
+  if (m) {
+    digits.alt = m[1];
+    write(`images tried to tell you: <strong class="ok">${digits.alt}</strong>`);
+  } else {
+    write(`images stayed silent.`);
+  }
+}
+window.addEventListener('load', ()=> setTimeout(parseAlts, 400));
+
+consoleBox.addEventListener('click', ()=>{
+  digits.console = '5';
+  write(`console whispered: <strong class="ok">${digits.console}</strong>`);
+  pulse(consoleBox);
+});
+
+openBtn.addEventListener('click', (e)=>{
+  e.preventDefault();
+  attemptOpen();
+});
+
+document.getElementById('again').addEventListener('click', (e)=>{
+  e.preventDefault();
+  digits = {dead:null, alt:null, console:null};
+  portal.style.display='none';
+  write('portal closed. collect the digits again.');
+});
+
+function attemptOpen(){
+  const code = `${digits.dead??'?'}${digits.alt??'?'}${digits.console??'?'}`;
+  if (/^\d{3}$/.test(code)) {
+    write(`escape code accepted: <strong class="ok">${code}</strong>`);
+    portal.style.display='block';
+  } else {
+    write(`need 3 digits; current: <strong>${code}</strong>`);
+  }
+}
+
+function shake(el){
+  el.animate([
+    {transform:'translateX(0)'},
+    {transform:'translateX(-6px)'},
+    {transform:'translateX(6px)'},
+    {transform:'translateX(0)'}
+  ], {duration:220});
+}
+function pulse(el){
+  el.animate([{filter:'brightness(1)'},{filter:'brightness(1.6)'},{filter:'brightness(1)'}], {duration:300});
+}
+
+// Cosmetic scanlines toggle
+window.addEventListener('keydown', (e)=>{
+  if (e.key.toLowerCase()==='e'){
+    if (scanlines) { scanlines.remove(); scanlines=null; }
+    else { scanlines = document.createElement('div'); scanlines.className='scanlines'; document.body.appendChild(scanlines); }
+  }
+});
+</script>
+</body>
+</html>
