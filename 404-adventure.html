@@ -1,175 +1,273 @@
-<!doctype html>
+v<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>404 Adventure • Escape the Error</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>404 • Not Found</title>
 <style>
   :root{
-    --bg:#0c0f14; --panel:#111726; --edge:#24324f; --ink:#eaf3ff; --muted:#90a0b8; --accent:#7dd3fc; --ok:#a7ffb1;
+    --bg:#0d1117;
+    --panel:#0d1117;
+    --ink:#c9d1d9;
+    --muted:#8b949e;
+    --edge:#30363d;
+    --accent:#58a6ff;
+    --btn:#21262d;
+    --btn-hover:#30363d;
+    --ok:#a7ffb1;
+    --weird:0;          /* 0..100 */
+    --skew:0deg;
+    --blur:0px;
+    --sat:1;
+    --hue:0deg;
+    --jitter:0px;
+    --tilt:0deg;
   }
-  *{ box-sizing: border-box }
-  html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-  .wrap{ min-height:100%; display:grid; place-items:center; padding:28px 16px; }
-  .card{ width:min(940px,96vw); background:var(--panel); border:1px solid var(--edge); border-radius:16px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
-  h1{ margin:0 0 12px; font-size: clamp(22px, 3vw, 30px); letter-spacing:.3px }
-  p{ margin:0 0 12px; color:var(--muted); line-height:1.6 }
-  a{ color:var(--accent); text-decoration:none; border-bottom:1px dashed currentColor }
-  a:hover{ opacity:.85 }
-  .term{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0a0f18; padding:12px; border-radius:10px; border:1px dashed var(--edge); margin:14px 0; color:#cde1ff; max-height:160px; overflow:auto }
-  .grid{ display:grid; gap:10px; grid-template-columns: repeat(3, 1fr); margin-top:10px }
-  .btn{ display:inline-block; padding:10px 12px; border-radius:10px; border:1px solid var(--edge); background:#0e1420; color:var(--ink); }
-  .btn:hover{ background:#121a2b }
-  .links{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px }
-  .tile{ border:1px dashed var(--edge); border-radius:10px; aspect-ratio: 1.6/1; display:grid; place-items:center; color:#7b8ca8; background:#0a0f18; position:relative; overflow:hidden }
-  .tile img{ width:100%; height:100%; object-fit:cover; display:block }
-  .tile.broken::before{ content:"🖼️ ×"; position:absolute; inset:auto auto 8px 8px; font-size:1rem; color:#5a6d8d }
-  .hidden{ display:none }
-  .ok{ color:var(--ok) }
-  .section{ margin-top:14px }
-  .kbd{ padding:2px 6px; border:1px solid var(--edge); border-radius:6px; background:#0b1220; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-  .portal{ display:none; margin-top:16px; padding:14px; border-radius:12px; background: #0b1220; border:1px solid #2a3a5e }
-  .scanlines{ position:fixed; inset:0; pointer-events:none; background-image: repeating-linear-gradient( to bottom, rgba(255,255,255,0.04), rgba(255,255,255,0.04) 1px, transparent 1px, transparent 3px ); opacity:.15 }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{opacity:.9}
+  .navbar{
+    background:#161b22;border-bottom:1px solid var(--edge);
+    display:flex;align-items:center;gap:16px;padding:10px 16px;position:sticky;top:0;z-index:10
+  }
+  .logo{display:inline-flex;align-items:center;gap:8px;color:#e6edf3;font-weight:700}
+  .logo .mark{display:inline-grid;place-items:center;width:28px;height:28px;border:1px solid var(--edge);border-radius:6px;background:#0d1117}
+  .navlinks a{color:var(--muted);margin-right:14px}
+  .search{flex:1;display:flex;justify-content:flex-end}
+  .search input{background:#0d1117;border:1px solid var(--edge);border-radius:6px;padding:6px 10px;color:#e6edf3;min-width:220px}
+  .container{max-width:960px;margin:40px auto;padding:0 16px;transform:skew(var(--skew)) rotate(var(--tilt));filter:hue-rotate(var(--hue)) saturate(var(--sat)) blur(var(--blur))}
+  .card{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:24px}
+  h1{font-size:28px;margin:0 0 8px;letter-spacing:.2px}
+  .sub{color:var(--muted);margin-bottom:16px}
+  .row{display:flex;gap:24px;flex-wrap:wrap}
+  .column{flex:1;min-width:260px}
+  .box{border:1px solid var(--edge);border-radius:10px;padding:14px;background:#0b1320;box-shadow:0 0 0 0 rgba(0,0,0,0)}
+  .suggest a.btn{display:inline-block;background:var(--btn);border:1px solid var(--edge);padding:8px 12px;border-radius:8px;margin:6px 6px 0 0;color:#e6edf3}
+  .suggest a.btn:hover{background:var(--btn-hover)}
+  .deadlist a{display:block;padding:6px 0;border-bottom:1px dashed var(--edge)}
+  .deadlist a:last-child{border-bottom:none}
+  .muted{color:var(--muted)}
+  .crumbs{font-family:ui-monospace,Menlo,Consolas,monospace;border:1px dashed var(--edge);border-radius:8px;padding:10px;background:#0a0f18;margin:14px 0;color:#cde1ff;max-height:160px;overflow:auto}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 2px}
+  .tag{display:inline-block;border:1px solid var(--edge);border-radius:999px;padding:4px 10px;color:var(--muted);background:#0d1117}
+  .badimg{display:grid;place-items:center;border:1px dashed var(--edge);border-radius:10px;aspect-ratio:16/9;background:#0a0f18;color:#6a7b95;margin-top:10px;position:relative;overflow:hidden}
+  .badimg::after{content:"🖼️ ×";position:absolute;bottom:8px;left:8px;opacity:.7}
+  .glitchy{position:relative}
+  .glitchy::before,.glitchy::after{
+    content:attr(data-text);
+    position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:calc(var(--weird)/140);
+    text-shadow:calc(var(--jitter)*-1) 0 #f0f, var(--jitter) 0 #0ff;
+    clip-path:polygon(0 0,100% 0,100% 45%,0 55%);
+  }
+  .glitchy::after{clip-path:polygon(0 60%,100% 50%,100% 100%,0 100%)}
+  .shake{animation:shake .2s linear 1}
+  @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}100%{transform:translateX(0)}}
+  .scanlines{position:fixed;inset:0;pointer-events:none;background-image:repeating-linear-gradient(to bottom, rgba(255,255,255,0.045), rgba(255,255,255,0.045) 1px, transparent 1px, transparent 3px);opacity:.12}
+  .footer{color:var(--muted);text-align:center;margin:22px 0}
+  .warn{color:#ffb86b}
+  .ok{color:var(--ok)}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>404 — You slipped through a broken link.</h1>
-    <p>Find the hidden <strong>3-digit escape code</strong> scattered across the wreckage of this page and open the portal home. Each digit hides in a different kind of <em>brokenness</em>.</p>
-
-    <div class="term" id="log" aria-live="polite">
-      <div>system: route lost. collect 3 digits — then <a href="#" id="open">open portal</a>.</div>
-      <div>hint: try honest dead links, failed images, and noisy consoles.</div>
-      <div>tip: press <span class="kbd">E</span> to toggle scanlines (purely cosmetic).</div>
+  <div class="navbar">
+    <div class="logo"><span class="mark">&lt;&gt;</span> Hub</div>
+    <div class="navlinks">
+      <a href="#" class="nav n1">Issues</a>
+      <a href="#" class="nav n2">Pull requests</a>
+      <a href="#" class="nav n3">Actions</a>
+      <a href="#" class="nav n4">Projects</a>
+      <a href="#" class="nav n5">Wiki</a>
     </div>
-
-    <div class="section">
-      <h3>1) Dead Links</h3>
-      <p>Some links lie; one confesses. Click around.</p>
-      <div class="links">
-        <a class="btn dead" href="javascript:history.back()">/goback</a>
-        <a class="btn dead" href="#undef">/undef</a>
-        <a class="btn dead" href="//">/root</a>
-        <a class="btn dead honest" href="#" data-digit="2">/honest-404</a>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>2) Broken Images</h3>
-      <p>The pictures won’t load, but their <em>alt text</em> tries to help.</p>
-      <div class="grid" aria-label="broken image grid">
-        <div class="tile broken"><img src="no-such-file-a.png" alt="fog rolls in at  <DIGIT: 7>  minutes past"></div>
-        <div class="tile broken"><img src="no-such-file-b.png" alt="ticket stub # 4 9 "></div>
-        <div class="tile broken"><img src="no-such-file-c.png" alt="elevator halts on floor [?]"></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>3) Fake Error Console</h3>
-      <p>Click to “copy” the stack trace. Sometimes, debug logs whisper numbers.</p>
-      <div class="term" id="console" role="button" tabindex="0">
-        <div>&gt; error: cannot GET /home</div>
-        <div>&gt; warn: fallback route engaged</div>
-        <div>&gt; info: node <span class="ok">5</span> acknowledged</div>
-      </div>
-    </div>
-
-    <div id="portal" class="portal">
-      <div class="ok">portal: OPEN</div>
-      <div>Success. Head <a href="./">home</a> or <a href="#" id="again">play again</a>.</div>
-    </div>
+    <div class="search"><input placeholder="Search…" disabled></div>
   </div>
-</div>
+
+  <div class="container">
+    <div class="card">
+      <h1 id="title" class="glitchy" data-text="404 — This is not the web page you are looking for">404 — This is not the web page you are looking for</h1>
+      <div class="sub">You followed a link into a void. Every new link you click will take you <em>deeper</em> — and reality will bend a little more each time.</div>
+
+      <div class="toolbar">
+        <span class="tag">Depth: <strong id="depth">0</strong></span>
+        <span class="tag">Weirdness: <strong id="weirdness">0%</strong></span>
+        <a href="#" id="btnBack" class="tag">⬅ Back (B)</a>
+        <a href="#" id="btnScan" class="tag">Scanlines (E)</a>
+      </div>
+
+      <div class="crumbs" id="crumbs" aria-live="polite">path: /</div>
+
+      <div class="row">
+        <div class="column suggest">
+          <h3>Try these</h3>
+          <p class="muted">They might help… or break further.</p>
+          <div id="suggest"></div>
+        </div>
+
+        <div class="column">
+          <h3>Popular dead ends</h3>
+          <div id="deadList" class="deadlist"></div>
+          <div class="badimg">image failed to load: header-octo.webp</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer muted">Tip: Each click increases <span class="warn">distortion</span>. If the page becomes unreadable, go Back.</div>
+  </div>
 
 <script>
-const log = document.getElementById('log');
-const portal = document.getElementById('portal');
-const openBtn = document.getElementById('open');
-const consoleBox = document.getElementById('console');
+  // ===== State =====
+  let depth = 0;
+  const maxDepth = 30;
+  const path = [];
+  let scanLayer = null;
 
-let digits = { dead:null, alt:null, console:null };
-let scanlines;
+  const elDepth = document.getElementById('depth');
+  const elWeird = document.getElementById('weirdness');
+  const elCrumbs = document.getElementById('crumbs');
+  const elSuggest = document.getElementById('suggest');
+  const elDead = document.getElementById('deadList');
+  const title = document.getElementById('title');
+  const btnBack = document.getElementById('btnBack');
+  const btnScan = document.getElementById('btnScan');
 
-function write(msg){
-  const d=document.createElement('div'); d.innerHTML=msg; log.appendChild(d);
-  log.scrollTop = log.scrollHeight;
-}
+  // ===== Utilities =====
+  const rand = (a,b)=> Math.random()*(b-a)+a;
+  const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
+  const clamp = (n,min,max)=> Math.max(min, Math.min(max,n));
 
-document.querySelectorAll('.dead').forEach(a=>{
-  a.addEventListener('click', (e)=>{
-    e.preventDefault();
-    if (a.classList.contains('honest')) {
-      digits.dead = a.dataset.digit || '2';
-      write(`dead-link confessed: <strong class="ok">${digits.dead}</strong>`);
-      a.style.filter='brightness(1.4)';
-      a.style.borderColor='#3b8bd6';
-    } else {
-      write(`"${a.textContent}" went nowhere…`);
-      shake(a);
+  function scramble(text, intensity){
+    // replace some characters to look corrupted
+    const swaps = {'a':'@','e':'€','i':'¡','o':'0','u':'ü','s':'$','t':'†','l':'|','n':'∩','r':'Я'};
+    return text.split('').map(ch=>{
+      if (/[a-zA-Z]/.test(ch) && Math.random() < intensity) {
+        return swaps[ch.toLowerCase()] || ch.toUpperCase();
+      }
+      if (Math.random() < intensity/4) return ['‧','·','•','░','▒','▓','█','~','^'][Math.floor(Math.random()*9)];
+      return ch;
+    }).join('');
+  }
+
+  function makeSlug(){
+    const words = ["docs","guide","monorepo","workflow","actions","octo","readme","issues","pulls","milestones","hooks","bots","secrets","packages","graph","release"];
+    return pick(words)+"-"+Math.random().toString(36).slice(2,6);
+  }
+
+  function renderCrumbs(){
+    elCrumbs.textContent = "path: /" + path.join("/");
+  }
+
+  function renderLinks(){
+    // clean and build fresh links each depth
+    elSuggest.innerHTML = "";
+    elDead.innerHTML = "";
+
+    const base = [
+      "Go to Home","Explore Repositories","Read the Docs","Open an Issue",
+      "Search Topics","Visit Wiki","View Releases","Check Actions"
+    ];
+    const intensity = clamp(depth/20, 0, 0.9);
+
+    // Suggest buttons (like GitHub helper buttons)
+    base.slice(0,5).forEach((label,i)=>{
+      const a = document.createElement('a');
+      a.href="#";
+      a.className="btn link";
+      a.textContent = scramble(label, intensity*0.5);
+      a.dataset.slug = makeSlug();
+      elSuggest.appendChild(a);
+    });
+
+    // Dead-end list (like a list of links)
+    for (let i=0;i<6;i++){
+      const a = document.createElement('a');
+      a.href="#";
+      a.className="link";
+      a.textContent = scramble("/"+makeSlug(), intensity*0.8);
+      a.dataset.slug = makeSlug();
+      elDead.appendChild(a);
     }
+
+    // Bind all links
+    document.querySelectorAll('a.link').forEach(a=>{
+      a.addEventListener('click', (e)=> {
+        e.preventDefault();
+        goDeeper(a.dataset.slug, a);
+      });
+    });
+  }
+
+  function setWeirdness(){
+    // Map depth -> CSS vars
+    const w = clamp(depth*4, 0, 100);          // percent
+    const hue = depth * 7;                      // degrees
+    const blur = depth > 6 ? (depth-6) * 0.2 : 0;
+    const sat = 1 + depth * 0.03;
+    const skew = clamp(depth*0.1, 0, 6);
+    const tilt = depth > 10 ? clamp((depth-10)*0.2, 0, 4) : 0;
+    const jitter = clamp(depth*0.3, 0, 10);
+
+    document.documentElement.style.setProperty('--weird', w);
+    document.documentElement.style.setProperty('--hue', hue+'deg');
+    document.documentElement.style.setProperty('--blur', blur+'px');
+    document.documentElement.style.setProperty('--sat', sat.toFixed(2));
+    document.documentElement.style.setProperty('--skew', skew+'deg');
+    document.documentElement.style.setProperty('--tilt', tilt+'deg');
+    document.documentElement.style.setProperty('--jitter', jitter+'px');
+
+    elDepth.textContent = depth;
+    elWeird.textContent = Math.round(w) + "%";
+
+    // Title corruption level
+    const baseTitle = "404 — This is not the web page you are looking for";
+    const t = scramble(baseTitle, clamp(depth/18,0,0.8));
+    title.textContent = t;
+    title.dataset.text = t;
+
+    // Occasional layout twitch
+    if (depth > 0 && Math.random() < 0.2) {
+      title.classList.add('shake');
+      setTimeout(()=>title.classList.remove('shake'),220);
+    }
+  }
+
+  function goDeeper(slug, el){
+    if (depth >= maxDepth) return;
+    depth++;
+    path.push(slug);
+    renderCrumbs();
+    renderLinks();
+    setWeirdness();
+    if (el) el.classList.add('shake');
+  }
+
+  function goBack(){
+    if (depth <= 0) return;
+    depth--;
+    path.pop();
+    renderCrumbs();
+    renderLinks();
+    setWeirdness();
+  }
+
+  // ===== init =====
+  renderCrumbs();
+  renderLinks();
+  setWeirdness();
+
+  // ===== controls =====
+  btnBack.addEventListener('click', (e)=>{ e.preventDefault(); goBack(); });
+  btnScan.addEventListener('click', (e)=>{ e.preventDefault(); toggleScan(); });
+
+  window.addEventListener('keydown', (e)=>{
+    const k = e.key.toLowerCase();
+    if (k==='b') goBack();
+    if (k==='e') toggleScan();
   });
-});
 
-function parseAlts(){
-  const alts = [...document.querySelectorAll('img')].map(img=>img.alt||'').join(' ');
-  const m = alts.match(/DIGIT:\s*([0-9])/);
-  if (m) {
-    digits.alt = m[1];
-    write(`images tried to tell you: <strong class="ok">${digits.alt}</strong>`);
-  } else {
-    write(`images stayed silent.`);
+  function toggleScan(){
+    if (scanLayer) { scanLayer.remove(); scanLayer=null; }
+    else { scanLayer = document.createElement('div'); scanLayer.className='scanlines'; document.body.appendChild(scanLayer); }
   }
-}
-window.addEventListener('load', ()=> setTimeout(parseAlts, 400));
-
-consoleBox.addEventListener('click', ()=>{
-  digits.console = '5';
-  write(`console whispered: <strong class="ok">${digits.console}</strong>`);
-  pulse(consoleBox);
-});
-
-openBtn.addEventListener('click', (e)=>{
-  e.preventDefault();
-  attemptOpen();
-});
-
-document.getElementById('again').addEventListener('click', (e)=>{
-  e.preventDefault();
-  digits = {dead:null, alt:null, console:null};
-  portal.style.display='none';
-  write('portal closed. collect the digits again.');
-});
-
-function attemptOpen(){
-  const code = `${digits.dead??'?'}${digits.alt??'?'}${digits.console??'?'}`;
-  if (/^\d{3}$/.test(code)) {
-    write(`escape code accepted: <strong class="ok">${code}</strong>`);
-    portal.style.display='block';
-  } else {
-    write(`need 3 digits; current: <strong>${code}</strong>`);
-  }
-}
-
-function shake(el){
-  el.animate([
-    {transform:'translateX(0)'},
-    {transform:'translateX(-6px)'},
-    {transform:'translateX(6px)'},
-    {transform:'translateX(0)'}
-  ], {duration:220});
-}
-function pulse(el){
-  el.animate([{filter:'brightness(1)'},{filter:'brightness(1.6)'},{filter:'brightness(1)'}], {duration:300});
-}
-
-// Cosmetic scanlines toggle
-window.addEventListener('keydown', (e)=>{
-  if (e.key.toLowerCase()==='e'){
-    if (scanlines) { scanlines.remove(); scanlines=null; }
-    else { scanlines = document.createElement('div'); scanlines.className='scanlines'; document.body.appendChild(scanlines); }
-  }
-});
 </script>
 </body>
 </html>
