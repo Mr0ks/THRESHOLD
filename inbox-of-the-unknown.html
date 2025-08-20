@@ -1,101 +1,506 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Inbox of the Unknown</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  body {
-    margin:0; background:#0d0d0d; color:#f5f5f5;
-    font-family: system-ui, sans-serif;
-    display:flex; flex-direction:column; align-items:center;
+  :root{
+    --bg:#0b0f14; --panel:#121826; --edge:#24314a; --ink:#e8f1ff; --muted:#9cb0c8; --accent:#7dd3fc;
+    --danger:#ff557a; --ok:#a7ffb1;
   }
-  h1 { margin:10px; }
-  #emails { width:80%; max-width:800px; margin-top:20px; }
-  .email {
-    background:#1a1a1a; border:1px solid #444; margin:8px 0;
-    padding:12px; border-radius:8px; cursor:pointer;
-  }
-  .hidden { display:none; }
-  #popup {
-    position:fixed; top:20px; right:20px; background:#fff; color:#000;
-    padding:10px 14px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,.4);
-    display:none; z-index:10;
-  }
-  #glitch {
-    position:fixed; inset:0; background:#000; color:#f00;
-    display:flex; align-items:center; justify-content:center;
-    font-size:4em; font-weight:bold; text-shadow:2px 2px #fff;
-    display:none; z-index:20;
-  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  a{color:var(--accent);text-decoration:none}
+  .app{height:100%;display:grid;grid-template-columns:320px 1fr}
+  aside{border-right:1px solid var(--edge);background:var(--panel);display:grid;grid-template-rows:auto 1fr auto}
+  header{padding:12px;border-bottom:1px solid var(--edge);display:flex;gap:8px;align-items:center}
+  header .logo{font-weight:700;letter-spacing:.2px}
+  header input{flex:1;background:#0d131d;border:1px solid #2b3a5a;border-radius:10px;padding:8px 10px;color:var(--ink)}
+  .list{overflow:auto}
+  .item{padding:12px;border-bottom:1px solid #1f2a40;cursor:pointer}
+  .item:hover{background:#0f1624}
+  .from{font-weight:600}
+  .subject{margin-top:2px}
+  .preview{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .unread .subject::before{content:"• "; color:var(--accent)}
+  .foot{padding:10px;color:var(--muted);border-top:1px solid var(--edge);display:flex;justify-content:space-between;align-items:center}
+  main{display:grid;grid-template-rows:auto 1fr}
+  .readhead{padding:14px 18px;border-bottom:1px solid var(--edge);display:flex;justify-content:space-between;align-items:center}
+  .pill{font-size:12px;border:1px solid #2a375a;border-radius:999px;padding:4px 8px;color:var(--muted)}
+  article{padding:18px 18px 40px;overflow:auto}
+  article h2{margin:0 0 8px;font-size:1.2rem}
+  article .meta{color:var(--muted);margin-bottom:12px}
+  button{background:#0d131d;border:1px solid #2b3a5a;color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer}
+  button:hover{background:#121a2a}
+  .btn-danger{border-color:#633040;background:#2a0e17}
+  .btn-ok{border-color:#2d5f3a;background:#0f2016}
+  .proto{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0a0f18;border:1px dashed #2b3a5a;border-radius:8px;padding:10px}
+  /* Toasts */
+  .toasts{position:fixed;right:16px;top:16px;display:grid;gap:8px;z-index:50}
+  .toast{background:#0e1522;border:1px solid var(--edge);border-radius:10px;padding:10px 12px;box-shadow:0 6px 18px rgba(0,0,0,.35);animation:slidein .25s ease}
+  .toast small{color:var(--muted)}
+  @keyframes slidein{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+  /* Modals */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;z-index:60}
+  .dialog{width:min(520px,92vw);background:#0e1522;border:1px solid var(--edge);border-radius:12px;padding:16px}
+  .dialog h3{margin:0 0 8px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  /* Mini puzzle areas */
+  .zone{background:#0a0f18;border:1px dashed #2b3a5a;border-radius:10px;padding:10px;margin-top:8px}
+  canvas{background:#0a0f18;border:1px solid #253152;border-radius:10px}
+  .dropzone{min-height:70px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .chip{padding:6px 10px;border:1px solid #2b3a5a;border-radius:999px;background:#0e1522;cursor:grab}
+  /* Glitch / Finale */
+  .glitch-overlay{position:fixed;inset:0;pointer-events:none;z-index:80;display:none}
+  .scan{position:absolute;inset:0;background-image:repeating-linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.06) 1px, transparent 1px, transparent 3px);opacity:.15}
+  .flash{position:absolute;inset:0;background:#000;opacity:0}
+  .final{position:absolute;inset:0;display:grid;place-items:center;font-size:64px;font-weight:800;letter-spacing:2px;color:#fff;opacity:0}
+  .shake{animation:shake .25s linear 1}
+  @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}100%{transform:translateX(0)}}
+  /* Easter egg */
+  .paperclip{opacity:.7;cursor:pointer}
+  .paperclip:hover{opacity:1;transform:rotate(-10deg)}
+  /* “New inbox message…” ticker */
+  .ticker{color:var(--muted);padding:8px 12px;border-bottom:1px dashed var(--edge);display:none}
 </style>
 </head>
 <body>
-<h1>📧 Inbox</h1>
-<div id="popup"></div>
-<div id="emails"></div>
-<div id="glitch">LOOK BEHIND YOU</div>
+<div class="app">
+  <aside>
+    <header>
+      <div class="logo">✉️ Mailbox</div>
+      <input id="q" type="search" placeholder="Search mail…" />
+    </header>
+    <div id="ticker" class="ticker">New inbox message…</div>
+    <div id="list" class="list" role="listbox" aria-label="Inbox"></div>
+    <div class="foot">
+      <span class="paperclip" id="egg">📎</span>
+      <small class="pill">Inbox • <span id="unread">0</span> unread</small>
+    </div>
+  </aside>
+
+  <main>
+    <div class="readhead">
+      <div class="pill" id="meta">Signed in as: <strong>{REDACTED}</strong></div>
+      <div class="row">
+        <button id="btnTheme">Toggle Dim</button>
+        <button id="btnReset" class="btn-danger">Hard Reset</button>
+      </div>
+    </div>
+    <article id="reader" tabindex="0" aria-live="polite">
+      <h2>Welcome to Inbox of the Unknown</h2>
+      <p class="meta">Select an email on the left.</p>
+      <div class="proto">Tip: Some things are clickable that shouldn’t be 😉</div>
+    </article>
+  </main>
+</div>
+
+<!-- Toasts -->
+<div class="toasts" id="toasts"></div>
+
+<!-- Startup modal -->
+<div class="modal" id="startModal" style="display:grid;">
+  <div class="dialog">
+    <h3>Ready to start working?</h3>
+    <p class="muted">You have a full day ahead. Clock in?</p>
+    <div class="row">
+      <button id="btnYes" class="btn-ok">Yes</button>
+      <button id="btnNo" class="btn-danger">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic puzzle modal -->
+<div class="modal" id="puzzleModal">
+  <div class="dialog">
+    <h3 id="pTitle">Task</h3>
+    <div id="pBody" class="zone"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="pDone" class="btn-ok">Submit</button>
+      <button id="pCancel">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Glitch / finale layers -->
+<div class="glitch-overlay" id="glitch">
+  <div class="scan"></div>
+  <div class="flash" id="flash"></div>
+  <div class="final" id="final">LOOK BEHIND YOU</div>
+</div>
 
 <script>
-const emails = document.getElementById("emails");
-const popup = document.getElementById("popup");
-const glitch = document.getElementById("glitch");
-
-let emailStage = 0;
-
-// fake notification sound
-const ding = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-
-function showPopup(msg) {
-  popup.innerText = msg;
-  popup.style.display="block";
-  setTimeout(()=>popup.style.display="none",4000);
+/* ==================== Sound (soft chime) ==================== */
+let ac, master;
+function initAudio(){
+  if (ac) return;
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  master = ac.createGain(); master.gain.value = 0.15; master.connect(ac.destination);
+}
+function chime(){
+  initAudio();
+  const now = ac.currentTime;
+  const freqs = [987.77, 1318.51]; // B5, E6
+  freqs.forEach((f,i)=>{
+    const o = ac.createOscillator(); o.type='sine'; o.frequency.value=f;
+    const g = ac.createGain(); g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.22, now+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now+0.45+i*0.02);
+    o.connect(g).connect(master); o.start(now+i*0.01); o.stop(now+0.6+i*0.02);
+  });
 }
 
-function addEmail(from, subject, body, action) {
-  let div=document.createElement("div");
-  div.className="email";
-  div.innerHTML=`<b>${from}</b><br><i>${subject}</i><p>${body}</p>`;
-  div.onclick=()=>{ if(action) action(div); };
-  emails.appendChild(div);
-  ding.play();
+/* ==================== Toasts ==================== */
+const toasts = document.getElementById('toasts');
+function toast(title, body='', ms=2800){
+  const t = document.createElement('div');
+  t.className='toast';
+  t.innerHTML = `<strong>${title}</strong>${body?`<div><small>${body}</small></div>`:''}`;
+  toasts.appendChild(t);
+  chime();
+  setTimeout(()=>{ t.remove(); }, ms);
 }
 
-// Game flow
-function nextEmail() {
-  emailStage++;
-  if(emailStage===1){
-    addEmail("Alice – HR","Welcome!","Welcome to the team 🎉",()=>nextEmail());
-  } else if(emailStage===2){
-    addEmail("Bob – Dev","Quick Task","Can you connect these dots?",()=>{alert("Dots connected ✅"); nextEmail();});
-  } else if(emailStage===3){
-    addEmail("Claire – Ops","Another favor","Click me to sort files.",()=>{alert("Files sorted 📂"); nextEmail();});
-  } else if(emailStage===4){
-    addEmail("System","🎁 Free Prize","Click to claim your prize!",(el)=>{
-      document.body.style.background="black";
-      emails.innerHTML="";
-      setTimeout(()=> {
-        addEmail("???","YOUR COMPUTER IS NOW MINE","...",()=>creepyPhase());
-      },1500);
+/* ==================== Inbox data structures ==================== */
+const listEl = document.getElementById('list');
+const reader = document.getElementById('reader');
+const unreadEl = document.getElementById('unread');
+const ticker = document.getElementById('ticker');
+
+let mail = [];        // {id, from, subject, preview, body, unread, puzzle?:fn}
+let selected = null;  // id
+let delivered = new Set();
+
+function renderList(filter=''){
+  listEl.innerHTML='';
+  mail
+    .filter(m => (m.from+m.subject+m.preview).toLowerCase().includes(filter.toLowerCase()))
+    .forEach(m=>{
+      const div = document.createElement('div');
+      div.className='item'+(m.unread?' unread':'');
+      div.dataset.id=m.id;
+      div.innerHTML = `
+        <div class="from">${m.from}</div>
+        <div class="subject">${m.subject}</div>
+        <div class="preview">${m.preview}</div>`;
+      div.addEventListener('click',()=>openEmail(m.id));
+      listEl.appendChild(div);
     });
+  unreadEl.textContent = mail.filter(m=>m.unread).length;
+}
+function openEmail(id){
+  const m = mail.find(x=>x.id===id);
+  if (!m) return;
+  selected = id;
+  mail = mail.map(x => x.id===id ? {...x, unread:false} : x);
+  renderList(document.getElementById('q').value||'');
+  reader.innerHTML = `<h2>${m.subject}</h2>
+    <div class="meta">From ${m.from}</div>${m.body}`;
+  // Auto-wire puzzle CTA
+  const btn = reader.querySelector('[data-puzzle]');
+  if (btn && m.puzzle) btn.addEventListener('click', ()=> m.puzzle(m));
+}
+
+/* ==================== Puzzles (6 mini tasks) ==================== */
+const puzzleModal = document.getElementById('puzzleModal');
+const pTitle = document.getElementById('pTitle');
+const pBody  = document.getElementById('pBody');
+const pDone  = document.getElementById('pDone');
+const pCancel= document.getElementById('pCancel');
+
+function showModal(){ puzzleModal.style.display='grid'; }
+function hideModal(){ puzzleModal.style.display='none'; }
+
+pCancel.onclick = hideModal;
+
+// 1) Sign this document (type your initials & click sign)
+function taskSign(){
+  pTitle.textContent = "Sign NDA Document";
+  pBody.innerHTML = `
+    <div>Type your initials to sign:</div>
+    <input id="sig" placeholder="e.g., OM" style="margin-top:6px;padding:8px;border-radius:8px;border:1px solid #2b3a5a;background:#0e1522;color:var(--ink)">
+    <div class="zone" style="margin-top:10px">Document: <span style="color:var(--muted)">Confidential—do not distribute.</span></div>
+  `;
+  showModal();
+  pDone.onclick = ()=>{
+    const v = (document.getElementById('sig').value||'').trim();
+    if (v.length<2){ pBody.classList.add('shake'); setTimeout(()=>pBody.classList.remove('shake'),220); return; }
+    toast("Signed", "Document countersigned"); hideModal();
+  };
+}
+
+// 2) Type this phrase exactly
+function taskTyping(){
+  const phrase = "I have reviewed the deployment plan.";
+  pTitle.textContent = "Draft this sentence exactly";
+  pBody.innerHTML = `
+    <div>Type exactly:</div>
+    <div class="proto">${phrase}</div>
+    <input id="tt" placeholder="Type here…" style="width:100%;margin-top:6px;padding:8px;border-radius:8px;border:1px solid #2b3a5a;background:#0e1522;color:var(--ink)">
+  `;
+  showModal();
+  pDone.onclick = ()=>{
+    const v = document.getElementById('tt').value;
+    if (v===phrase){ toast("Submitted","Perfect."); hideModal(); }
+    else { pBody.classList.add('shake'); setTimeout(()=>pBody.classList.remove('shake'),220); }
+  };
+}
+
+// 3) Connect the dots (draw a line to pass through all)
+function taskDots(){
+  pTitle.textContent = "Connect the Dots";
+  pBody.innerHTML = `<canvas id="cv" width="440" height="220"></canvas><div class="muted">Drag to draw a line through all circles.</div>`;
+  showModal();
+  const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  const pts = [{x:60,y:80},{x:150,y:50},{x:240,y:120},{x:320,y:60},{x:390,y:150}];
+  function draw(){
+    ctx.fillStyle="#0a0f18"; ctx.fillRect(0,0,cv.width,cv.height);
+    pts.forEach(p=>{ ctx.beginPath(); ctx.fillStyle="#9cc"; ctx.arc(p.x,p.y,8,0,Math.PI*2); ctx.fill(); });
   }
+  draw();
+  let drawing=false; let last=null; let score=0;
+  cv.onmousedown=(e)=>{ drawing=true; last={x:e.offsetX,y:e.offsetY}; };
+  cv.onmouseup =()=>{ drawing=false; if (score>=pts.length) toast("Nice","All dots connected."); };
+  cv.onmousemove=(e)=>{
+    if(!drawing) return;
+    ctx.strokeStyle="#7dd3fc"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(e.offsetX,e.offsetY); ctx.stroke();
+    last={x:e.offsetX,y:e.offsetY};
+    pts.forEach(p=>{
+      const d=Math.hypot(p.x-last.x,p.y-last.y);
+      if (d<10){ p.x=-999; p.y=-999; score++; }
+    });
+  };
+  pDone.onclick = ()=>{ if (score>=pts.length){ hideModal(); } else { pBody.classList.add('shake'); setTimeout(()=>pBody.classList.remove('shake'),220);} };
 }
 
-function creepyPhase() {
-  document.body.style.background="#111";
-  setTimeout(()=>{
-    emails.innerHTML="";
-    setTimeout(()=> {
-      glitch.style.display="flex";
-    },2000);
-  },2000);
+// 4) Drag chips into the dropzone (sort)
+function taskSort(){
+  pTitle.textContent="Prioritize Tasks";
+  pBody.innerHTML = `
+    <div>Drag the tasks into the “Today” area (need at least 3).</div>
+    <div class="row" id="chips">
+      <div class="chip" draggable="true">Invoices</div>
+      <div class="chip" draggable="true">Backups</div>
+      <div class="chip" draggable="true">Meetings</div>
+      <div class="chip" draggable="true">Deploy</div>
+      <div class="chip" draggable="true">Clean up</div>
+    </div>
+    <div class="zone dropzone" id="drop">Today:</div>`;
+  showModal();
+  const chips = [...document.querySelectorAll('.chip')];
+  chips.forEach(c=>{
+    c.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', c.textContent));
+  });
+  const drop = document.getElementById('drop');
+  drop.addEventListener('dragover', e=> e.preventDefault());
+  drop.addEventListener('drop', e=>{
+    e.preventDefault();
+    const t = e.dataTransfer.getData('text/plain');
+    const el = chips.find(x=>x.textContent===t);
+    if (el) drop.appendChild(el);
+  });
+  pDone.onclick = ()=>{
+    if (drop.querySelectorAll('.chip').length>=3){ toast("Prioritized","Looks good."); hideModal(); }
+    else { pBody.classList.add('shake'); setTimeout(()=>pBody.classList.remove('shake'),220); }
+  };
 }
 
-// start
-window.onload=()=>{
-  showPopup("You work at {REDACTED}. Position: {REDACTED}");
-  setTimeout(()=>nextEmail(),3000);
+// 5) Checkboxes (complete form)
+function taskChecks(){
+  pTitle.textContent="Finish the Checklist";
+  pBody.innerHTML = `
+    <label><input type="checkbox" class="ck"> Acknowledge policy</label><br>
+    <label><input type="checkbox" class="ck"> Enable 2FA</label><br>
+    <label><input type="checkbox" class="ck"> Update password</label>`;
+  showModal();
+  pDone.onclick = ()=>{
+    const all = [...pBody.querySelectorAll('.ck')].every(c=>c.checked);
+    if (all){ toast("Completed","All boxes ticked."); hideModal(); }
+    else { pBody.classList.add('shake'); setTimeout(()=>pBody.classList.remove('shake'),220); }
+  };
+}
+
+// 6) Hidden word (easter-egg-ish task)
+function taskFind(){
+  pTitle.textContent="Find the Keyword";
+  pBody.innerHTML = `
+    <div>Somewhere below is the word <strong>OK</strong>. Click it.</div>
+    <div class="zone" id="blob" style="user-select:none"></div>`;
+  const blob = document.getElementById('blob');
+  let html="";
+  const words = ["lorem","ipsum","dolor","sit","amet","consectetur","adipiscing","elit","sed","do","OK","eiusmod","tempor","incididunt"];
+  for (let i=0;i<180;i++){
+    const w = words[Math.floor(Math.random()*words.length)];
+    html += `<span class="w" style="margin:2px;display:inline-block">${w}</span> `;
+  }
+  blob.innerHTML = html;
+  showModal();
+  pDone.onclick = ()=>{ /* optional */ hideModal(); };
+  blob.addEventListener('click', (e)=>{
+    if (e.target.textContent==='OK'){ toast("Found it!","Nice eyes."); hideModal(); }
+  }, {once:true});
+}
+
+/* ==================== Email templates ==================== */
+const templates = {
+  welcome: {
+    id:"e0",
+    from:"HR – Alice",
+    subject:"Welcome to [REDACTED]!",
+    preview:"We’re glad you’re here.",
+    body: `
+      <p>Hi there 👋 — welcome aboard. Your workstation is provisioned. We’ll send you small tasks today.</p>
+      <p>PS: If the paperclip in the corner blinks, it wants attention.</p>
+    `,
+  },
+  // puzzle emails (we’ll shuffle these)
+  t1:{ id:"t1", from:"Dev – Bob", subject:"Quick signature needed", preview:"Sign the NDA please.",
+      body:`<p>Can you <button data-puzzle class="btn-ok">sign this</button> right now?</p>`, puzzle:()=>taskSign() },
+  t2:{ id:"t2", from:"PM – Claire", subject:"Type this exactly", preview:"Tiny drafting task.",
+      body:`<p>Please <button data-puzzle class="btn-ok">type a line</button> exactly as given.</p>`, puzzle:()=>taskTyping() },
+  t3:{ id:"t3", from:"Ops – Dana", subject:"Connect the dots", preview:"Weird request, I know.",
+      body:`<p>Need you to <button data-puzzle class="btn-ok">connect a few dots</button> to confirm access.</p>`, puzzle:()=>taskDots() },
+  t4:{ id:"t4", from:"IT – Eli", subject:"Sort these for me", preview:"Just pick 3 for today.",
+      body:`<p>Could you <button data-puzzle class="btn-ok">prioritize</button> the tasks?</p>`, puzzle:()=>taskSort() },
+  t5:{ id:"t5", from:"Sec – Faye", subject:"Security checklist", preview:"3 quick boxes to tick.",
+      body:`<p>Please <button data-puzzle class="btn-ok">complete</button> the checklist.</p>`, puzzle:()=>taskChecks() },
+  t6:{ id:"t6", from:"QA – Gus", subject:"Find the keyword", preview:"‘OK’ is the word.",
+      body:`<p>Mind finding a keyword? <button data-puzzle class="btn-ok">Open mini-task</button>.</p>`, puzzle:()=>taskFind() },
+  // bait / glitch
+  bait:{ id:"b1", from:"Rewards – System", subject:"🎁 You’ve won a free prize!", preview:"Click to claim.",
+      body:`<p>Congratulations! Claim your reward now.</p><p><button id="claim" class="btn-ok">Claim</button></p>` },
+  pwn :{ id:"p1", from:"???", subject:"YOUR COMPUTER IS NOW MINE.", preview:"…",
+      body:`<p class="proto" style="color:var(--danger)">ACCESS GRANTED // CONTROL TAKEN</p>` },
 };
+
+/* ==================== Flow control ==================== */
+function pushMail(m){
+  // avoid duplicates
+  if (delivered.has(m.id)) return;
+  delivered.add(m.id);
+  mail.unshift({ ...m, unread:true }); // newest on top
+  renderList(document.getElementById('q').value||'');
+  ticker.style.display='block';
+  setTimeout(()=> ticker.style.display='none', 1500);
+  toast("New email", `${m.from} — ${m.subject}`, 2200);
+}
+
+/* Startup modal logic */
+const startModal = document.getElementById('startModal');
+document.getElementById('btnYes').onclick = ()=>{
+  startModal.style.display='none';
+  // Wait 3 seconds, then start sequence
+  setTimeout(()=>{
+    toast("Welcome","Signed in.");
+    toast("Profile","You work at {REDACTED}. Position: {REDACTED}.", 3200);
+    pushMail(templates.welcome);
+    // After welcome, begin random deliveries
+    beginDay();
+  }, 3000);
+};
+document.getElementById('btnNo').onclick = ()=>{
+  window.location.href = "https://www.google.com/";
+};
+
+/* Search */
+document.getElementById('q').addEventListener('input', (e)=>{
+  renderList(e.target.value);
+});
+
+/* Easter egg: paperclip */
+document.getElementById('egg').addEventListener('click', ()=>{
+  toast("Paperclip","It looks at you for too long.", 1800);
+  reader.classList.add('shake'); setTimeout(()=>reader.classList.remove('shake'), 260);
+});
+
+/* Theme + Reset */
+document.getElementById('btnTheme').onclick = ()=>{
+  document.body.style.filter = document.body.style.filter ? "" : "brightness(0.92) contrast(1.05)";
+};
+document.getElementById('btnReset').onclick = ()=>{
+  delivered.clear(); mail=[]; renderList(); reader.innerHTML="<h2>Cleared</h2><p class='meta'>Inbox reset.</p>";
+};
+
+/* Day progression */
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+function beginDay(){
+  // Six puzzles in random order
+  const tasks = shuffle([templates.t1,templates.t2,templates.t3,templates.t4,templates.t5,templates.t6]);
+  // Choose a random slot for the bait/glitch email (between 2 and 6)
+  const baitIndex = Math.floor(Math.random()*5)+1;
+
+  let i=0;
+  function dropNext(){
+    if (i<tasks.length){
+      if (i===baitIndex){ pushMail(templates.bait); scheduleClaimWire(); }
+      pushMail(tasks[i++]);
+      // Deliver next after 15–30 seconds, slightly jittered
+      setTimeout(dropNext, 15000 + Math.random()*15000);
+    } else {
+      // After all, if bait never dropped (rare), drop now
+      if (!delivered.has(templates.bait.id)){ pushMail(templates.bait); scheduleClaimWire(); }
+    }
+  }
+  // Start in ~5–8 seconds
+  setTimeout(dropNext, 5000 + Math.random()*3000);
+}
+
+/* Wire up the bait's Claim button when that email gets opened */
+function scheduleClaimWire(){
+  // We’ll poll briefly for when the bait is opened to attach handler
+  const iv = setInterval(()=>{
+    if (selected===templates.bait.id){
+      const btn = document.getElementById('claim');
+      if (btn){
+        btn.onclick = triggerGlitch;
+        clearInterval(iv);
+      }
+    }
+  }, 300);
+}
+
+/* ==================== Glitch sequence ==================== */
+const glitch = document.getElementById('glitch');
+const flash = document.getElementById('flash');
+const final = document.getElementById('final');
+
+function flashPulse(times=3, cb){
+  let n=0;
+  function once(){
+    flash.style.opacity='1';
+    setTimeout(()=>{ flash.style.opacity='0'; if(++n<times) setTimeout(once, 120); else cb&&cb(); }, 120);
+  }
+  once();
+}
+
+function triggerGlitch(){
+  // Hard purge
+  mail=[]; renderList(); reader.innerHTML = `<h2>…</h2><p class="meta">Everything is quiet.</p>`;
+  glitch.style.display='block';
+  flashPulse(4, ()=>{
+    // Inject the takeover email, then auto-open it
+    pushMail(templates.pwn);
+    openEmail(templates.pwn.id);
+    // Make it vanish on hover/click
+    reader.onmouseenter = ()=> { reader.classList.add('shake'); setTimeout(()=>{ reader.classList.remove('shake'); vanishTakeover(); }, 260); };
+    reader.onclick = ()=> { vanishTakeover(); };
+  });
+}
+function vanishTakeover(){
+  reader.innerHTML = `<h2>—</h2><p class="meta">Connection lost.</p>`;
+  // After a short delay, final
+  setTimeout(()=>{
+    flashPulse(6, ()=>{
+      final.style.opacity='1';
+    });
+  }, 1200);
+}
+
+/* ==================== Init page ==================== */
+renderList();
 </script>
 </body>
 </html>
