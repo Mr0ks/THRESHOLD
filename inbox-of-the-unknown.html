@@ -1,202 +1,189 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Absurd Trolley — Start</title>
-  <meta name="description" content="A delightfully absurd trolley game. Press Start to roll into chaos." />
-  <!-- Bubbly font -->
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0f1226;
-      --accent: #78e0ff;
-      --accent-2: #ff7ad9;
-      --text: #f7f8ff;
-      --muted: #cfd2ff;
-      --glow: 0 0 24px rgba(120, 224, 255, 0.45);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: "Fredoka", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 20% 10%, #1a1f49 0%, #0f1226 60%),
-                  radial-gradient(800px 600px at 95% 5%, #1a1f49 0%, transparent 60%),
-                  var(--bg);
-      color: var(--text);
-      display: grid;
-      place-items: center;
-      overflow-x: hidden;
-    }
-
-    /* Floating background bubbles */
-    .bubbles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
-    .bubble { position: absolute; border-radius: 999px; opacity: .35; filter: blur(1px); animation: floatUp linear infinite; }
-    .bubble:nth-child(1){ width: 140px; height: 140px; background: var(--accent); left: 6%; bottom: -160px; animation-duration: 18s; animation-delay: 0s; }
-    .bubble:nth-child(2){ width: 90px; height: 90px; background: var(--accent-2); left: 24%; bottom: -120px; animation-duration: 15s; animation-delay: 2s; }
-    .bubble:nth-child(3){ width: 170px; height: 170px; background: var(--accent); left: 66%; bottom: -200px; animation-duration: 22s; animation-delay: 1s; }
-    .bubble:nth-child(4){ width: 110px; height: 110px; background: var(--accent-2); left: 84%; bottom: -130px; animation-duration: 16s; animation-delay: 4s; }
-    .bubble:nth-child(5){ width: 70px; height: 70px; background: var(--accent); left: 48%; bottom: -90px; animation-duration: 13s; animation-delay: 6s; }
-
-    @keyframes floatUp {
-      0% { transform: translateY(0) translateX(0) scale(1); }
-      100% { transform: translateY(-140vh) translateX(-10px) scale(1.05); }
-    }
-
-    main {
-      position: relative;
-      width: min(960px, 92vw);
-      padding: clamp(20px, 4vw, 40px);
-      text-align: center;
-    }
-
-    h1 {
-      font-size: clamp(2.2rem, 4.5vw, 4rem);
-      line-height: 1.05;
-      margin: 0 0 .25em 0;
-      letter-spacing: .5px;
-      text-shadow: 0 2px 0 rgba(0,0,0,.2), 0 6px 24px rgba(120, 224, 255, .25);
-    }
-    .subtitle {
-      font-size: clamp(1rem, 1.8vw, 1.25rem);
-      color: var(--muted);
-      margin: 0 auto 1.25em;
-      max-width: 62ch;
-    }
-
-    .copy p { margin: 0 0 .9em 0; }
-
-    .trolley-wrap {
-      margin: 2em auto;
-      width: min(340px, 70vw);
-      aspect-ratio: 1.3 / 1;
-      display: grid;
-      place-items: center;
-    }
-
-    svg.trolley {
-      width: 100%;
-      height: auto;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
-    }
-
-    .actions { margin-top: 1.8em; }
-
-    .start-btn {
-      --btn-bg: linear-gradient(135deg, var(--accent), #a2f0ff 60%);
-      display: inline-block;
-      font-weight: 700;
-      font-size: clamp(1.4rem, 3vw, 1.8rem);
-      padding: 1.2em 2.4em;
-      border-radius: 999px;
-      color: #0b1220;
-      text-decoration: none;
-      background: var(--btn-bg);
-      box-shadow: 0 8px 20px rgba(120, 224, 255, .45), inset 0 -3px 0 rgba(0,0,0,.15);
-      border: 0;
-      transition: transform .08s ease, filter .2s ease;
-      will-change: transform;
-    }
-    .start-btn:hover { transform: translateY(-1px) scale(1.02); filter: saturate(1.05); }
-    .start-btn:active { transform: translateY(1px) scale(.99); }
-
-    .note { font-size: .95rem; color: var(--muted); display: block; margin-top: 0.6em; }
-
-    @media (prefers-reduced-motion: reduce) {
-      .bubble { animation: none; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Inbox of the Unknown</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --panel: #141a22;
+    --ink: #d7e3f1;
+    --muted: #8aa0b8;
+    --accent: #6ee7ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+  .app { display: grid; grid-template-columns: 320px 1fr; height: 100%; }
+  aside { background: var(--panel); border-right: 1px solid #1e2835; overflow: auto; }
+  header { padding: 16px; border-bottom: 1px solid #1e2835; display: flex; align-items: center; gap: 8px; }
+  header input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #2a3648; background: #0d131a; color: var(--ink); }
+  .list { display: grid; }
+  .item { padding: 14px 16px; border-bottom: 1px solid #1e2835; cursor: pointer; transition: background .15s ease; }
+  .item:hover, .item[aria-selected="true"] { background: #101722; }
+  .item .from { font-weight: 600; }
+  .item .subject { color: var(--ink); margin-top: 4px; }
+  .item .preview { color: var(--muted); font-size: 0.9rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  main { display: grid; grid-template-rows: auto 1fr; }
+  .readhead { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #1e2835; }
+  .pill { font-size: 12px; padding: 4px 8px; border: 1px solid #2a3648; border-radius: 999px; color: var(--muted); }
+  article { padding: 24px 20px 40px; overflow: auto; line-height: 1.6; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed currentColor; }
+  a:hover { opacity: .8; }
+  .hint { color: var(--muted); font-size: 0.9rem; margin-top: 10px; }
+  .muted { color: var(--muted); }
+  .toolbar { display: flex; gap: 8px; }
+  button { background: #0d131a; border: 1px solid #2a3648; color: var(--ink); padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+  button:hover { background: #111924; }
+  .msg-title { margin: 0; font-size: 1.25rem; }
+</style>
 </head>
 <body>
-  <div class="bubbles" aria-hidden="true">
-    <div class="bubble"></div>
-    <div class="bubble"></div>
-    <div class="bubble"></div>
-    <div class="bubble"></div>
-    <div class="bubble"></div>
+  <div class="app">
+    <aside>
+      <header>
+        <input id="q" type="search" placeholder="Search mail…" />
+      </header>
+      <div id="list" class="list" role="listbox" aria-label="Inbox"></div>
+    </aside>
+    <main>
+      <div class="readhead">
+        <div>
+          <div class="pill" id="meta">Inbox · 3 unread</div>
+        </div>
+        <div class="toolbar">
+          <button id="btn-light">Toggle Dim</button>
+          <button id="btn-shift">Shift Reality</button>
+          <button id="btn-reset">Hard Reset</button>
+        </div>
+      </div>
+      <article id="reader" tabindex="0" aria-live="polite">
+        <h2 class="msg-title">Welcome to the Unknown</h2>
+        <p class="muted">Select an email on the left.</p>
+      </article>
+    </main>
   </div>
 
-  <main role="main">
-    <h1>Absurd Trolley</h1>
-    <p class="subtitle">Welcome to the most delightfully nonsensical trolley adventure on the internet. Will you switch the tracks? Launch the confetti? Adopt the pigeon? Only one way to find out.</p>
+<script>
+const emails = [
+  {
+    id: "a1",
+    from: "root@vault-7",
+    subject: "Your decision was recorded.",
+    preview: "You won’t remember choosing. That’s the point.",
+    body: `
+      <p>We noticed your <em>unconscious</em> preference. Consider this a receipt.</p>
+      <p class="hint">Action: <a href="#" data-action="tint" data-value="#151114">darken the mood</a> · 
+      <a href="#" data-action="tint" data-value="#0b0f14">return to default</a></p>
+      <p>PS: If the room looks different next time, it wasn’t us.</p>
+    `
+  },
+  {
+    id: "b2",
+    from: "postmaster@liminal.space",
+    subject: "Link routing anomaly detected",
+    preview: "A link you almost clicked changed the hallway.",
+    body: `
+      <p>There’s a <a href="#" data-action="accent" data-value="#ffd166">golden thread</a> running through your choices.</p>
+      <p>Pull it again to see what unravels.</p>
+      <p class="hint">UI trick: <a href="#" data-action="panel" data-value="#0f1320">deeper blue</a> or <a href="#" data-action="panel" data-value="#141a22">reset</a></p>
+    `
+  },
+  {
+    id: "c3",
+    from: "archive@eraser.gov",
+    subject: "Redaction request: Memory 32B",
+    preview: "Erase a room to fix the corridor.",
+    body: `
+      <p>Approve redaction? <a href="#" data-action="erase">[ERASE NAMELESS ROOM]</a></p>
+      <p>Consequences are <strong>persisted</strong> locally. You can attempt a <a href="#" data-action="reset">hard reset</a>.</p>
+      <p class="hint">Tip: Search for “redaction” in the left pane.</p>
+    `
+  }
+];
 
-    <div class="copy">
-      <p>In <strong>Absurd Trolley</strong>, you steer a spirited trolley through ridiculous dilemmas, questionable upgrades, and glorious chaos. Choices matter… except when they don’t. 🤷‍♂️</p>
-      <p>Tap <em>Start</em> to roll out. You’ll be asked to make split‑second calls, collect shiny trinkets, and occasionally honk at sentient signage. It’s trolley time.</p>
-    </div>
+const state = JSON.parse(localStorage.getItem("inboxUnknownState") || "{}");
+function persist() { localStorage.setItem("inboxUnknownState", JSON.stringify(state)); }
 
-    <div class="trolley-wrap">
-      <!-- Large trolley illustration (SVG) -->
-      <svg class="trolley" viewBox="0 0 560 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cartoon trolley illustration">
-        <defs>
-          <linearGradient id="car" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#a2f0ff"/>
-            <stop offset="100%" stop-color="#78e0ff"/>
-          </linearGradient>
-          <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#ffb0e7"/>
-            <stop offset="100%" stop-color="#ff7ad9"/>
-          </linearGradient>
-        </defs>
-        <!-- body -->
-        <rect x="90" y="90" rx="20" ry="20" width="320" height="120" fill="url(#car)" stroke="#0b1220" stroke-width="10"/>
-        <!-- handle -->
-        <path d="M410 105 L470 60" stroke="url(#accent)" stroke-width="16" stroke-linecap="round"/>
-        <path d="M470 60 Q488 48 500 65" stroke="#0b1220" stroke-width="10" fill="none" stroke-linecap="round"/>
-        <!-- grill lines -->
-        <g stroke="#0b1220" stroke-width="6" opacity=".35">
-          <path d="M120 120 H385" />
-          <path d="M120 145 H385" />
-          <path d="M120 170 H385" />
-        </g>
-        <!-- wheels -->
-        <g>
-          <circle cx="170" cy="235" r="34" fill="#0b1220" />
-          <circle cx="170" cy="235" r="18" fill="#1c2540" />
-          <circle cx="330" cy="235" r="34" fill="#0b1220" />
-          <circle cx="330" cy="235" r="18" fill="#1c2540" />
-        </g>
-        <!-- sparkles -->
-        <g fill="url(#accent)">
-          <circle cx="70" cy="90" r="6" />
-          <circle cx="500" cy="120" r="5" />
-          <circle cx="430" cy="40" r="4" />
-        </g>
-        <!-- tiny tracks -->
-        <g stroke="#0b1220" stroke-width="10" opacity=".25">
-          <path d="M80 280 H480" />
-          <path d="M120 300 H520" />
-        </g>
-      </svg>
-    </div>
+const listEl = document.getElementById("list");
+const reader = document.getElementById("reader");
+const q = document.getElementById("q");
+const btnLight = document.getElementById("btn-light");
+const btnShift = document.getElementById("btn-shift");
+const btnReset = document.getElementById("btn-reset");
 
-    <div class="actions">
-      <a class="start-btn" href="game.html" aria-label="Start the game">Start</a>
-      <span class="note">Press <kbd>Enter</kbd> too. We believe in shortcuts.</span>
-    </div>
-  </main>
+function applyTheme() {
+  if (state.tint) document.documentElement.style.setProperty("--bg", state.tint);
+  else document.documentElement.style.setProperty("--bg", "#0b0f14");
 
-  <noscript style="position: fixed; inset: auto 0 12px 0; text-align: center; color: white; font: 600 14px Fredoka, sans-serif;">JavaScript is disabled. You can still click <em>Start</em> to load the game page.</noscript>
+  if (state.panel) document.documentElement.style.setProperty("--panel", state.panel);
+  else document.documentElement.style.setProperty("--panel", "#141a22");
 
-  <script>
-    // Optional: allow pressing Enter to start
-    (function(){
-      const start = document.querySelector('.start-btn');
-      if (!start) return;
-      window.addEventListener('keydown', (e) => {
-        const tag = (e.target || {}).tagName || '';
-        if (e.key === 'Enter' && !/INPUT|TEXTAREA|SELECT|BUTTON/.test(tag)) {
-          start.click();
-        }
-      });
-    })();
-  </script>
+  if (state.accent) document.documentElement.style.setProperty("--accent", state.accent);
+  else document.documentElement.style.setProperty("--accent", "#6ee7ff");
+
+  document.title = state.erased ? "Inbox of the Unknown • (room erased)" : "Inbox of the Unknown";
+}
+applyTheme();
+
+function renderList(filter = "") {
+  listEl.innerHTML = "";
+  emails
+    .filter(e => (e.subject + e.from + e.preview + e.body).toLowerCase().includes(filter.toLowerCase()))
+    .forEach((e, i) => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.role = "option";
+      div.dataset.id = e.id;
+      if (state.selected === e.id) div.setAttribute("aria-selected", "true");
+      div.innerHTML = `
+        <div class="from">${e.from}</div>
+        <div class="subject">${e.subject}${state.erased && e.id === "c3" ? " <span class='muted'>(redacted)</span>" : ""}</div>
+        <div class="preview">${e.preview}</div>
+      `;
+      div.addEventListener("click", () => openEmail(e.id));
+      listEl.appendChild(div);
+    });
+}
+renderList(q.value || "");
+
+function openEmail(id) {
+  const e = emails.find(x => x.id === id);
+  if (!e) return;
+  state.selected = id; persist();
+  [...listEl.children].forEach(n => n.setAttribute("aria-selected", n.dataset.id === id ? "true" : "false"));
+  const alteredBody = state.erased && id === "c3"
+    ? `<p><em>This content was erased.</em></p><p class="hint">Try a hard reset to restore.</p>`
+    : e.body;
+  reader.innerHTML = `<h2 class="msg-title">${e.subject}</h2>${alteredBody}`;
+  reader.querySelectorAll("a[data-action]").forEach(a => a.addEventListener("click", handleAction));
+}
+
+function handleAction(ev) {
+  ev.preventDefault();
+  const a = ev.currentTarget;
+  const action = a.dataset.action;
+  const val = a.dataset.value;
+  if (action === "tint") { state.tint = val; persist(); applyTheme(); }
+  if (action === "panel") { state.panel = val; persist(); applyTheme(); }
+  if (action === "accent") { state.accent = val; persist(); applyTheme(); }
+  if (action === "erase") { state.erased = true; persist(); applyTheme(); openEmail("c3"); }
+  if (action === "reset") { Object.keys(state).forEach(k => delete state[k]); persist(); location.reload(); }
+}
+
+q.addEventListener("input", () => renderList(q.value));
+btnLight.addEventListener("click", () => {
+  document.body.style.filter = document.body.style.filter ? "" : "brightness(0.85) contrast(1.05)";
+});
+btnShift.addEventListener("click", () => {
+  // subtle layout reality shift
+  document.querySelector(".app").style.gridTemplateColumns =
+    getComputedStyle(document.querySelector(".app")).gridTemplateColumns.startsWith("320px") ? "360px 1fr" : "320px 1fr";
+});
+btnReset.addEventListener("click", () => { Object.keys(state).forEach(k => delete state[k]); persist(); location.reload(); });
+
+// open last viewed email or first
+openEmail(state.selected || emails[0].id);
+</script>
 </body>
 </html>
