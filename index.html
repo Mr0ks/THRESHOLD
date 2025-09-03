@@ -3,142 +3,99 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Classic Mailbox</title>
+<title>Mail</title>
 <style>
-  /* ===== Windows 7-ish classic look (light, compact) ===== */
   :root{
-    --bg:#e9edf2;          /* app background */
-    --panel:#ffffff;       /* panel background */
-    --border:#c7ccd1;      /* light gray borders */
-    --border-dk:#b3b8bd;   /* darker edge */
-    --ink:#222;            /* main text */
-    --muted:#5a6b7a;       /* secondary text */
-    --accent:#2a6dce;      /* Win7-ish blue */
-    --row-hover:#f3f6f9;   /* row hover */
-    --row-select:#cfe8ff;  /* selection */
+    --bg:#0a0c0f;
+    --panel:#111419;
+    --border:#222831;
+    --ink:#f1f1f1;
+    --muted:#7a8696;
+    --accent:#c33;
+    --row-hover:#1b1f27;
+    --row-select:#2a303b;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:13px/1.4 "Segoe UI", Tahoma, Arial, sans-serif}
-  a{color:var(--accent);text-decoration:none}
-
-  .app{height:100%;display:grid;grid-template-columns:220px 1fr;border-top:1px solid var(--border)}
-  aside{border-right:1px solid var(--border-dk);background:var(--panel);display:grid;grid-template-rows:auto auto 1fr auto}
+  .app{height:100%;display:grid;grid-template-columns:220px 1fr}
+  aside{border-right:1px solid var(--border);background:var(--panel);display:grid;grid-template-rows:auto auto 1fr auto}
   header{padding:8px 10px;border-bottom:1px solid var(--border)}
   .logo{font-weight:600;}
-
-  /* Folder area */
-  .search{padding:8px 10px;border-bottom:1px solid var(--border);}
-  .search input{width:100%;padding:6px 8px;border:1px solid var(--border-dk);border-radius:2px;background:#fff;color:var(--ink)}
   .folders{overflow:auto;padding:6px}
-  .folder{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:2px;cursor:pointer}
-  .folder:hover{background:#f6f8fa}
-  .folder.active{background:#eaf2ff;outline:1px solid #c9dcff}
-  .folder small{color:var(--muted);margin-left:auto}
+  .folder{padding:6px;cursor:pointer}
+  .folder.active{background:var(--row-select)}
 
-  /* Right side: toolbar + list + reader (split vertically) */
   main{display:grid;grid-template-rows:auto auto minmax(120px, 1fr) minmax(160px, 1fr);background:var(--panel)}
-  .toolbar{display:flex;gap:6px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--border);background:linear-gradient(#f7f9fb, #eef3f7)}
-  button{border:1px solid var(--border-dk);background:linear-gradient(#ffffff, #f1f5f9);padding:4px 8px;border-radius:2px;cursor:pointer}
-  button:hover{background:linear-gradient(#ffffff, #eaf0f6)}
+  .columns{display:grid;grid-template-columns:160px 1fr 120px;border-bottom:1px solid var(--border);font-weight:600;color:var(--muted)}
+  .col{padding:6px}
 
-  /* Column header */
-  .columns{display:grid;grid-template-columns:180px 1fr 160px;gap:0;border-bottom:1px solid var(--border);background:linear-gradient(#fafcfe,#f0f5fb);color:#3c4a57;font-weight:600}
-  .col{padding:6px 8px;border-right:1px solid var(--border)}
-  .col:last-child{border-right:none;text-align:right}
-
-  /* Message list */
   .list{overflow:auto;border-bottom:1px solid var(--border)}
-  .row{display:grid;grid-template-columns:180px 1fr 160px;gap:0;align-items:center;cursor:pointer}
-  .cell{padding:6px 8px;border-right:1px solid var(--border)}
-  .cell:last-child{border-right:none;text-align:right;color:var(--muted)}
+  .row{display:grid;grid-template-columns:160px 1fr 120px;cursor:pointer}
+  .cell{padding:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .row:hover{background:var(--row-hover)}
   .row.selected{background:var(--row-select)}
-  .from{font-weight:600}
-  .subject{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .unread .subject{font-weight:700}
+  .unread .subject{font-weight:700;color:var(--accent)}
 
-  /* Reader */
-  .readerHead{padding:6px 10px;border-bottom:1px solid var(--border);background:#fafcfe;color:#3c4a57}
-  article{padding:10px 12px;overflow:auto}
-  article h2{margin:0 0 6px;font-size:16px}
+  .readerHead{padding:6px 10px;border-bottom:1px solid var(--border);background:#14181e;color:var(--muted)}
+  article{padding:10px 12px;overflow:auto;min-height:160px;animation:fadeIn 0.5s ease}
+  article h2{margin:0 0 6px;font-size:16px;color:var(--accent)}
   article .meta{color:var(--muted);margin-bottom:8px}
 
-  /* Statusbar */
-  .status{grid-column:1 / -1;border-top:1px solid var(--border);padding:4px 8px;background:linear-gradient(#f7f9fb, #eef3f7);color:#3c4a57;font-size:12px}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes scramble{
+    0%{content:"A"}
+    25%{content:"S"}
+    50%{content:"D"}
+    75%{content:"W"}
+    100%{content:"ASDW"}
+  }
+  .scramble::after{content:"";animation:scramble 0.4s infinite linear;}
 </style>
 </head>
 <body>
 <div class="app">
   <aside>
-    <header><div class="logo">Windows Mail</div></header>
-    <div class="search"><input id="q" type="search" placeholder="Search" aria-label="Search mail"></div>
-    <div class="folders" role="tree" aria-label="Folders">
-      <div class="folder active" data-folder="inbox">📥 Inbox <small id="unread">0</small></div>
-      <div class="folder" data-folder="drafts">📝 Drafts <small>0</small></div>
-      <div class="folder" data-folder="sent">📤 Sent <small>0</small></div>
-      <div class="folder" data-folder="trash">🗑️ Deleted <small>0</small></div>
+    <header><div class="logo">Mail</div></header>
+    <div class="folders">
+      <div class="folder active" data-folder="inbox">Inbox</div>
+      <div class="folder" data-folder="trash">Trash</div>
     </div>
-    <div class="status" id="status">Ready</div>
   </aside>
 
   <main>
-    <div class="toolbar">
-      <button id="btnNew">New</button>
-      <button id="btnReply">Reply</button>
-      <button id="btnForward">Forward</button>
-      <button id="btnDelete">Delete</button>
-    </div>
-
-    <div class="columns" role="row">
-      <div class="col" style="border-left:1px solid var(--border)">From</div>
+    <div class="columns">
+      <div class="col">From</div>
       <div class="col">Subject</div>
       <div class="col">Date</div>
     </div>
-
-    <div id="list" class="list" role="listbox" aria-label="Message list"></div>
-
+    <div id="list" class="list"></div>
     <div class="readerHead" id="readerHead">No message selected</div>
-    <article id="reader" tabindex="0" aria-live="polite">
+    <article id="reader">
       <p class="meta">Select a message to preview.</p>
     </article>
   </main>
 </div>
 
 <script>
-// ===== Minimal, no tips / no toasts / no modals / no puzzles =====
 const listEl = document.getElementById('list');
 const reader = document.getElementById('reader');
 const readerHead = document.getElementById('readerHead');
-const unreadEl = document.getElementById('unread');
-const statusEl = document.getElementById('status');
 
 let messages = [
-  {id:'1', from:'HR – Alice', subject:'Welcome to the team', preview:'We’re glad you’re here.', date:'2025-08-28 09:20', body:`<h2>Welcome to the team</h2><div class="meta">From HR – Alice · 28 Aug 2025, 09:20</div><p>Hi and welcome aboard. Your mailbox is now set up. This classic UI has no tips or popups.</p>`, unread:true},
-  {id:'2', from:'IT – Support', subject:'Your account details', preview:'Credentials and setup steps', date:'2025-08-27 16:05', body:`<h2>Your account details</h2><div class="meta">From IT – Support · 27 Aug 2025, 16:05</div><p>Here are your initial setup notes. Let us know if you need anything.</p>`, unread:true},
-  {id:'3', from:'PM – Claire', subject:'Sprint planning notes', preview:'Agenda for next week', date:'2025-08-18 11:42', body:`<h2>Sprint planning notes</h2><div class="meta">From PM – Claire · 18 Aug 2025, 11:42</div><p>Attached are the notes for next sprint.</p>`, unread:false}
+  {id:'1', from:'System', subject:'Welcome', date:'2025-09-03 23:59', body:`<h2>Welcome to <span class="scramble"></span> Industries</h2><div class="meta">From System · Now</div><p>Please complete all tasks you have been given.</p>`, unread:true}
 ];
 let selectedId = null;
 
-function fmtDate(d){
-  // Already human-readable; in real app convert to locale string
-  return d;
-}
-
 function rowTemplate(m){
-  return `
-    <div class="row ${m.unread? 'unread':''} ${m.id===selectedId? 'selected':''}" data-id="${m.id}" role="option" aria-selected="${m.id===selectedId}">
-      <div class="cell from">${m.from}</div>
-      <div class="cell subject" title="${m.preview}">${m.subject}</div>
-      <div class="cell">${fmtDate(m.date)}</div>
-    </div>`;
+  return `<div class="row ${m.unread? 'unread':''} ${m.id===selectedId? 'selected':''}" data-id="${m.id}">
+    <div class="cell from">${m.from}</div>
+    <div class="cell subject">${m.subject}</div>
+    <div class="cell">${m.date}</div>
+  </div>`;
 }
 
-function renderList(filter=''){
-  const q = filter.trim().toLowerCase();
-  const filtered = messages.filter(m => (m.from + ' ' + m.subject + ' ' + m.preview).toLowerCase().includes(q));
-  listEl.innerHTML = filtered.map(rowTemplate).join('');
-  unreadEl.textContent = messages.filter(m=>m.unread).length;
-  statusEl.textContent = `${filtered.length} message${filtered.length===1?'':'s'}`;
+function renderList(){
+  listEl.innerHTML = messages.map(rowTemplate).join('');
   [...listEl.querySelectorAll('.row')].forEach(r => r.addEventListener('click', ()=> openMessage(r.dataset.id)));
 }
 
@@ -146,32 +103,11 @@ function openMessage(id){
   const m = messages.find(x=>x.id===id);
   if(!m) return;
   selectedId = id;
-  if(m.unread){ m.unread = false; }
+  if(m.unread) m.unread = false;
   readerHead.textContent = `${m.from} — ${m.subject}`;
   reader.innerHTML = m.body;
-  renderList(document.getElementById('q').value || '');
+  renderList();
 }
-
-// Basic toolbar wiring (no-op demo)
-['btnNew','btnReply','btnForward','btnDelete'].forEach(id=>{
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.addEventListener('click', ()=>{
-    statusEl.textContent = el.textContent + ' (demo)';
-  });
-});
-
-// Folder click (demo – stays on Inbox)
-[...document.querySelectorAll('.folder')].forEach(f => {
-  f.addEventListener('click', ()=>{
-    document.querySelectorAll('.folder').forEach(x=>x.classList.remove('active'));
-    f.classList.add('active');
-  });
-});
-
-// Search
-const q = document.getElementById('q');
-q.addEventListener('input', e => renderList(e.target.value));
 
 renderList();
 </script>
