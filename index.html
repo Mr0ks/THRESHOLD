@@ -6,15 +6,8 @@
 <title>Mail</title>
 <style>
   :root{
-    --bg:#e9edf2;
-    --panel:#ffffff;
-    --border:#c7ccd1;
-    --border-dk:#b3b8bd;
-    --ink:#222;
-    --muted:#5a6b7a;
-    --accent:#2a6dce;
-    --row-hover:#f3f6f9;
-    --row-select:#cfe8ff;
+    --bg:#e9edf2; --panel:#ffffff; --border:#c7ccd1; --border-dk:#b3b8bd; --ink:#222; --muted:#5a6b7a; --accent:#2a6dce; --row-hover:#f3f6f9; --row-select:#cfe8ff;
+    --black:#0c0f14; --boot:#0b0e13; --glow:#7aa2ff;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:13px/1.4 "Segoe UI", Tahoma, Arial, sans-serif}
@@ -33,10 +26,15 @@
   .folder.active{background:#eaf2ff;outline:1px solid #c9dcff}
   .folder small{color:var(--muted);margin-left:auto}
 
-  main{display:grid;grid-template-rows:auto auto minmax(120px, 1fr) minmax(160px, 1fr);background:var(--panel)}
-  .toolbar{display:flex;gap:6px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--border);background:linear-gradient(#f7f9fb, #eef3f7)}
-  button{border:1px solid var(--border-dk);background:linear-gradient(#ffffff, #f1f5f9);padding:4px 8px;border-radius:2px;cursor:pointer}
-  button:hover{background:linear-gradient(#ffffff, #eaf0f6)}
+  main{display:grid;grid-template-rows:auto auto minmax(120px, 1fr) minmax(160px, 1fr);background:var(--panel);position:relative}
+  .toolbar{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid var(--border);background:linear-gradient(#f7f9fb, #eef3f7)}
+  .leftBtns{display:flex;gap:6px;align-items:center}
+  .hud{display:flex;align-items:center;gap:8px;min-width:260px;justify-content:flex-end}
+  .hud .day{font-weight:600;color:#3c4a57}
+  .prog{width:130px;height:8px;border:1px solid var(--border-dk);background:#fff;border-radius:2px;overflow:hidden}
+  .prog .bar{height:100%;width:0;background:linear-gradient(90deg,#a3c7ff,#4d85ff)}
+  .hud .ptxt{min-width:72px;text-align:right;color:#3c4a57}
+  .timer{font-variant-numeric:tabular-nums;color:#b02a2a;font-weight:700;display:none}
 
   .columns{display:grid;grid-template-columns:180px 1fr 160px;gap:0;border-bottom:1px solid var(--border);background:linear-gradient(#fafcfe,#f0f5fb);color:#3c4a57;font-weight:600}
   .col{padding:6px 8px;border-right:1px solid var(--border)}
@@ -59,13 +57,34 @@
 
   .status{grid-column:1 / -1;border-top:1px solid var(--border);padding:4px 8px;background:linear-gradient(#f7f9fb, #eef3f7);color:#3c4a57;font-size:12px}
 
-  /* Horror add-ons */
-  .mumble,.scramble{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px}
+  /* Horror + overlays */
+  .scramble{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px}
   .readerHead.jitter{animation:jitter .15s infinite alternate}
   @keyframes jitter{from{transform:translateX(0)}to{transform:translateX(.6px)}}
-  .haze{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.25));opacity:0;transition:opacity .6s ease}
-  .screen-flicker{animation:flicker 2.2s infinite steps(1)}
-  @keyframes flicker{0%,8%,10%,28%,30%,100%{opacity:1} 9%,29%{opacity:.92} 14%{opacity:.75} 16%{opacity:1} 44%{opacity:.85} 46%{opacity:1}}
+  .haze{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.25));opacity:0;transition:opacity .6s ease;z-index:40}
+  .boot{position:fixed;inset:0;background:var(--boot);display:grid;place-items:center;z-index:60}
+  .bootInner{display:grid;place-items:center;color:#c9d7ff;gap:16px}
+  .winOrbs{width:180px;height:180px;position:relative;filter:drop-shadow(0 0 12px rgba(122,162,255,.4))}
+  .orb{position:absolute;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff, var(--glow));opacity:.9}
+  .o1{left:0;top:0} .o2{right:0;top:0} .o3{left:0;bottom:0} .o4{right:0;bottom:0}
+  .ring{width:110px;height:110px;border:3px solid #3a4d7a;border-top-color:#9ab7ff;border-radius:50%;animation:spin 1.3s linear infinite;position:absolute;inset:0;margin:auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .inter{position:fixed;inset:0;background:#000;display:none;place-items:center;color:#fff;font-size:48px;letter-spacing:2px;z-index:70}
+  .glitch{position:fixed;inset:0;display:none;z-index:65;pointer-events:none}
+  .glitch .scan{position:absolute;inset:0;background-image:repeating-linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.06) 1px, transparent 1px, transparent 3px);opacity:.15}
+  .glitch .flash{position:absolute;inset:0;background:#fff;opacity:0}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;z-index:80}
+  .dialog{width:min(500px,92vw);background:#0e1522;border:1px solid #253152;border-radius:10px;padding:16px;color:#e9f1ff}
+  .dialog h3{margin:0 0 8px}
+  .dialog input, .dialog textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #304a7a;background:#0b1426;color:#e9f1ff}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid #2a4474;background:#0b1424;color:#e9f1ff;padding:6px 10px;border-radius:6px;cursor:pointer}
+  .btn:hover{background:#0f1c36}
+  .btn-ok{border-color:#2d5f3a;background:#0f2016}
+  .btn-danger{border-color:#633040;background:#2a0e17}
+
 </style>
 </head>
 <body>
@@ -84,10 +103,18 @@
 
   <main>
     <div class="toolbar">
-      <button id="btnNew">New</button>
-      <button id="btnReply">Reply</button>
-      <button id="btnForward">Forward</button>
-      <button id="btnDelete">Delete</button>
+      <div class="leftBtns">
+        <button class="btn" id="btnNew">New</button>
+        <button class="btn" id="btnReply">Reply</button>
+        <button class="btn" id="btnForward">Forward</button>
+        <button class="btn" id="btnDelete">Delete</button>
+      </div>
+      <div class="hud">
+        <div class="day" id="dayLabel">Day 1</div>
+        <div class="prog"><div class="bar" id="progBar"></div></div>
+        <div class="ptxt" id="progText">0/20</div>
+        <div class="timer" id="timer">05:00</div>
+      </div>
     </div>
 
     <div class="columns" role="row">
@@ -106,57 +133,202 @@
   </main>
 </div>
 
+<!-- Boot & overlays -->
+<div class="boot" id="boot">
+  <div class="bootInner">
+    <div class="winOrbs">
+      <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="orb o4"></div>
+      <div class="ring"></div>
+    </div>
+    <div>Starting Windows…</div>
+  </div>
+</div>
+<div class="inter" id="inter"><div id="interText">DAY 1</div></div>
+<div class="glitch" id="glitch"><div class="scan"></div><div class="flash" id="flash"></div></div>
+
+<!-- Task modal -->
+<div class="modal" id="taskModal">
+  <div class="dialog">
+    <h3 id="taskTitle">Task</h3>
+    <div id="taskBody" style="margin-bottom:10px"></div>
+    <div class="row">
+      <button class="btn btn-ok" id="taskSubmit">Submit</button>
+      <button class="btn" id="taskCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const listEl=document.getElementById('list');
-const reader=document.getElementById('reader');
-const readerHead=document.getElementById('readerHead');
-const unreadEl=document.getElementById('unread');
-const statusEl=document.getElementById('status');
-const haze=document.getElementById('haze');
+// ===== Core references
+const listEl = document.getElementById('list');
+const reader = document.getElementById('reader');
+const readerHead = document.getElementById('readerHead');
+const unreadEl = document.getElementById('unread');
+const statusEl = document.getElementById('status');
+const haze = document.getElementById('haze');
+const boot = document.getElementById('boot');
+const inter = document.getElementById('inter');
+const interText = document.getElementById('interText');
+const glitch = document.getElementById('glitch');
+const flash = document.getElementById('flash');
+const dayLabel = document.getElementById('dayLabel');
+const progBar = document.getElementById('progBar');
+const progText = document.getElementById('progText');
+const timerEl = document.getElementById('timer');
 
-let messages=[
- {id:'w0',from:'HR – Alice',subject:'Welcome to <span class="scramble" data-len="6"></span> Industries',preview:'Please complete all tasks you have been given.',date:'2025-09-03 09:00',body:`<h2>Welcome to <span class='scramble' data-len='6'></span> Industries</h2><div class="meta">From HR – Alice · 03 Sep 2025, 09:00</div><p>Please complete all tasks you have been given. Do not close this window.</p>`,unread:true},
-];
+// ===== Audio
+let ac, master;
+function initAudio(){ if(ac) return; try{ ac = new (window.AudioContext||window.webkitAudioContext)(); master = ac.createGain(); master.gain.value=.05; master.connect(ac.destination);}catch(e){} }
+function humStart(){ initAudio(); if(!ac) return; if(humStart._osc) return; const o = ac.createOscillator(); o.type='sawtooth'; o.frequency.value=46; const g=ac.createGain(); g.gain.value=.003; o.connect(g).connect(master); o.start(); humStart._osc=o; }
+function humStop(){ if(humStart._osc){ try{ humStart._osc.stop(); }catch(e){} humStart._osc=null; } }
+function staticRise(seconds=6){ initAudio(); if(!ac) return; const len=2; const buf=ac.createBuffer(1, ac.sampleRate*len, ac.sampleRate); const data=buf.getChannelData(0); for(let i=0;i<data.length;i++){ data[i] = Math.random()*2-1; }
+  const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; const g=ac.createGain(); g.gain.value=0.0001; src.connect(g).connect(master); src.start(); const now=ac.currentTime; g.gain.exponentialRampToValueAtTime(0.25, now+seconds);
+  setTimeout(()=>{ try{ g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.2);}catch(e){} setTimeout(()=>{ try{src.stop();}catch(e){} }, 400); }, seconds*1000);
+}
 
+// ===== Scramble
+function randUpper(n){ const A=65; return Array.from({length:n},()=> String.fromCharCode(A+Math.floor(Math.random()*26))).join(''); }
+function startScramble(el,len=6,ms=120){ if(el._scrInt) clearInterval(el._scrInt); el._scrInt=setInterval(()=>{ el.textContent=randUpper(len); }, ms); }
+function initScrambles(root=document){ root.querySelectorAll('.scramble').forEach(el=>{ const len=parseInt(el.getAttribute('data-len')||'6',10); el.textContent=randUpper(len); startScramble(el,len); }); }
+
+// ===== Mail state
+let messages=[]; // {id, from, subject(html), preview, date, body(html), unread, done}
 let selectedId=null;
 
-function randUpper(n){const A=65;return Array.from({length:n},()=>String.fromCharCode(A+Math.floor(Math.random()*26))).join('');}
-function startScramble(el,len=6,ms=120){if(el._scrInt)clearInterval(el._scrInt);el._scrInt=setInterval(()=>{el.textContent=randUpper(len);},ms);}
-function initScrambles(){document.querySelectorAll('.scramble').forEach(el=>{const len=parseInt(el.getAttribute('data-len')||'6',10);el.textContent=randUpper(len);startScramble(el,len);});}
+function rowTemplate(m){ return `<div class="row ${m.unread? 'unread':''} ${m.id===selectedId?'selected':''}" data-id="${m.id}" role="option" aria-selected="${m.id===selectedId}"><div class="cell from">${m.from}</div><div class="cell subject">${m.subject}</div><div class="cell">${m.date}</div></div>`; }
+function renderList(filter=''){ const q=filter.trim().toLowerCase(); const filtered=messages.filter(m=>(m.from+' '+m.subject+' '+m.preview).toLowerCase().includes(q)); listEl.innerHTML = filtered.map(rowTemplate).join(''); unreadEl.textContent = messages.filter(m=>m.unread).length; statusEl.textContent = `${filtered.length} message${filtered.length===1?'':'s'}`; [...listEl.querySelectorAll('.row')].forEach(r=> r.addEventListener('click', ()=> openMessage(r.dataset.id))); }
+function pushMail(m){ messages.unshift(m); renderList(document.getElementById('q').value||''); }
 
-function rowTemplate(m){return`<div class="row ${m.unread?'unread':''} ${m.id===selectedId?'selected':''}" data-id="${m.id}" role="option" aria-selected="${m.id===selectedId}"><div class="cell from">${m.from}</div><div class="cell subject">${m.subject}</div><div class="cell">${m.date}</div></div>`;}
-
-function renderList(filter=''){
- const q=filter.trim().toLowerCase();
- const filtered=messages.filter(m=>(m.from+' '+m.subject+' '+m.preview).toLowerCase().includes(q));
- listEl.innerHTML=filtered.map(rowTemplate).join('');
- unreadEl.textContent=messages.filter(m=>m.unread).length;
- statusEl.textContent=`${filtered.length} message${filtered.length===1?'':'s'}`;
- [...listEl.querySelectorAll('.row')].forEach(r=>r.addEventListener('click',()=>openMessage(r.dataset.id)));
+function openMessage(id){ const m = messages.find(x=>x.id===id); if(!m) return; selectedId=id; if(m.unread) m.unread=false; readerHead.innerHTML = `${m.from} — ${m.subject}`; readerHead.classList.add('jitter'); setTimeout(()=>readerHead.classList.remove('jitter'), 800); reader.innerHTML = m.body; initScrambles(reader); renderList(document.getElementById('q').value||'');
+  // wire tasks
+  reader.querySelectorAll('[data-task]').forEach(btn=> btn.addEventListener('click', ()=> handleTask(btn.getAttribute('data-task'), m)));
+  // special claim
+  const claim = reader.querySelector('#claimPrize'); if(claim){ claim.addEventListener('click', ()=> doGlitchReboot()); }
 }
 
-function openMessage(id){
- const m=messages.find(x=>x.id===id);if(!m)return;
- selectedId=id;if(m.unread){m.unread=false;}
- readerHead.innerHTML=`${m.from} — ${m.subject}`;
- readerHead.classList.add('jitter');setTimeout(()=>readerHead.classList.remove('jitter'),800);
- reader.innerHTML=m.body;initScrambles();
- renderList(document.getElementById('q').value||'');
- if(id==='w0')onWelcomeOpened();
+// ===== Toolbar
+['btnNew','btnReply','btnForward','btnDelete'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.addEventListener('click', ()=>{ statusEl.textContent = el.textContent + ' (demo)'; }); });
+[...document.querySelectorAll('.folder')].forEach(f=>{ f.addEventListener('click', ()=>{ document.querySelectorAll('.folder').forEach(x=>x.classList.remove('active')); f.classList.add('active'); }); });
+const q = document.getElementById('q'); q.addEventListener('input', e=> renderList(e.target.value));
+
+// ===== HUD / Progress
+let day=1; let tasksCompleted=0; function targetForDay(d){ return 20 + 2*(d-1); } let tasksTarget=targetForDay(day);
+function updateHud(){ dayLabel.textContent = `Day ${day}`; progText.textContent = `${tasksCompleted}/${tasksTarget}`; const pct = Math.max(0, Math.min(100, (tasksCompleted/tasksTarget)*100)); progBar.style.width = pct + '%'; }
+
+// ===== Boot + Interstitial + Glitch
+function showBoot(ms=2200){ boot.style.display='grid'; setTimeout(()=> boot.style.display='none', ms); }
+function showDayCard(n,ms=1500){ interText.textContent = `DAY ${n}`; inter.style.display='grid'; setTimeout(()=> inter.style.display='none', ms); }
+function flashPulse(times=4, cb){ let n=0; function once(){ flash.style.opacity='1'; setTimeout(()=>{ flash.style.opacity='0'; if(++n<times) setTimeout(once, 120); else cb&&cb(); }, 120);} once(); }
+function doGlitchReboot(){ glitch.style.display='block'; flashPulse(6, ()=>{ messages=[]; renderList(); readerHead.textContent='Rebooting…'; reader.innerHTML='<p class="meta">Please wait.</p>'; showBoot(2200); setTimeout(()=>{ glitch.style.display='none'; startAfterReboot(); }, 2300); }); }
+
+// ===== Task Modal & Handlers
+const taskModal = document.getElementById('taskModal');
+const taskTitle = document.getElementById('taskTitle');
+const taskBody  = document.getElementById('taskBody');
+const taskSubmit= document.getElementById('taskSubmit');
+const taskCancel= document.getElementById('taskCancel');
+let currentTask={type:null, mail:null, check:()=>false};
+function showTask(){ taskModal.style.display='grid'; }
+function hideTask(){ taskModal.style.display='none'; }
+
+taskCancel.addEventListener('click', hideTask);
+
+typeTasks = {
+  sign:(mail)=>{ taskTitle.textContent='Sign the Document'; taskBody.innerHTML=`<p>Type your initials and press Submit:</p><input id='sig' placeholder='e.g., OM'>`; currentTask.check=()=> (document.getElementById('sig').value||'').trim().length>=2; showTask(); },
+  words:(mail)=>{ const phrase='I HAVE REVIEWED THE DEPLOYMENT PLAN.'; taskTitle.textContent='Word Puzzle'; taskBody.innerHTML=`<p>Type this exactly:</p><div style='padding:8px;border:1px dashed #304a7a;margin-bottom:6px;font-family:ui-monospace'>${phrase}</div><input id='wp'>`; currentTask.check=()=> document.getElementById('wp').value===phrase; showTask(); },
+  checks:(mail)=>{ taskTitle.textContent='Complete the Checklist'; taskBody.innerHTML=`<label><input type='checkbox' class='ck'> Acknowledge policy</label><br><label><input type='checkbox' class='ck'> Enable 2FA</label><br><label><input type='checkbox' class='ck'> Update password</label>`; currentTask.check=()=> [...taskBody.querySelectorAll('.ck')].every(c=>c.checked); showTask(); },
+  fill:(mail)=>{ taskTitle.textContent='Fill the Missing Word'; taskBody.innerHTML=`<p>Complete the sentence:</p><div>SECURITY ______ ENABLED</div><input id='fill' placeholder='type here'>`; currentTask.check=()=> (document.getElementById('fill').value||'').trim().toUpperCase()==='PROTOCOLS'; showTask(); }
+};
+
+function handleTask(type, mail){ if(typeTasks[type]){ currentTask.mail=mail; currentTask.type=type; typeTasks[type](mail); } }
+
+taskSubmit.addEventListener('click', ()=>{ if(currentTask.check && currentTask.check()){ hideTask(); if(!currentTask.mail.done){ currentTask.mail.done=true; tasksCompleted++; updateHud(); checkEndOfDay(); } } else { taskBody.style.animation='jitter .15s infinite alternate'; setTimeout(()=> taskBody.style.animation='', 250); } });
+
+// ===== Day & Events
+let taskTicker=null; // schedules next random task
+function randomTaskEmail(){ const types=['sign','words','checks','fill']; const t = types[Math.floor(Math.random()*types.length)]; const id = 't'+Math.random().toString(36).slice(2,7); const subjMap={sign:'Please sign this', words:'Draft this exactly', checks:'Quick checklist', fill:'Missing word'}; const bodyMap={
+  sign:`<h2>Signature needed</h2><div class='meta'>From HR</div><p>We need your signature.</p><p><button class='btn btn-ok' data-task='sign'>Sign</button></p>`,
+  words:`<h2>Type this sentence</h2><div class='meta'>From PM</div><p>Accuracy matters.</p><p><button class='btn btn-ok' data-task='words'>Open puzzle</button></p>`,
+  checks:`<h2>Security Checklist</h2><div class='meta'>From Sec</div><p>Please complete.</p><p><button class='btn btn-ok' data-task='checks'>Open checklist</button></p>`,
+  fill:`<h2>Fill the blank</h2><div class='meta'>From Ops</div><p>Complete the sentence.</p><p><button class='btn btn-ok' data-task='fill'>Open</button></p>` };
+  return {id, from:'System', subject:subjMap[t], preview:'—', date:ts(), body:bodyMap[t], unread:true, done:false};
 }
 
-['btnNew','btnReply','btnForward','btnDelete'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.addEventListener('click',()=>{statusEl.textContent=el.textContent+' (demo)';});});
-[...document.querySelectorAll('.folder')].forEach(f=>{f.addEventListener('click',()=>{document.querySelectorAll('.folder').forEach(x=>x.classList.remove('active'));f.classList.add('active');});});
-const q=document.getElementById('q');q.addEventListener('input',e=>renderList(e.target.value));
+function scheduleNextTask(){ if(tasksCompleted>=tasksTarget) return; const delay = 4000 + Math.random()*4000; taskTicker = setTimeout(()=>{ pushMail(randomTaskEmail()); if(day===3 && !specials.day3.prizeQueued){ queuePrize(); } scheduleNextTask(); }, delay); }
 
-// Horror effects
-let ac,master,hum;function initAudio(){if(ac)return;try{ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.04;master.connect(ac.destination);}catch(e){}}
-function startHum(){initAudio();if(!ac)return;if(hum)return;hum=ac.createOscillator();hum.type='sawtooth';hum.frequency.value=46;const hGain=ac.createGain();hGain.gain.value=.005;hum.connect(hGain).connect(master);hum.start();}
-function pulseHaze(level=.7,ms=800){haze.style.opacity=String(level);setTimeout(()=>{haze.style.opacity='0'},ms);}
+function checkEndOfDay(){ if(tasksCompleted>=tasksTarget){ // end-of-day transition
+  setTimeout(()=>{ // brief blackout
+    inter.style.display='grid'; interText.textContent=`DAY ${day+1}`; setTimeout(()=>{ inter.style.display='none'; nextDay(); }, 1500);
+  }, 600);
+} }
 
-let started=false;function onWelcomeOpened(){if(started)return;started=true;startHum();pulseHaze(.35,1200);setTimeout(()=>{messages.unshift({id:'h1',from:'Operations',subject:'Task 1: Unlock the door',preview:'The one behind you.',date:'2025-09-03 09:02',body:`<h2>Task 1</h2><div class=\"meta\">From Operations · 03 Sep 2025, 09:02</div><p>Stand up. Check the door. Return to your desk.</p>`,unread:true});renderList();},6000);}
+function nextDay(){ day++; tasksCompleted=0; tasksTarget=targetForDay(day); updateHud(); if(taskTicker) clearTimeout(taskTicker);
+  if(day===2){ startDay2(); }
+  else if(day===3){ startDay3(); }
+  else if(day===4){ startDay4(); }
+  else { startGenericDay(); }
+}
 
-initScrambles();renderList();
+function startGenericDay(){ showBoot(1800); scheduleNextTask(); humStart(); }
+
+function startDay1(){ showBoot(2200); humStart(); // welcome scrambled email
+  pushMail({id:'w0', from:'HR – Alice', subject:`Welcome to <span class="scramble" data-len="6"></span> Industries`, preview:'Please complete all tasks you have been given.', date:ts(), body:`<h2>Welcome to <span class='scramble' data-len='6'></span> Industries</h2><div class="meta">From HR – Alice</div><p>Please complete all tasks you have been given.</p>`, unread:true, done:false}); scheduleNextTask(); }
+
+function startDay2(){ showBoot(2000); scheduleNextTask(); humStart(); }
+
+const specials={ day3:{prizeQueued:false, floodDone:false}, day4:{timer:null, deadline:0, urgentDone:0} };
+
+function queuePrize(){ specials.day3.prizeQueued=true; setTimeout(()=>{
+  pushMail({id:'prize', from:'Promotions', subject:`Win a free prize — with lots of pointers >>>`, preview:'Click to claim.', date:ts(), body:`<h2>Win a free prize</h2><div class='meta'>From Promotions</div><p>This is definitely safe. Promise.</p><p><button class='btn btn-ok' id='claimPrize'>Claim</button></p>`, unread:true, done:false});
+}, 6000 + Math.random()*6000); }
+
+function startAfterReboot(){ // day3 continuation after prize
+  scheduleNextTask(); humStart(); // after 20s, flood scrambled + I SEE YOU, then clear
+  setTimeout(()=>{
+    for(let i=0;i<8;i++) pushMail({id:'f'+i, from:'???', subject:`<span class='scramble' data-len='7'></span>`, preview:'—', date:ts(), body:`<h2><span class='scramble' data-len='7'></span></h2><div class='meta'>From ???</div><p>…</p>`, unread:true});
+    initScrambles();
+    setTimeout(()=>{
+      pushMail({id:'see', from:'???', subject:'I SEE YOU', preview:'', date:ts(), body:`<h2 style='color:#b02a2a'>I SEE YOU</h2><div class='meta'>From ???</div><p>👁️</p>`, unread:true}); staticRise(6);
+      setTimeout(()=>{ messages=[]; renderList(); readerHead.textContent='—'; reader.innerHTML='<p class="meta">Everything is quiet.</p>'; }, 3200);
+    }, 2000);
+  }, 20000);
+}
+
+function startDay3(){ showBoot(2000); scheduleNextTask(); humStart(); queuePrize(); }
+
+function startDay4(){ showBoot(2400); humStart(); // On boot, replace with I SEE YOU emails briefly
+  setTimeout(()=>{ messages=[]; for(let i=0;i<12;i++) messages.push({id:'d4s'+i, from:'???', subject:'I SEE YOU', preview:'', date:ts(), body:`<h2>I SEE YOU</h2><div class='meta'>From ???</div>`, unread:true}); renderList(); setTimeout(()=>{ messages=[]; renderList(); reader.innerHTML='<p class="meta">You have 5 minutes.</p>'; startFiveMinuteRun(); }, 2000); }, 800);
+}
+
+function startFiveMinuteRun(){ // 5 urgent tasks; must do within 5 minutes
+  specials.day4.urgentDone=0; const total=5; const end = Date.now()+5*60*1000; specials.day4.deadline=end; timerEl.style.display='block';
+  const urgentTypes=['sign','words','checks','fill'];
+  for(let i=0;i<total;i++){ setTimeout(()=> pushMail(randomTaskEmail()), i*1200); }
+  tickTimer();
+}
+
+function tickTimer(){ const remain = specials.day4.deadline - Date.now(); if(remain<=0){ timerEl.textContent='00:00'; timerEl.style.display='none'; // fail if not finished day target or at least 5 completed since start
+    if(tasksCompleted < Math.min(tasksTarget, 5)){ showFail(); }
+    else { // success
+      interText.textContent='YOU DID IT'; inter.style.display='grid'; setTimeout(()=>{ inter.style.display='none'; scheduleNextTask(); }, 1500);
+    }
+    return; }
+  const m = Math.floor(remain/60000); const s = Math.floor((remain%60000)/1000); timerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; requestAnimationFrame(tickTimer);
+}
+
+function showFail(){ glitch.style.display='block'; flashPulse(10, ()=>{ glitch.style.display='none'; reader.innerHTML = `<h2 style='color:#b02a2a'>YOU FAILED.</h2><p class='meta'>Refresh to try again.</p>`; }); }
+
+// ===== Dates helper
+function ts(){ const d=new Date(); return d.toLocaleString(); }
+
+// ===== Init
+updateHud();
+initScrambles();
+renderList();
+showBoot(2200);
+setTimeout(()=>{ inter.style.display='none'; }, 10);
+// Start Day 1 after boot
+setTimeout(()=>{ startDay1(); }, 2300);
 </script>
 </body>
 </html>
