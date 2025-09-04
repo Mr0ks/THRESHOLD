@@ -6,110 +6,157 @@
 <title>Mail</title>
 <style>
   :root{
-    --bg:#0a0c0f;
-    --panel:#111419;
-    --border:#222831;
-    --ink:#f1f1f1;
-    --muted:#7a8696;
-    --accent:#c33;
-    --row-hover:#1b1f27;
-    --row-select:#2a303b;
+    --bg:#e9edf2;
+    --panel:#ffffff;
+    --border:#c7ccd1;
+    --border-dk:#b3b8bd;
+    --ink:#222;
+    --muted:#5a6b7a;
+    --accent:#2a6dce;
+    --row-hover:#f3f6f9;
+    --row-select:#cfe8ff;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:13px/1.4 "Segoe UI", Tahoma, Arial, sans-serif}
-  .app{height:100%;display:grid;grid-template-columns:220px 1fr}
-  aside{border-right:1px solid var(--border);background:var(--panel);display:grid;grid-template-rows:auto auto 1fr auto}
+  a{color:var(--accent);text-decoration:none}
+
+  .app{height:100%;display:grid;grid-template-columns:220px 1fr;border-top:1px solid var(--border)}
+  aside{border-right:1px solid var(--border-dk);background:var(--panel);display:grid;grid-template-rows:auto auto 1fr auto}
   header{padding:8px 10px;border-bottom:1px solid var(--border)}
   .logo{font-weight:600;}
+
+  .search{padding:8px 10px;border-bottom:1px solid var(--border);}
+  .search input{width:100%;padding:6px 8px;border:1px solid var(--border-dk);border-radius:2px;background:#fff;color:var(--ink)}
   .folders{overflow:auto;padding:6px}
-  .folder{padding:6px;cursor:pointer}
-  .folder.active{background:var(--row-select)}
+  .folder{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:2px;cursor:pointer}
+  .folder:hover{background:#f6f8fa}
+  .folder.active{background:#eaf2ff;outline:1px solid #c9dcff}
+  .folder small{color:var(--muted);margin-left:auto}
 
   main{display:grid;grid-template-rows:auto auto minmax(120px, 1fr) minmax(160px, 1fr);background:var(--panel)}
-  .columns{display:grid;grid-template-columns:160px 1fr 120px;border-bottom:1px solid var(--border);font-weight:600;color:var(--muted)}
-  .col{padding:6px}
+  .toolbar{display:flex;gap:6px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--border);background:linear-gradient(#f7f9fb, #eef3f7)}
+  button{border:1px solid var(--border-dk);background:linear-gradient(#ffffff, #f1f5f9);padding:4px 8px;border-radius:2px;cursor:pointer}
+  button:hover{background:linear-gradient(#ffffff, #eaf0f6)}
+
+  .columns{display:grid;grid-template-columns:180px 1fr 160px;gap:0;border-bottom:1px solid var(--border);background:linear-gradient(#fafcfe,#f0f5fb);color:#3c4a57;font-weight:600}
+  .col{padding:6px 8px;border-right:1px solid var(--border)}
+  .col:last-child{border-right:none;text-align:right}
 
   .list{overflow:auto;border-bottom:1px solid var(--border)}
-  .row{display:grid;grid-template-columns:160px 1fr 120px;cursor:pointer}
-  .cell{padding:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row{display:grid;grid-template-columns:180px 1fr 160px;gap:0;align-items:center;cursor:pointer}
+  .cell{padding:6px 8px;border-right:1px solid var(--border)}
+  .cell:last-child{border-right:none;text-align:right;color:var(--muted)}
   .row:hover{background:var(--row-hover)}
   .row.selected{background:var(--row-select)}
-  .unread .subject{font-weight:700;color:var(--accent)}
+  .from{font-weight:600}
+  .subject{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .unread .subject{font-weight:700}
 
-  .readerHead{padding:6px 10px;border-bottom:1px solid var(--border);background:#14181e;color:var(--muted)}
-  article{padding:10px 12px;overflow:auto;min-height:160px;animation:fadeIn 0.5s ease}
-  article h2{margin:0 0 6px;font-size:16px;color:var(--accent)}
+  .readerHead{padding:6px 10px;border-bottom:1px solid var(--border);background:#fafcfe;color:#3c4a57}
+  article{padding:10px 12px;overflow:auto}
+  article h2{margin:0 0 6px;font-size:16px}
   article .meta{color:var(--muted);margin-bottom:8px}
 
-  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes scramble{
-    0%{content:"A"}
-    25%{content:"S"}
-    50%{content:"D"}
-    75%{content:"W"}
-    100%{content:"ASDW"}
-  }
-  .scramble::after{content:"";animation:scramble 0.4s infinite linear;}
+  .status{grid-column:1 / -1;border-top:1px solid var(--border);padding:4px 8px;background:linear-gradient(#f7f9fb, #eef3f7);color:#3c4a57;font-size:12px}
+
+  /* Horror add-ons */
+  .mumble,.scramble{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px}
+  .readerHead.jitter{animation:jitter .15s infinite alternate}
+  @keyframes jitter{from{transform:translateX(0)}to{transform:translateX(.6px)}}
+  .haze{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.25));opacity:0;transition:opacity .6s ease}
+  .screen-flicker{animation:flicker 2.2s infinite steps(1)}
+  @keyframes flicker{0%,8%,10%,28%,30%,100%{opacity:1} 9%,29%{opacity:.92} 14%{opacity:.75} 16%{opacity:1} 44%{opacity:.85} 46%{opacity:1}}
 </style>
 </head>
 <body>
 <div class="app">
   <aside>
     <header><div class="logo">Mail</div></header>
-    <div class="folders">
-      <div class="folder active" data-folder="inbox">Inbox</div>
-      <div class="folder" data-folder="trash">Trash</div>
+    <div class="search"><input id="q" type="search" placeholder="Search" aria-label="Search mail"></div>
+    <div class="folders" role="tree" aria-label="Folders">
+      <div class="folder active" data-folder="inbox">📥 Inbox <small id="unread">0</small></div>
+      <div class="folder" data-folder="drafts">📝 Drafts <small>0</small></div>
+      <div class="folder" data-folder="sent">📤 Sent <small>0</small></div>
+      <div class="folder" data-folder="trash">🗑️ Deleted <small>0</small></div>
     </div>
+    <div class="status" id="status">Ready</div>
   </aside>
 
   <main>
-    <div class="columns">
-      <div class="col">From</div>
+    <div class="toolbar">
+      <button id="btnNew">New</button>
+      <button id="btnReply">Reply</button>
+      <button id="btnForward">Forward</button>
+      <button id="btnDelete">Delete</button>
+    </div>
+
+    <div class="columns" role="row">
+      <div class="col" style="border-left:1px solid var(--border)">From</div>
       <div class="col">Subject</div>
       <div class="col">Date</div>
     </div>
-    <div id="list" class="list"></div>
+
+    <div id="list" class="list" role="listbox" aria-label="Message list"></div>
+
     <div class="readerHead" id="readerHead">No message selected</div>
-    <article id="reader">
+    <div class="haze" id="haze"></div>
+    <article id="reader" tabindex="0" aria-live="polite">
       <p class="meta">Select a message to preview.</p>
     </article>
   </main>
 </div>
 
 <script>
-const listEl = document.getElementById('list');
-const reader = document.getElementById('reader');
-const readerHead = document.getElementById('readerHead');
+const listEl=document.getElementById('list');
+const reader=document.getElementById('reader');
+const readerHead=document.getElementById('readerHead');
+const unreadEl=document.getElementById('unread');
+const statusEl=document.getElementById('status');
+const haze=document.getElementById('haze');
 
-let messages = [
-  {id:'1', from:'System', subject:'Welcome', date:'2025-09-03 23:59', body:`<h2>Welcome to <span class="scramble"></span> Industries</h2><div class="meta">From System · Now</div><p>Please complete all tasks you have been given.</p>`, unread:true}
+let messages=[
+ {id:'w0',from:'HR – Alice',subject:'Welcome to <span class="scramble" data-len="6"></span> Industries',preview:'Please complete all tasks you have been given.',date:'2025-09-03 09:00',body:`<h2>Welcome to <span class='scramble' data-len='6'></span> Industries</h2><div class="meta">From HR – Alice · 03 Sep 2025, 09:00</div><p>Please complete all tasks you have been given. Do not close this window.</p>`,unread:true},
 ];
-let selectedId = null;
 
-function rowTemplate(m){
-  return `<div class="row ${m.unread? 'unread':''} ${m.id===selectedId? 'selected':''}" data-id="${m.id}">
-    <div class="cell from">${m.from}</div>
-    <div class="cell subject">${m.subject}</div>
-    <div class="cell">${m.date}</div>
-  </div>`;
-}
+let selectedId=null;
 
-function renderList(){
-  listEl.innerHTML = messages.map(rowTemplate).join('');
-  [...listEl.querySelectorAll('.row')].forEach(r => r.addEventListener('click', ()=> openMessage(r.dataset.id)));
+function randUpper(n){const A=65;return Array.from({length:n},()=>String.fromCharCode(A+Math.floor(Math.random()*26))).join('');}
+function startScramble(el,len=6,ms=120){if(el._scrInt)clearInterval(el._scrInt);el._scrInt=setInterval(()=>{el.textContent=randUpper(len);},ms);}
+function initScrambles(){document.querySelectorAll('.scramble').forEach(el=>{const len=parseInt(el.getAttribute('data-len')||'6',10);el.textContent=randUpper(len);startScramble(el,len);});}
+
+function rowTemplate(m){return`<div class="row ${m.unread?'unread':''} ${m.id===selectedId?'selected':''}" data-id="${m.id}" role="option" aria-selected="${m.id===selectedId}"><div class="cell from">${m.from}</div><div class="cell subject">${m.subject}</div><div class="cell">${m.date}</div></div>`;}
+
+function renderList(filter=''){
+ const q=filter.trim().toLowerCase();
+ const filtered=messages.filter(m=>(m.from+' '+m.subject+' '+m.preview).toLowerCase().includes(q));
+ listEl.innerHTML=filtered.map(rowTemplate).join('');
+ unreadEl.textContent=messages.filter(m=>m.unread).length;
+ statusEl.textContent=`${filtered.length} message${filtered.length===1?'':'s'}`;
+ [...listEl.querySelectorAll('.row')].forEach(r=>r.addEventListener('click',()=>openMessage(r.dataset.id)));
 }
 
 function openMessage(id){
-  const m = messages.find(x=>x.id===id);
-  if(!m) return;
-  selectedId = id;
-  if(m.unread) m.unread = false;
-  readerHead.textContent = `${m.from} — ${m.subject}`;
-  reader.innerHTML = m.body;
-  renderList();
+ const m=messages.find(x=>x.id===id);if(!m)return;
+ selectedId=id;if(m.unread){m.unread=false;}
+ readerHead.innerHTML=`${m.from} — ${m.subject}`;
+ readerHead.classList.add('jitter');setTimeout(()=>readerHead.classList.remove('jitter'),800);
+ reader.innerHTML=m.body;initScrambles();
+ renderList(document.getElementById('q').value||'');
+ if(id==='w0')onWelcomeOpened();
 }
 
-renderList();
+['btnNew','btnReply','btnForward','btnDelete'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.addEventListener('click',()=>{statusEl.textContent=el.textContent+' (demo)';});});
+[...document.querySelectorAll('.folder')].forEach(f=>{f.addEventListener('click',()=>{document.querySelectorAll('.folder').forEach(x=>x.classList.remove('active'));f.classList.add('active');});});
+const q=document.getElementById('q');q.addEventListener('input',e=>renderList(e.target.value));
+
+// Horror effects
+let ac,master,hum;function initAudio(){if(ac)return;try{ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.04;master.connect(ac.destination);}catch(e){}}
+function startHum(){initAudio();if(!ac)return;if(hum)return;hum=ac.createOscillator();hum.type='sawtooth';hum.frequency.value=46;const hGain=ac.createGain();hGain.gain.value=.005;hum.connect(hGain).connect(master);hum.start();}
+function pulseHaze(level=.7,ms=800){haze.style.opacity=String(level);setTimeout(()=>{haze.style.opacity='0'},ms);}
+
+let started=false;function onWelcomeOpened(){if(started)return;started=true;startHum();pulseHaze(.35,1200);setTimeout(()=>{messages.unshift({id:'h1',from:'Operations',subject:'Task 1: Unlock the door',preview:'The one behind you.',date:'2025-09-03 09:02',body:`<h2>Task 1</h2><div class=\"meta\">From Operations · 03 Sep 2025, 09:02</div><p>Stand up. Check the door. Return to your desk.</p>`,unread:true});renderList();},6000);}
+
+initScrambles();renderList();
 </script>
 </body>
 </html>
