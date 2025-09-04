@@ -45,7 +45,8 @@
   .cell{padding:6px 8px;border-right:1px solid var(--border)}
   .cell:last-child{border-right:none;text-align:right;color:var(--muted)}
   .row:hover{background:var(--row-hover)}
-  .row.selected{background:var(--row-select)}
+  .row.selected{background:#dbe8f5}
+  .row.selected .cell{color:var(--ink)}
   .from{font-weight:600}
   .subject{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .unread .subject{font-weight:700}
@@ -87,6 +88,21 @@
   .btn-ok{border-color:#2d5f3a;background:#0f2016}
   .btn-danger{border-color:#633040;background:#2a0e17}
   .mini{font-size:12px;color:#9bb0d8}
+  /* Classic selection colors */
+  ::selection{background:#cfe8ff;color:#000}
+  ::-moz-selection{background:#cfe8ff;color:#000}
+  /* Light modal / popups to match classic theme */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.25);display:none;place-items:center;z-index:80}
+  .dialog{width:min(520px,92vw);background:#fff;border:1px solid var(--border);border-radius:6px;padding:14px;color:var(--ink)}
+  .dialog h3{margin:0 0 8px}
+  .dialog input, .dialog textarea{width:100%;padding:8px;border-radius:4px;border:1px solid var(--border-dk);background:#fff;color:var(--ink)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{padding:6px 10px;border:1px solid var(--border-dk);border-radius:999px;background:#f7f9fc;cursor:grab}
+  .drop{min-height:44px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px;border:1px dashed var(--border-dk);border-radius:6px;background:#fff}
+  .btn{border:1px solid var(--border-dk);background:linear-gradient(#ffffff, #f1f5f9);color:var(--ink);padding:6px 10px;border-radius:4px;cursor:pointer}
+  .btn:hover{background:linear-gradient(#ffffff, #eaf0f6)}
+  .btn-ok{border-color:#7aa2ff}
+  .btn-danger{border-color:#bd6b7a}
 </style>
 </head>
 <body>
@@ -98,19 +114,13 @@
       <div class="folder active" data-folder="inbox">📥 Inbox <small id="unread">0</small></div>
       <div class="folder" data-folder="drafts">📝 Drafts <small>0</small></div>
       <div class="folder" data-folder="sent">📤 Sent <small>0</small></div>
-      <div class="folder" data-folder="trash">🗑️ Deleted <small>0</small></div>
-    </div>
+          </div>
     <div class="status" id="status">Ready</div>
   </aside>
 
   <main>
     <div class="toolbar">
-      <div class="leftBtns">
-        <button class="btn" id="btnNew">New</button>
-        <button class="btn" id="btnReply">Reply</button>
-        <button class="btn" id="btnForward">Forward</button>
-        <button class="btn" id="btnDelete">Delete</button>
-      </div>
+      
       <div class="hud">
         <div class="day" id="dayLabel">Day 1</div>
         <div class="prog"><div class="bar" id="progBar"></div></div>
