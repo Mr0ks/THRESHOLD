@@ -3,19 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Simple Mail</title>
+<title>ArchMail</title>
 <style>
   :root {
     --bg:#e9edf2; --panel:#ffffff; --border:#c7ccd1; --border-dk:#b3b8bd;
     --ink:#222; --muted:#5a6b7a; --accent:#2a6dce;
     --row-hover:#f3f6f9; --row-select:#cfe8ff;
+    --bootbg:#000; --bootfg:#0f0;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:var(--bg);font:13px/1.4 "Segoe UI",Tahoma,Arial,sans-serif;color:var(--ink)}
   a{color:var(--accent);text-decoration:none}
 
-  /* Layout */
-  .app{display:grid;grid-template-columns:220px 1fr;height:100%;border-top:1px solid var(--border)}
+  /* APP LAYOUT */
+  .app{display:none;grid-template-columns:220px 1fr;height:100%;border-top:1px solid var(--border)}
   aside{border-right:1px solid var(--border-dk);background:var(--panel);display:flex;flex-direction:column}
   header{padding:10px;font-weight:600;border-bottom:1px solid var(--border)}
   .search{padding:8px 10px;border-bottom:1px solid var(--border);}
@@ -28,6 +29,10 @@
   .status{padding:6px 8px;font-size:12px;border-top:1px solid var(--border);background:#f7f9fb;color:#3c4a57}
 
   main{display:flex;flex-direction:column;background:var(--panel)}
+  .toolbar{display:flex;justify-content:flex-end;padding:6px 10px;border-bottom:1px solid var(--border);background:#f7f9fb}
+  .btn{background:#eaf0f7;border:1px solid var(--border-dk);border-radius:3px;padding:4px 8px;cursor:pointer}
+  .btn:hover{background:#dde7f5}
+
   .columns{display:grid;grid-template-columns:180px 1fr 100px;font-weight:600;border-bottom:1px solid var(--border);background:#f5f8fc}
   .col{padding:6px 8px;border-right:1px solid var(--border)}
   .col:last-child{border-right:none;text-align:right}
@@ -43,10 +48,50 @@
   article{flex:1;overflow:auto;padding:12px}
   article h2{margin-top:0}
   article .meta{color:var(--muted);margin-bottom:8px}
+
+  /* BOOT SCREEN */
+  .boot{
+    position:fixed;inset:0;background:var(--bootbg);color:var(--bootfg);
+    font-family:monospace;padding:20px;overflow:auto;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .boot .line{white-space:pre;font-size:14px}
+  .boot .cursor{display:inline-block;width:8px;background:var(--bootfg);animation:blink 1s infinite;}
+  @keyframes blink{50%{background:transparent}}
+  .boot.hidden{animation:fadeOut 1s forwards}
+  @keyframes fadeOut{to{opacity:0;visibility:hidden}}
+  .intro{
+    position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:#000;color:#0f0;font-family:monospace;font-size:18px;text-align:center;
+  }
+  .intro.fadeout{animation:fadeOut 1s forwards}
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- Linux Boot -->
+<div class="boot" id="boot">
+  <div class="line">:: Arch Linux 6.8.1 (x86_64) booting...</div>
+  <div class="line">:: Loading kernel modules...</div>
+  <div class="line">:: Initializing system services...</div>
+  <div class="line">:: Mounting root filesystem...</div>
+  <div class="line">:: Starting user session...</div>
+  <br>
+  <div class="line">Press <b>ENTER</b> to continue <span class="cursor"></span></div>
+</div>
+
+<div class="intro" id="intro">
+  <div>
+    <p>ArchMail OS v1.0</p>
+    <br>
+    <p>This game is based on <b>Wayward</b> and other films.</p>
+    <br>
+    <p>Loading environment...</p>
+  </div>
+</div>
+
+<!-- App UI -->
+<div class="app" id="app">
   <aside>
     <header>Mail</header>
     <div class="search"><input id="q" type="search" placeholder="Search mail"></div>
@@ -57,6 +102,9 @@
   </aside>
 
   <main>
+    <div class="toolbar">
+      <button class="btn" id="deleteBtn">Delete Selected</button>
+    </div>
     <div class="columns">
       <div class="col">From</div>
       <div class="col">Subject</div>
@@ -71,16 +119,32 @@
 </div>
 
 <script>
+const boot=document.getElementById('boot');
+const intro=document.getElementById('intro');
+const app=document.getElementById('app');
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && !boot.classList.contains('hidden')){
+    boot.classList.add('hidden');
+    setTimeout(()=>{
+      intro.style.display='flex';
+      setTimeout(()=>{ intro.classList.add('fadeout');
+        setTimeout(()=>{ intro.style.display='none'; app.style.display='grid'; },1000);
+      },2500);
+    },800);
+  }
+});
+
 const listEl=document.getElementById('list');
 const reader=document.getElementById('reader');
 const readerHead=document.getElementById('readerHead');
 const unreadEl=document.getElementById('unread');
 const statusEl=document.getElementById('status');
 const q=document.getElementById('q');
+const deleteBtn=document.getElementById('deleteBtn');
 
 let messages=[
   {id:'1',from:'Alice',subject:'Welcome!',preview:'Hi and welcome...',date:'Oct 16',body:'<h2>Welcome!</h2><p>Glad to have you on board.</p>',unread:true},
-  {id:'2',from:'Bob',subject:'Meeting Notes',preview:'Here are the notes...',date:'Oct 15',body:'<h2>Meeting Notes</h2><p>Here are the notes from our meeting.</p>',unread:false},
+  {id:'2',from:'Bob',subject:'Meeting Notes',preview:'Here are the notes...',date:'Oct 15',body:'<h2>Meeting Notes</h2><p>Attached are the meeting notes.</p>',unread:false},
   {id:'3',from:'Support',subject:'Your ticket was resolved',preview:'We have fixed your issue...',date:'Oct 14',body:'<h2>Ticket Resolved</h2><p>Your support ticket has been resolved successfully.</p>',unread:true}
 ];
 let selectedId=null;
@@ -114,6 +178,16 @@ function openMessage(id){
   reader.innerHTML=m.body;
   renderList(q.value);
 }
+
+/* Deletes the selected email */
+deleteBtn.addEventListener('click',()=>{
+  if(!selectedId){ alert('No email selected'); return; }
+  messages=messages.filter(m=>m.id!==selectedId);
+  selectedId=null;
+  readerHead.textContent='No message selected';
+  reader.innerHTML='<p class="meta">Select a message to preview.</p>';
+  renderList(q.value);
+});
 
 /* Search filter listener */
 q.addEventListener('input',e=>renderList(e.target.value));
