@@ -3,344 +3,123 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Mail</title>
+<title>Simple Mail</title>
 <style>
-  :root{
-    --bg:#e9edf2; --panel:#ffffff; --border:#c7ccd1; --border-dk:#b3b8bd; --ink:#222; --muted:#5a6b7a; --accent:#2a6dce; --row-hover:#f3f6f9; --row-select:#cfe8ff;
-    --boot:#0b0e13; --glow:#7aa2ff;
+  :root {
+    --bg:#e9edf2; --panel:#ffffff; --border:#c7ccd1; --border-dk:#b3b8bd;
+    --ink:#222; --muted:#5a6b7a; --accent:#2a6dce;
+    --row-hover:#f3f6f9; --row-select:#cfe8ff;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:13px/1.4 "Segoe UI", Tahoma, Arial, sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);font:13px/1.4 "Segoe UI",Tahoma,Arial,sans-serif;color:var(--ink)}
   a{color:var(--accent);text-decoration:none}
 
-  .app{height:100%;display:grid;grid-template-columns:220px 1fr;border-top:1px solid var(--border)}
-  aside{border-right:1px solid var(--border-dk);background:var(--panel);display:grid;grid-template-rows:auto auto 1fr auto}
-  header{padding:8px 10px;border-bottom:1px solid var(--border)}
-  .logo{font-weight:600;}
-
+  /* Layout */
+  .app{display:grid;grid-template-columns:220px 1fr;height:100%;border-top:1px solid var(--border)}
+  aside{border-right:1px solid var(--border-dk);background:var(--panel);display:flex;flex-direction:column}
+  header{padding:10px;font-weight:600;border-bottom:1px solid var(--border)}
   .search{padding:8px 10px;border-bottom:1px solid var(--border);}
-  .search input{width:100%;padding:6px 8px;border:1px solid var(--border-dk);border-radius:2px;background:#fff;color:var(--ink)}
-  .folders{overflow:auto;padding:6px}
-  .folder{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:2px;cursor:pointer}
+  .search input{width:100%;padding:6px 8px;border:1px solid var(--border-dk);border-radius:3px}
+  .folders{flex:1;overflow:auto;padding:6px}
+  .folder{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:4px;cursor:pointer}
   .folder:hover{background:#f6f8fa}
-  .folder.active{background:#eaf2ff;outline:1px solid #c9dcff}
+  .folder.active{background:#eaf2ff}
   .folder small{color:var(--muted);margin-left:auto}
+  .status{padding:6px 8px;font-size:12px;border-top:1px solid var(--border);background:#f7f9fb;color:#3c4a57}
 
-  main{display:grid;grid-template-rows:auto auto minmax(120px, 1fr) minmax(180px, 1fr);background:var(--panel);position:relative}
-  .toolbar{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid var(--border);background:linear-gradient(#f7f9fb, #eef3f7)}
-  .leftBtns{display:flex;gap:6px;align-items:center}
-  .hud{display:flex;align-items:center;gap:8px;min-width:260px;justify-content:flex-end}
-  .hud .day{font-weight:600;color:#3c4a57}
-  .prog{width:130px;height:8px;border:1px solid var(--border-dk);background:#fff;border-radius:2px;overflow:hidden}
-  .prog .bar{height:100%;width:0;background:linear-gradient(90deg,#a3c7ff,#4d85ff)}
-  .hud .ptxt{min-width:72px;text-align:right;color:#3c4a57}
-  .timer{font-variant-numeric:tabular-nums;color:#b02a2a;font-weight:700;display:none}
-
-  .columns{display:grid;grid-template-columns:180px 1fr 160px;gap:0;border-bottom:1px solid var(--border);background:linear-gradient(#fafcfe,#f0f5fb);color:#3c4a57;font-weight:600}
+  main{display:flex;flex-direction:column;background:var(--panel)}
+  .columns{display:grid;grid-template-columns:180px 1fr 100px;font-weight:600;border-bottom:1px solid var(--border);background:#f5f8fc}
   .col{padding:6px 8px;border-right:1px solid var(--border)}
   .col:last-child{border-right:none;text-align:right}
 
-  .list{overflow:auto;border-bottom:1px solid var(--border)}
-  .row{display:grid;grid-template-columns:180px 1fr 160px;gap:0;align-items:center;cursor:pointer}
+  .list{overflow:auto;border-bottom:1px solid var(--border);flex:1}
+  .row{display:grid;grid-template-columns:180px 1fr 100px;align-items:center;cursor:pointer}
   .cell{padding:6px 8px;border-right:1px solid var(--border)}
   .cell:last-child{border-right:none;text-align:right;color:var(--muted)}
   .row:hover{background:var(--row-hover)}
-  .row.selected{background:#dbe8f5}
-  .row.selected .cell{color:var(--ink)}
-  .from{font-weight:600}
-  .subject{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .unread .subject{font-weight:700}
+  .row.selected{background:var(--row-select)}
 
-  .readerHead{padding:6px 10px;border-bottom:1px solid var(--border);background:#fafcfe;color:#3c4a57}
-  article{padding:12px 12px 28px;overflow:auto}
-  article h2{margin:0 0 6px;font-size:16px}
+  .readerHead{padding:10px;font-weight:600;border-bottom:1px solid var(--border);background:#fafcfe}
+  article{flex:1;overflow:auto;padding:12px}
+  article h2{margin-top:0}
   article .meta{color:var(--muted);margin-bottom:8px}
-
-  .status{grid-column:1 / -1;border-top:1px solid var(--border);padding:4px 8px;background:linear-gradient(#f7f9fb, #eef3f7);color:#3c4a57;font-size:12px}
-
-  /* Horror + overlays */
-  .scramble{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px}
-  .readerHead.jitter{animation:jitter .15s infinite alternate}
-  @keyframes jitter{from{transform:translateX(0)}to{transform:translateX(.6px)}}
-  .haze{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.25));opacity:0;transition:opacity .6s ease;z-index:40}
-  .boot{position:fixed;inset:0;background:var(--boot);display:grid;place-items:center;z-index:60}
-  .bootInner{display:grid;place-items:center;color:#c9d7ff;gap:16px}
-  .winOrbs{width:180px;height:180px;position:relative;filter:drop-shadow(0 0 12px rgba(122,162,255,.4))}
-  .orb{position:absolute;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff, var(--glow));opacity:.9}
-  .o1{left:0;top:0} .o2{right:0;top:0} .o3{left:0;bottom:0} .o4{right:0;bottom:0}
-  .ring{width:110px;height:110px;border:3px solid #3a4d7a;border-top-color:#9ab7ff;border-radius:50%;animation:spin 1.3s linear infinite;position:absolute;inset:0;margin:auto}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .inter{position:fixed;inset:0;background:#000;display:none;place-items:center;color:#fff;font-size:48px;letter-spacing:2px;z-index:70}
-  .glitch{position:fixed;inset:0;display:none;z-index:65;pointer-events:none}
-  .glitch .scan{position:absolute;inset:0;background-image:repeating-linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.06) 1px, transparent 1px, transparent 3px);opacity:.15}
-  .glitch .flash{position:absolute;inset:0;background:#fff;opacity:0}
-
-  /* Modal */
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;z-index:80}
-  .dialog{width:min(520px,92vw);background:#0e1522;border:1px solid #253152;border-radius:10px;padding:16px;color:#e9f1ff}
-  .dialog h3{margin:0 0 8px}
-  .dialog input, .dialog textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #304a7a;background:#0b1426;color:#e9f1ff}
-  .chips{display:flex;gap:6px;flex-wrap:wrap}
-  .chip{padding:6px 10px;border:1px solid #2b3a5a;border-radius:999px;background:#0e1522;cursor:grab}
-  .drop{min-height:44px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px;border:1px dashed #304a7a;border-radius:8px}
-  .btn{border:1px solid #2a4474;background:#0b1424;color:#e9f1ff;padding:6px 10px;border-radius:6px;cursor:pointer}
-  .btn:hover{background:#0f1c36}
-  .btn-ok{border-color:#2d5f3a;background:#0f2016}
-  .btn-danger{border-color:#633040;background:#2a0e17}
-  .mini{font-size:12px;color:#9bb0d8}
-  /* Classic selection colors */
-  ::selection{background:#cfe8ff;color:#000}
-  ::-moz-selection{background:#cfe8ff;color:#000}
-  /* Light modal / popups to match classic theme */
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.25);display:none;place-items:center;z-index:80}
-  .dialog{width:min(520px,92vw);background:#fff;border:1px solid var(--border);border-radius:6px;padding:14px;color:var(--ink)}
-  .dialog h3{margin:0 0 8px}
-  .dialog input, .dialog textarea{width:100%;padding:8px;border-radius:4px;border:1px solid var(--border-dk);background:#fff;color:var(--ink)}
-  .chips{display:flex;gap:6px;flex-wrap:wrap}
-  .chip{padding:6px 10px;border:1px solid var(--border-dk);border-radius:999px;background:#f7f9fc;cursor:grab}
-  .drop{min-height:44px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px;border:1px dashed var(--border-dk);border-radius:6px;background:#fff}
-  .btn{border:1px solid var(--border-dk);background:linear-gradient(#ffffff, #f1f5f9);color:var(--ink);padding:6px 10px;border-radius:4px;cursor:pointer}
-  .btn:hover{background:linear-gradient(#ffffff, #eaf0f6)}
-  .btn-ok{border-color:#7aa2ff}
-  .btn-danger{border-color:#bd6b7a}
 </style>
 </head>
 <body>
 <div class="app">
   <aside>
-    <header><div class="logo">Mail</div></header>
-    <div class="search"><input id="q" type="search" placeholder="Search" aria-label="Search mail"></div>
-    <div class="folders" role="tree" aria-label="Folders">
+    <header>Mail</header>
+    <div class="search"><input id="q" type="search" placeholder="Search mail"></div>
+    <div class="folders" id="folderList">
       <div class="folder active" data-folder="inbox">📥 Inbox <small id="unread">0</small></div>
-      <div class="folder" data-folder="drafts">📝 Drafts <small>0</small></div>
-      <div class="folder" data-folder="sent">📤 Sent <small>0</small></div>
-          </div>
+    </div>
     <div class="status" id="status">Ready</div>
   </aside>
 
   <main>
-    <div class="toolbar">
-      
-      <div class="hud">
-        <div class="day" id="dayLabel">Day 1</div>
-        <div class="prog"><div class="bar" id="progBar"></div></div>
-        <div class="ptxt" id="progText">0/20</div>
-        <div class="timer" id="timer">05:00</div>
-      </div>
-    </div>
-
-    <div class="columns" role="row">
-      <div class="col" style="border-left:1px solid var(--border)">From</div>
+    <div class="columns">
+      <div class="col">From</div>
       <div class="col">Subject</div>
       <div class="col">Date</div>
     </div>
-
-    <div id="list" class="list" role="listbox" aria-label="Message list"></div>
-
+    <div class="list" id="list"></div>
     <div class="readerHead" id="readerHead">No message selected</div>
-    <div class="haze" id="haze"></div>
-    <article id="reader" tabindex="0" aria-live="polite">
+    <article id="reader">
       <p class="meta">Select a message to preview.</p>
     </article>
   </main>
 </div>
 
-<!-- Boot & overlays -->
-<div class="boot" id="boot">
-  <div class="bootInner">
-    <div class="winOrbs">
-      <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="orb o4"></div>
-      <div class="ring"></div>
-    </div>
-    <div>Starting Windows…</div>
-  </div>
-</div>
-<div class="inter" id="inter"><div id="interText">DAY 1</div></div>
-<div class="glitch" id="glitch"><div class="scan"></div><div class="flash" id="flash"></div></div>
-
-<!-- Task modal -->
-<div class="modal" id="taskModal">
-  <div class="dialog">
-    <h3 id="taskTitle">Task</h3>
-    <div id="taskBody" style="margin-bottom:10px"></div>
-    <div class="row">
-      <button class="btn btn-ok" id="taskSubmit">Submit</button>
-      <button class="btn" id="taskCancel">Cancel</button>
-    </div>
-    <div class="mini" id="taskHint"></div>
-  </div>
-</div>
-
 <script>
-// ===== Core references
-const listEl = document.getElementById('list');
-const reader = document.getElementById('reader');
-const readerHead = document.getElementById('readerHead');
-const unreadEl = document.getElementById('unread');
-const statusEl = document.getElementById('status');
-const haze = document.getElementById('haze');
-const boot = document.getElementById('boot');
-const inter = document.getElementById('inter');
-const interText = document.getElementById('interText');
-const glitch = document.getElementById('glitch');
-const flash = document.getElementById('flash');
-const dayLabel = document.getElementById('dayLabel');
-const progBar = document.getElementById('progBar');
-const progText = document.getElementById('progText');
-const timerEl = document.getElementById('timer');
+const listEl=document.getElementById('list');
+const reader=document.getElementById('reader');
+const readerHead=document.getElementById('readerHead');
+const unreadEl=document.getElementById('unread');
+const statusEl=document.getElementById('status');
+const q=document.getElementById('q');
 
-// ===== Audio
-let ac, master;
-function initAudio(){ if(ac) return; try{ ac = new (window.AudioContext||window.webkitAudioContext)(); master = ac.createGain(); master.gain.value=.05; master.connect(ac.destination);}catch(e){} }
-function humStart(){ initAudio(); if(!ac) return; if(humStart._osc) return; const o = ac.createOscillator(); o.type='sawtooth'; o.frequency.value=46; const g=ac.createGain(); g.gain.value=.003; o.connect(g).connect(master); o.start(); humStart._osc=o; }
-function staticRise(seconds=6){ initAudio(); if(!ac) return; const len=2; const buf=ac.createBuffer(1, ac.sampleRate*len, ac.sampleRate); const data=buf.getChannelData(0); for(let i=0;i<data.length;i++){ data[i] = Math.random()*2-1; }
-  const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; const g=ac.createGain(); g.gain.value=0.0001; src.connect(g).connect(master); src.start(); const now=ac.currentTime; g.gain.exponentialRampToValueAtTime(0.2, now+seconds);
-  setTimeout(()=>{ try{ g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.2);}catch(e){} setTimeout(()=>{ try{src.stop();}catch(e){} }, 400); }, seconds*1000);
-}
-
-// ===== Scramble (Minecraft-style random letters)
-function randUpper(n){ const A=65; return Array.from({length:n},()=> String.fromCharCode(A+Math.floor(Math.random()*26))).join(''); }
-function startScramble(el,len=8,ms=120){ if(el._scrInt) clearInterval(el._scrInt); el._scrInt=setInterval(()=>{ el.textContent=randUpper(len); }, ms); }
-function initScrambles(root=document){ root.querySelectorAll('.scramble').forEach(el=>{ const len=parseInt(el.getAttribute('data-len')||'8',10); el.textContent=randUpper(len); startScramble(el,len); }); }
-
-// ===== Mail state
-let messages=[]; // {id, from, subject(html), preview, date, body(html), unread, done}
+let messages=[
+  {id:'1',from:'Alice',subject:'Welcome!',preview:'Hi and welcome...',date:'Oct 16',body:'<h2>Welcome!</h2><p>Glad to have you on board.</p>',unread:true},
+  {id:'2',from:'Bob',subject:'Meeting Notes',preview:'Here are the notes...',date:'Oct 15',body:'<h2>Meeting Notes</h2><p>Here are the notes from our meeting.</p>',unread:false},
+  {id:'3',from:'Support',subject:'Your ticket was resolved',preview:'We have fixed your issue...',date:'Oct 14',body:'<h2>Ticket Resolved</h2><p>Your support ticket has been resolved successfully.</p>',unread:true}
+];
 let selectedId=null;
 
-function rowTemplate(m){ return `<div class="row ${m.unread? 'unread':''} ${m.id===selectedId?'selected':''}" data-id="${m.id}" role="option" aria-selected="${m.id===selectedId}"><div class="cell from">${m.from}</div><div class="cell subject">${m.subject}</div><div class="cell">${m.date}</div></div>`; }
-function renderList(filter=''){ const q=filter.trim().toLowerCase(); const filtered=messages.filter(m=>(m.from+' '+m.subject+' '+m.preview).toLowerCase().includes(q)); listEl.innerHTML = filtered.map(rowTemplate).join(''); unreadEl.textContent = messages.filter(m=>m.unread).length; statusEl.textContent = `${filtered.length} message${filtered.length===1?'':'s'}`; [...listEl.querySelectorAll('.row')].forEach(r=> r.addEventListener('click', ()=> openMessage(r.dataset.id))); }
-function pushMail(m){ messages.unshift(m); renderList(document.getElementById('q').value||''); }
-
-function openMessage(id){ const m = messages.find(x=>x.id===id); if(!m) return; selectedId=id; if(m.unread) m.unread=false; readerHead.innerHTML = `${m.from} — ${m.subject}`; readerHead.classList.add('jitter'); setTimeout(()=>readerHead.classList.remove('jitter'), 800); reader.innerHTML = m.body; initScrambles(reader); renderList(document.getElementById('q').value||'');
-  // wire tasks
-  reader.querySelectorAll('[data-task]').forEach(btn=> btn.addEventListener('click', ()=> handleTask(btn.getAttribute('data-task'), m)));
-  const claim = reader.querySelector('#claimPrize'); if(claim){ claim.addEventListener('click', ()=> doGlitchReboot()); }
+/* Renders a row for each email */
+function rowTemplate(m){
+  return `<div class="row ${m.id===selectedId?'selected':''}" data-id="${m.id}">
+    <div class="cell">${m.from}</div>
+    <div class="cell">${m.subject}</div>
+    <div class="cell">${m.date}</div>
+  </div>`;
 }
 
-// ===== Toolbar
-['btnNew','btnReply','btnForward','btnDelete'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.addEventListener('click', ()=>{ statusEl.textContent = el.textContent + ' (demo)'; }); });
-[...document.querySelectorAll('.folder')].forEach(f=>{ f.addEventListener('click', ()=>{ document.querySelectorAll('.folder').forEach(x=>x.classList.remove('active')); f.classList.add('active'); }); });
-const q = document.getElementById('q'); q.addEventListener('input', e=> renderList(e.target.value));
-
-// ===== HUD / Progress
-let day=1; let tasksCompleted=0; function targetForDay(d){ return 20 + 2*(d-1); } let tasksTarget=targetForDay(day);
-function updateHud(){ dayLabel.textContent = `Day ${day}`; progText.textContent = `${tasksCompleted}/${tasksTarget}`; const pct = Math.max(0, Math.min(100, (tasksCompleted/tasksTarget)*100)); progBar.style.width = pct + '%'; }
-
-// ===== Boot + Interstitial + Glitch
-function showBoot(ms=2200){ boot.style.display='grid'; setTimeout(()=> boot.style.display='none', ms); }
-function showDayCard(n,ms=1500){ interText.textContent = `DAY ${n}`; inter.style.display='grid'; setTimeout(()=> inter.style.display='none', ms); }
-function flashPulse(times=4, cb){ let n=0; function once(){ flash.style.opacity='1'; setTimeout(()=>{ flash.style.opacity='0'; if(++n<times) setTimeout(once, 120); else cb&&cb(); }, 120);} once(); }
-function doGlitchReboot(){ glitch.style.display='block'; flashPulse(6, ()=>{ messages=[]; renderList(); readerHead.textContent='Rebooting…'; reader.innerHTML='<p class="meta">Please wait.</p>'; showBoot(2200); setTimeout(()=>{ glitch.style.display='none'; startAfterReboot(); }, 2300); }); }
-
-// ===== Task Modal & Handlers
-const taskModal = document.getElementById('taskModal');
-const taskTitle = document.getElementById('taskTitle');
-const taskBody  = document.getElementById('taskBody');
-const taskHint  = document.getElementById('taskHint');
-const taskSubmit= document.getElementById('taskSubmit');
-const taskCancel= document.getElementById('taskCancel');
-let currentTask={type:null, mail:null, check:()=>false, onOpen:()=>{}};
-function showTask(){ taskModal.style.display='grid'; currentTask.onOpen && currentTask.onOpen(); }
-function hideTask(){ taskModal.style.display='none'; }
-
-taskCancel.addEventListener('click', hideTask);
-
-function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-
-const easyWords = ['CAT','TREE','MOUSE','PLANT','DOOR','PLANE','STONE'];
-function scrambleWord(w){ return shuffle(w.split('')).join(''); }
-
-const typeTasks = {
-  slider:(mail)=>{ taskTitle.textContent='Slider Lock'; taskHint.textContent='Set to 66% (±1).'; taskBody.innerHTML=`<input type='range' id='sl' min='0' max='100' value='0' style='width:100%'><div>Value: <span id='slv'>0</span>%</div>`; currentTask.onOpen=()=>{const sl=document.getElementById('sl'); const slv=document.getElementById('slv'); sl.oninput=()=>{slv.textContent=sl.value;};}; currentTask.check=()=>{ const v=parseInt(document.getElementById('sl').value,10)||0; return Math.abs(v-66)<=1; }; showTask(); },
-  jigsaw:(mail)=>{ taskTitle.textContent='Sentence Jigsaw'; taskHint.textContent='Make the phrase: I SEE YOU'; taskBody.innerHTML=`<div class='chips' id='chips'><div class='chip' draggable='true'>SEE</div><div class='chip' draggable='true'>YOU</div><div class='chip' draggable='true'>I</div></div><div class='drop' id='drop' aria-label='Drop here'></div>`; currentTask.onOpen=()=>{ const chips=[...document.querySelectorAll('.chip')]; chips.forEach(c=> c.addEventListener('dragstart',e=> e.dataTransfer.setData('text/plain', c.textContent))); const drop=document.getElementById('drop'); drop.addEventListener('dragover',e=> e.preventDefault()); drop.addEventListener('drop',e=>{ e.preventDefault(); const t=e.dataTransfer.getData('text/plain'); const el=chips.find(x=>x.textContent===t); if(el) drop.appendChild(el); }); }; currentTask.check=()=>{ const order=[...document.querySelectorAll('#drop .chip')].map(x=>x.textContent).join(' '); return order==='I SEE YOU'; }; showTask(); },
-  memory:(mail)=>{ taskTitle.textContent='Memory'; taskHint.textContent='Watch 3 icons, then click them back in order.'; const icons=['🔺','🔑','⭐','🧪','🍎','🧲']; const seq=[pick(icons),pick(icons),pick(icons)]; taskBody.innerHTML=`<div id='icons'></div><div class='mini' id='mstat'>Click them in the shown order</div>`; currentTask.onOpen=()=>{ const cont=document.getElementById('icons'); cont.innerHTML=icons.map(i=>`<button class='btn' data-i='${i}'>${i}</button>`).join(' '); const btns=[...cont.querySelectorAll('button')]; let pos=0; let clicks=[]; function flash(btn){ const old=btn.style.background; btn.style.background='#233b6e'; setTimeout(()=> btn.style.background=old || '', 250); }
-      // show sequence
-      let idx=0; const iv=setInterval(()=>{ const target=btns.find(b=>b.dataset.i===seq[idx]); if(target){ flash(target); } idx++; if(idx>=seq.length){ clearInterval(iv); }
-      }, 500);
-      cont.addEventListener('click', e=>{ if(e.target.tagName!=='BUTTON') return; const val=e.target.dataset.i; clicks.push(val); flash(e.target); document.getElementById('mstat').textContent=`${clicks.length}/3`; });
-      currentTask.check=()=> clicks.length===3 && clicks.every((v,i)=> v===seq[i]); };
-    showTask(); },
-  redgreen:(mail)=>{ taskTitle.textContent='Pick the Button'; taskHint.textContent='Press the red button.'; taskBody.innerHTML=`<div class='row'><button class='btn' id='greenBtn' style='background:#0f2016;border-color:#2d5f3a'>Green</button><button class='btn' id='redBtn' style='background:#2a0e17;border-color:#633040'>Red</button></div>`; let ok=false; currentTask.onOpen=()=>{ document.getElementById('greenBtn').onclick=()=>{ ok=false; }; document.getElementById('redBtn').onclick=()=>{ ok=true; }; }; currentTask.check=()=> ok; showTask(); },
-  unscramble:(mail)=>{ const w=pick(easyWords); const scr=scrambleWord(w); taskTitle.textContent='Word Scramble'; taskHint.textContent=`Unscramble: ${scr}`; taskBody.innerHTML=`<input id='uns' placeholder='Type the word'>`; currentTask.check=()=> (document.getElementById('uns').value||'').trim().toUpperCase()===w; showTask(); },
-  typeone:(mail)=>{ const w=pick(['READY','OK','YES','DONE']); taskTitle.textContent='Quick Type'; taskHint.textContent=`Type: ${w}`; taskBody.innerHTML=`<input id='one' placeholder='Type here'>`; currentTask.check=()=> (document.getElementById('one').value||'').trim().toUpperCase()===w; showTask(); }
-};
-
-function handleTask(type, mail){ if(typeTasks[type]){ currentTask.mail=mail; currentTask.type=type; typeTasks[type](mail); } }
-
-taskSubmit.addEventListener('click', ()=>{ if(currentTask.check && currentTask.check()){ hideTask(); if(!currentTask.mail.done){ currentTask.mail.done=true; tasksCompleted++; updateHud(); checkEndOfDay(); } } else { taskBody.style.animation='jitter .15s infinite alternate'; setTimeout(()=> taskBody.style.animation='', 250); } });
-
-// ===== Day & Events
-let taskTicker=null; let lastTaskType=null;
-function senderForDay(){ if(day<=2) return pick(['HR – Alice','IT – Eli','Sec – Faye','PM – Claire','Ops – Dana']); if(day===3) return pick(['HR – Alice','IT – Eli','Sec – Faye','PM – Claire','Ops – Dana']); return '???'; }
-const taskMap = {
-  slider:{subj:'Adjust this value', body:`<h2>Adjust the slider</h2><div class='meta'>From ${senderForDay()}</div><p>Please set the slider.</p><p><button class='btn btn-ok' data-task='slider'>Open</button></p>`},
-  jigsaw:{subj:'Arrange these words', body:`<h2>Arrange the words</h2><div class='meta'>From ${senderForDay()}</div><p>Make a phrase.</p><p><button class='btn btn-ok' data-task='jigsaw'>Open</button></p>`},
-  memory:{subj:'Remember these icons', body:`<h2>Remember the icons</h2><div class='meta'>From ${senderForDay()}</div><p>Repeat the sequence.</p><p><button class='btn btn-ok' data-task='memory'>Open</button></p>`},
-  redgreen:{subj:'Pick the correct button', body:`<h2>Pick the button</h2><div class='meta'>From ${senderForDay()}</div><p>Choose wisely.</p><p><button class='btn btn-ok' data-task='redgreen'>Open</button></p>`},
-  unscramble:{subj:'Unscramble this', body:`<h2>Unscramble</h2><div class='meta'>From ${senderForDay()}</div><p>Put the letters in order.</p><p><button class='btn btn-ok' data-task='unscramble'>Open</button></p>`},
-  typeone:{subj:'Type a word', body:`<h2>Type one word</h2><div class='meta'>From ${senderForDay()}</div><p>Do it exactly.</p><p><button class='btn btn-ok' data-task='typeone'>Open</button></p>`}
-};
-
-function randomTaskEmail(){
-  const types=['slider','jigsaw','memory','redgreen','unscramble','typeone'];
-  let t=pick(types); if(lastTaskType && Math.random()<0.6){ // avoid repeats most of the time
-    for(let i=0;i<4 && t===lastTaskType;i++){ t=pick(types); }
-  }
-  lastTaskType=t;
-  const id='t'+Math.random().toString(36).slice(2,7);
-  const from = senderForDay();
-  return {id, from, subject:taskMap[t].subj, preview:'—', date:ts(), body:taskMap[t].body.replace('${senderForDay()}',from), unread:true, done:false};
+/* Renders the email list and updates counters */
+function renderList(filter=''){
+  const f=filter.trim().toLowerCase();
+  const filtered=messages.filter(m=>(m.from+' '+m.subject+' '+m.preview).toLowerCase().includes(f));
+  listEl.innerHTML=filtered.map(rowTemplate).join('');
+  unreadEl.textContent=messages.filter(m=>m.unread).length;
+  statusEl.textContent=`${filtered.length} message${filtered.length===1?'':'s'}`;
+  listEl.querySelectorAll('.row').forEach(r=>r.onclick=()=>openMessage(r.dataset.id));
 }
 
-function unreadTaskCount(){ return messages.filter(m=> m.unread && m.body && m.body.includes("data-task")).length; }
-function scheduleNextTask(){ if(tasksCompleted>=tasksTarget) return; const delay = 15000 + Math.random()*10000; taskTicker = setTimeout(()=>{
-    if(unreadTaskCount()<=1){ pushMail(randomTaskEmail()); }
-    if(day===3 && !specials.day3.prizeQueued){ queuePrize(); }
-    scheduleNextTask();
-  }, delay);
+/* Opens the selected email */
+function openMessage(id){
+  const m=messages.find(x=>x.id===id);
+  if(!m)return;
+  selectedId=id;
+  m.unread=false;
+  readerHead.textContent=`${m.from} — ${m.subject}`;
+  reader.innerHTML=m.body;
+  renderList(q.value);
 }
 
-function checkEndOfDay(){ if(tasksCompleted>=tasksTarget){ setTimeout(()=>{ inter.style.display='grid'; interText.textContent=`DAY ${day+1}`; setTimeout(()=>{ inter.style.display='none'; nextDay(); }, 1500); }, 700); } }
+/* Search filter listener */
+q.addEventListener('input',e=>renderList(e.target.value));
 
-function nextDay(){ day++; tasksCompleted=0; tasksTarget=targetForDay(day); updateHud(); if(taskTicker) clearTimeout(taskTicker);
-  if(day===2){ startDay2(); }
-  else if(day===3){ startDay3(); }
-  else if(day===4){ startDay4(); }
-  else { startGenericDay(); }
-}
-
-function startGenericDay(){ showBoot(1800); scheduleNextTask(); humStart(); }
-
-function startDay1(){ showBoot(2200); humStart(); // welcome scrambled email everywhere
-  pushMail({id:'w0', from:'HR – Alice', subject:`Welcome to <span class="scramble" data-len="8"></span> Industries`, preview:'Please complete all tasks you have been given.', date:ts(), body:`<h2>Welcome to <span class='scramble' data-len='8'></span> Industries</h2><div class="meta">From HR – Alice</div><p>Please complete all tasks you have been given. Do not close this window.</p>`, unread:true, done:false}); scheduleNextTask(); }
-
-function startDay2(){ showBoot(2000); scheduleNextTask(); humStart(); }
-
-const specials={ day3:{prizeQueued:false}, day4:{deadline:0} };
-function queuePrize(){ specials.day3.prizeQueued=true; setTimeout(()=>{
-  pushMail({id:'prize', from:'Promotions', subject:`Win a free prize — with lots of pointers >>>`, preview:'Click to claim.', date:ts(), body:`<h2>Win a free prize</h2><div class='meta'>From Promotions</div><p>This is definitely safe. Promise.</p><p><button class='btn btn-ok' id='claimPrize'>Claim</button></p>`, unread:true, done:false});
-}, 6000 + Math.random()*6000); }
-
-function startAfterReboot(){ scheduleNextTask(); humStart(); setTimeout(()=>{ for(let i=0;i<8;i++) pushMail({id:'f'+i, from:'???', subject:`<span class='scramble' data-len='7'></span>`, preview:'—', date:ts(), body:`<h2><span class='scramble' data-len='7'></span></h2><div class='meta'>From ???</div><p>…</p>`, unread:true}); initScrambles(); setTimeout(()=>{ pushMail({id:'see', from:'???', subject:'I SEE YOU', preview:'', date:ts(), body:`<h2 style='color:#b02a2a'>I SEE YOU</h2><div class='meta'>From ???</div><p>👁️</p>`, unread:true}); staticRise(6); setTimeout(()=>{ messages=[]; renderList(); readerHead.textContent='—'; reader.innerHTML='<p class="meta">Everything is quiet.</p>'; }, 3200); }, 2000); }, 20000); }
-
-function startDay3(){ showBoot(2000); scheduleNextTask(); humStart(); queuePrize(); }
-
-function startDay4(){ showBoot(2400); humStart(); setTimeout(()=>{ messages=[]; for(let i=0;i<12;i++) messages.push({id:'d4s'+i, from:'???', subject:'I SEE YOU', preview:'', date:ts(), body:`<h2>I SEE YOU</h2><div class='meta'>From ???</div>`, unread:true}); renderList(); setTimeout(()=>{ messages=[]; renderList(); reader.innerHTML='<p class="meta">You have 5 minutes.</p>'; startFiveMinuteRun(); }, 2000); }, 800); }
-
-function startFiveMinuteRun(){ const end = Date.now()+5*60*1000; specials.day4.deadline=end; timerEl.style.display='block'; tickTimer(); for(let i=0;i<5;i++){ setTimeout(()=> pushMail(randomTaskEmail()), i*1400); } }
-function tickTimer(){ const remain = specials.day4.deadline - Date.now(); if(remain<=0){ timerEl.textContent='00:00'; timerEl.style.display='none'; if(tasksCompleted < Math.min(tasksTarget, 5)){ showFail(); } else { interText.textContent='YOU DID IT'; inter.style.display='grid'; setTimeout(()=>{ inter.style.display='none'; scheduleNextTask(); }, 1500); } return; } const m=Math.floor(remain/60000), s=Math.floor((remain%60000)/1000); timerEl.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; requestAnimationFrame(tickTimer); }
-function showFail(){ glitch.style.display='block'; flashPulse(10, ()=>{ glitch.style.display='none'; reader.innerHTML = `<h2 style='color:#b02a2a'>YOU FAILED.</h2><p class='meta'>Refresh to try again.</p>`; }); }
-
-// ===== Dates helper
-function ts(){ const d=new Date(); return d.toLocaleString(); }
-
-// ===== Init
-updateHud();
-initScrambles();
+/* Initial render */
 renderList();
-showBoot(2200);
-setTimeout(()=>{ startDay1(); }, 2300);
 </script>
 </body>
 </html>
