@@ -6,13 +6,13 @@
 <title>THRESHOLD</title>
 <link rel="icon" type="image/jpeg" href="door.jpg" />
 <style>
-  :root{
-    --boot-bg:#000; 
-    --boot-fg:#fff; 
+  :root {
+    --boot-bg:#000;
+    --boot-fg:#fff;
     --intro-red:#d20000;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{
+  html,body {
     height:100%;
     background:#000;
     overflow:hidden;
@@ -29,7 +29,7 @@
     opacity:1; transition:opacity 1.5s ease;
     z-index:20;
   }
-  .fadeOut{opacity:0!important;}
+  .fadeOut {opacity:0!important;}
 
   /* ---------- INTRO ---------- */
   .intro {
@@ -47,7 +47,6 @@
     opacity:0;
     font-size:clamp(18px,3vw,26px);
     text-align:center;
-    background:transparent;
   }
 
   @keyframes fadeInOut {
@@ -60,11 +59,22 @@
     animation: fadeInOut 9s ease-in-out forwards;
   }
 
-  /* ---------- THRESHOLD TITLE ---------- */
+  /* ---------- PRESENTING + THRESHOLD ---------- */
+  .presenting {
+    position:absolute;
+    top:45%; left:50%;
+    transform:translate(-50%,-50%);
+    color:var(--intro-red);
+    font-weight:700;
+    text-transform:uppercase;
+    font-size:clamp(22px,4vw,40px);
+    opacity:0;
+  }
+
   .title {
     position:absolute;
-    top:50%; left:50%;
-    transform:translate(-50%,-50%);
+    top:55%; left:50%;
+    transform:translate(-50%,-50%) scale(1);
     color:var(--intro-red);
     font-weight:900;
     text-transform:uppercase;
@@ -75,14 +85,24 @@
     font-size:clamp(56px,16vw,220px);
   }
 
-  @keyframes doorFade {
-    0% {opacity:0; text-shadow:0 0 0 #f00;}
-    30% {opacity:1; text-shadow:0 0 25px #f00;}
-    70% {opacity:1; text-shadow:0 0 25px #f00;}
-    100% {opacity:0; text-shadow:0 0 0 #f00;}
+  @keyframes doorReveal {
+    0% {opacity:0; transform:translate(-50%,-50%) scale(1);}
+    20% {opacity:1; transform:translate(-50%,-50%) scale(1);}
+    80% {opacity:1; transform:translate(-50%,-50%) scale(2);}
+    100% {opacity:0; transform:translate(-50%,-50%) scale(2);}
   }
-  .doorFadeAnim {
-    animation: doorFade 10s ease-in-out forwards;
+  .doorReveal {
+    animation: doorReveal 10s ease-in-out forwards;
+  }
+
+  @keyframes presentFade {
+    0% {opacity:0;}
+    20% {opacity:1;}
+    80% {opacity:1;}
+    100% {opacity:0;}
+  }
+  .presentFade {
+    animation: presentFade 10s ease-in-out forwards;
   }
 
   /* ---------- BOOT ---------- */
@@ -97,7 +117,7 @@
   .progressLine{white-space:pre; font-size:14px}
 
   /* ---------- APP ---------- */
-  .app{
+  .app {
     display:none;
     place-items:center;
     height:100%;
@@ -116,6 +136,7 @@
 <!-- INTRO -->
 <div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
+  <div class="presenting" id="presentingText">PRESENTING</div>
   <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
 
@@ -135,6 +156,7 @@ const startScreen=document.getElementById('startScreen');
 const intro=document.getElementById('intro');
 const introText=document.getElementById('introText');
 const door=document.getElementById('doorTitle');
+const presenting=document.getElementById('presentingText');
 const bootEl=document.getElementById('boot');
 const progressStage=document.getElementById('progressStage');
 const app=document.getElementById('app');
@@ -167,25 +189,26 @@ function startIntro(){
   lines.forEach(text=>{
     setTimeout(()=>{
       introText.textContent=text;
-      introText.style.opacity=0;
-      introText.style.display='block';
       introText.style.animation='none';
-      void introText.offsetWidth; // force reflow
+      void introText.offsetWidth;
       introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
     },delay);
     delay+=fadeDuration;
   });
 
-  // Show THRESHOLD at 29 seconds
+  // Presenting + THRESHOLD
   setTimeout(()=>{
     introText.textContent='';
+    presenting.style.opacity=0;
+    presenting.classList.remove('presentFade');
     door.style.opacity=0;
-    door.classList.remove('doorFadeAnim');
-    void door.offsetWidth;
-    door.classList.add('doorFadeAnim');
+    door.classList.remove('doorReveal');
+    void intro.offsetWidth;
+    presenting.classList.add('presentFade');
+    door.classList.add('doorReveal');
   },29000);
 
-  // Fade out sound and start boot
+  // Fade out audio and move to boot
   setTimeout(()=>{
     const fade=setInterval(()=>{
       if(audio.volume>0.05){audio.volume-=0.05;}
@@ -198,7 +221,7 @@ function startIntro(){
   },40000);
 }
 
-/* ===== BOOT AFTER INTRO ===== */
+/* ===== BOOT ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
