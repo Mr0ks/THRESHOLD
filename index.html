@@ -11,7 +11,7 @@
     --ink:#222; --muted:#5a6b7a;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#000;font:13px/1.45 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+  html,body{height:100%;background:#000;font:13px/1.45 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);overflow:hidden}
 
   /* ---------- START SCREEN ---------- */
   .startScreen {
@@ -45,14 +45,20 @@
     top:50%; left:50%;
     transform:translate(-50%,-50%);
     color:var(--intro-red);
-    font-weight:900; text-transform:uppercase;
-    text-align:center; line-height:.9;
-    user-select:none; opacity:0;
+    font-weight:900;
+    text-transform:uppercase;
+    white-space:nowrap; /* Keeps "THE DOOR" on one line */
+    text-align:center;
+    line-height:1;
+    user-select:none;
+    opacity:0;
     font-size:clamp(56px,16vw,220px);
     transition:opacity 2s ease;
   }
   .fadeIn{opacity:1!important;}
-
+  .fadeOutSmooth{animation:fadeOutSmooth 2s ease forwards;}
+  @keyframes fadeOutSmooth{to{opacity:0;}}
+  
   /* ---------- BOOT ---------- */
   .boot, .boot2, .progressStage {
     position:fixed; inset:0;
@@ -128,13 +134,13 @@ function startIntro(){
   let delay=1000;
   lines.forEach((line)=>{
     setTimeout(()=>line.classList.add('fadeIn'),delay);
-    setTimeout(()=>line.classList.add('fadeOut'),delay+3500);
+    setTimeout(()=>line.classList.add('fadeOutSmooth'),delay+3500);
     delay+=4000;
   });
 
+  // THE DOOR fade in and out centered
   setTimeout(()=>door.classList.add('fadeIn'),29000);
-  setTimeout(()=>door.classList.remove('fadeIn'),36000);
-  setTimeout(()=>door.classList.add('fadeOut'),36000);
+  setTimeout(()=>door.classList.add('fadeOutSmooth'),36000);
 
   // End of intro → fade music → boot
   setTimeout(()=>{
