@@ -9,7 +9,7 @@
   :root{
     --boot-bg:#000; 
     --boot-fg:#fff; 
-    --intro-red:#b30000;
+    --intro-red:#d20000;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{
@@ -17,7 +17,7 @@
     background:#000;
     overflow:hidden;
     color:#fff;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-family:ui-monospace,monospace;
   }
 
   /* ---------- START SCREEN ---------- */
@@ -27,94 +27,84 @@
     background:#000; color:#fff; cursor:pointer;
     font-size:clamp(20px,3vw,28px); user-select:none;
     opacity:1; transition:opacity 1.5s ease;
-    z-index:30;
+    z-index:20;
   }
-  .fadeOut{opacity:0!important; pointer-events:none}
+  .fadeOut{opacity:0!important;}
 
   /* ---------- INTRO ---------- */
   .intro {
     position:fixed; inset:0;
-    display:none; align-items:center; justify-content:center;
-    background:#000; text-align:center; z-index:20;
+    display:flex; align-items:center; justify-content:center;
+    background:#000; text-align:center; z-index:10;
   }
   .introText {
     position:absolute;
     top:50%; left:50%;
     transform:translate(-50%,-50%);
-    color:#fff; background:transparent;
-    font-weight:600; text-transform:uppercase;
-    opacity:0; text-align:center;
+    color:#fff;
+    font-weight:600;
+    text-transform:uppercase;
+    opacity:0;
     font-size:clamp(18px,3vw,26px);
+    text-align:center;
+    background:transparent;
   }
 
-  /* Fade in/out for white texts */
   @keyframes fadeInOut {
     0% {opacity:0;}
-    15% {opacity:1;}
-    85% {opacity:1;}
+    20% {opacity:1;}
+    80% {opacity:1;}
     100% {opacity:0;}
   }
-  .fadeInOut { animation: fadeInOut 7s ease-in-out forwards; }
+  .fadeInOut {
+    animation: fadeInOut 9s ease-in-out forwards;
+  }
 
-  /* THRESHOLD title */
+  /* ---------- THRESHOLD TITLE ---------- */
   .title {
     position:absolute;
     top:50%; left:50%;
-    transform:translate(-50%,-50%) scale(1,1);
-    transform-origin:50% 50%;
+    transform:translate(-50%,-50%);
     color:var(--intro-red);
-    font-weight:900; text-transform:uppercase;
-    white-space:nowrap; text-align:center; line-height:1;
+    font-weight:900;
+    text-transform:uppercase;
+    white-space:nowrap;
+    text-align:center;
+    line-height:1;
     opacity:0;
     font-size:clamp(56px,16vw,220px);
-    letter-spacing:.2em;
-    will-change: transform, opacity;
   }
 
-  /* ---------- SMOOTH STRETCH ---------- */
-  @keyframes stretchHV {
-    0% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(1, 1);
-    }
-    10% {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1.05, 1.05);
-    }
-    50% {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(7.5, 1.6);
-    }
-    100% {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(9.5, 4.5);
-    }
+  @keyframes doorFade {
+    0% {opacity:0; text-shadow:0 0 0 #f00;}
+    30% {opacity:1; text-shadow:0 0 25px #f00;}
+    70% {opacity:1; text-shadow:0 0 25px #f00;}
+    100% {opacity:0; text-shadow:0 0 0 #f00;}
   }
-  .stretchHV { animation: stretchHV 6s ease-in-out forwards; }
-
-  /* ---------- BLACKOUT ---------- */
-  .blackout{
-    position:fixed; inset:0; background:#000; z-index:15; display:none;
+  .doorFadeAnim {
+    animation: doorFade 10s ease-in-out forwards;
   }
 
   /* ---------- BOOT ---------- */
   .boot, .progressStage {
     position:fixed; inset:0;
     background:var(--boot-bg); color:var(--boot-fg);
-    font-family:inherit;
+    font-family:ui-monospace, Menlo, Consolas, monospace;
     padding:14px; overflow:auto; line-height:1.2;
-    display:none; z-index:10;
+    display:none;
   }
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .progressLine{white-space:pre; font-size:14px}
 
-  /* ---------- MAIL UI ---------- */
+  /* ---------- APP ---------- */
   .app{
     display:none;
     place-items:center;
-    position:fixed; inset:0;
-    background:#fff; color:#111;
-    font-size:24px; font-weight:600;
+    height:100%;
+    background:#fff;
+    font-size:24px;
+    font-weight:600;
+    color:#111;
   }
 </style>
 </head>
@@ -123,21 +113,17 @@
 <!-- Start screen -->
 <div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
-<!-- Intro -->
-<div id="intro" class="intro">
+<!-- INTRO -->
+<div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
-  <div class="title" id="thresholdTitle">THRESHOLD</div>
+  <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
-
-<!-- 1s Black pause -->
-<div id="blackout" class="blackout"></div>
 
 <!-- Boot -->
 <div id="boot" class="boot"></div>
 <div id="progressStage" class="progressStage">
   <div class="bootLine">:: Starting THRESHOLD environment</div>
-  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div>
-  <br>
+  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
   <div id="pLine" class="progressLine">[                    ] 0%</div>
 </div>
 
@@ -145,85 +131,75 @@
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
-const startScreen      = document.getElementById('startScreen');
-const intro            = document.getElementById('intro');
-const introText        = document.getElementById('introText');
-const thresholdTitle   = document.getElementById('thresholdTitle');
-const blackout         = document.getElementById('blackout');
-const bootEl           = document.getElementById('boot');
-const progressStage    = document.getElementById('progressStage');
-const pLine            = document.getElementById('pLine');
-const app              = document.getElementById('app');
+const startScreen=document.getElementById('startScreen');
+const intro=document.getElementById('intro');
+const introText=document.getElementById('introText');
+const door=document.getElementById('doorTitle');
+const bootEl=document.getElementById('boot');
+const progressStage=document.getElementById('progressStage');
+const app=document.getElementById('app');
+const pLine=document.getElementById('pLine');
 
-startScreen.addEventListener('click', () => {
+startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
-  setTimeout(() => {
-    startScreen.style.display = 'none';
+  setTimeout(()=>{
+    startScreen.style.display='none';
     startIntro();
-  }, 1500);
+  },1500);
 });
 
 function startIntro(){
-  intro.style.display = 'flex';
-  const audio = new Audio('sounds/intro.mp3');
-  audio.volume = 1;
-  audio.play();
+  intro.style.display='flex';
+  intro.style.background='#000';
+  const audio=new Audio('sounds/intro.mp3');
+  audio.volume=1; audio.play();
 
-  const LINES = [
+  const lines=[
     "This game is protected by an MIT license.",
     "This game is based on Wayward and other movies.",
-    "Contains flashing lights, loud sounds, and psychological horror.",
-    "Presenting..."
+    "Contains flashing lights, loud sounds, and psychological horror."
   ];
-  const SEG_MS = 7000;
-  let t = 0;
 
-  LINES.forEach((text) => {
-    setTimeout(() => {
-      introText.textContent = text;
-      introText.style.animation = 'none';
-      void introText.offsetWidth;
-      introText.style.animation = `fadeInOut 7s ease-in-out forwards`;
-    }, t);
-    t += SEG_MS;
+  const fadeDuration=9000;
+  let delay=0;
+
+  // sequential white text fading
+  lines.forEach(text=>{
+    setTimeout(()=>{
+      introText.textContent=text;
+      introText.style.opacity=0;
+      introText.style.display='block';
+      introText.style.animation='none';
+      void introText.offsetWidth; // force reflow
+      introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
+    },delay);
+    delay+=fadeDuration;
   });
 
-  // 29s: THRESHOLD appears and stretches
-  setTimeout(() => {
-    introText.textContent = '';
-    thresholdTitle.style.opacity = 0;
-    thresholdTitle.classList.remove('stretchHV');
-    void thresholdTitle.offsetWidth;
-    thresholdTitle.classList.add('stretchHV');
+  // Show THRESHOLD at 29 seconds
+  setTimeout(()=>{
+    introText.textContent='';
+    door.style.opacity=0;
+    door.classList.remove('doorFadeAnim');
+    void door.offsetWidth;
+    door.classList.add('doorFadeAnim');
+  },29000);
 
-    // Fade out music smoothly
-    const stretchFadeMs = 6000;
-    const steps = 24;
-    let i = 0;
-    const volFade = setInterval(() => {
-      i++;
-      audio.volume = Math.max(0, 1 - i/steps);
-      if(i >= steps){
-        clearInterval(volFade);
-        audio.pause();
-      }
-    }, stretchFadeMs/steps);
-  }, 29000);
-
-  // After stretch: 1s black pause, then boot
-  setTimeout(() => {
-    intro.style.display = 'none';
-    blackout.style.display = 'block';
-  }, 29000 + 6000);
-
-  setTimeout(() => {
-    blackout.style.display = 'none';
-    startBoot();
-  }, 29000 + 6000 + 1000);
+  // Fade out sound and start boot
+  setTimeout(()=>{
+    const fade=setInterval(()=>{
+      if(audio.volume>0.05){audio.volume-=0.05;}
+      else{clearInterval(fade);audio.pause();}
+    },200);
+    setTimeout(()=>{
+      intro.style.display='none';
+      startBoot();
+    },2000);
+  },40000);
 }
 
-/* ---------- BOOT ---------- */
-const bootLines = [
+/* ===== BOOT AFTER INTRO ===== */
+const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
  ":: Mounting /dev/sda1 to /mnt/root",
@@ -233,46 +209,43 @@ const bootLines = [
 ];
 
 function startBoot(){
-  bootEl.style.display = 'block';
-  let i = 0;
+  bootEl.style.display='block';
+  let i=0;
   function appendBootLine(){
-    if(i >= bootLines.length) return;
-    const l = document.createElement('div');
-    l.className = 'bootLine';
-    l.textContent = bootLines[i++];
+    if(i>=bootLines.length)return;
+    const l=document.createElement('div');
+    l.className='bootLine';
+    l.textContent=bootLines[i++];
     bootEl.appendChild(l);
-    bootEl.scrollTop = bootEl.scrollHeight;
-    if(i < bootLines.length) setTimeout(appendBootLine, 100);
+    bootEl.scrollTop=bootEl.scrollHeight;
+    if(i<bootLines.length)setTimeout(appendBootLine,100);
   }
   appendBootLine();
 
-  document.addEventListener('keydown', onEnterToProgress);
-}
-
-function onEnterToProgress(e){
-  if(e.key !== 'Enter') return;
-  if(bootEl.style.display !== 'block') return;
-  document.removeEventListener('keydown', onEnterToProgress);
-  bootEl.style.display = 'none';
-  progressStage.style.display = 'block';
-  startProgress();
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&bootEl.style.display==='block'){
+      bootEl.style.display='none';
+      progressStage.style.display='block';
+      startProgress();
+    }
+  });
 }
 
 function startProgress(){
-  let pct = 0, total = 20;
-  const t = setInterval(() => {
-    pct = Math.min(100, pct + Math.floor(Math.random()*8) + 5);
-    const filled = Math.round((pct/100)*total);
-    const bar = "[" + "#".repeat(filled).padEnd(total, " ") + "] " + String(pct).padStart(2," ") + "%";
-    pLine.textContent = bar;
-    if(pct >= 100){
+  let pct=0;const total=20;
+  const t=setInterval(()=>{
+    pct=Math.min(100,pct+Math.floor(Math.random()*8)+5);
+    const filled=Math.round((pct/100)*total);
+    const bar="["+ "#".repeat(filled).padEnd(total," ")+"] "+String(pct).padStart(2," ")+"%";
+    pLine.textContent=bar;
+    if(pct>=100){
       clearInterval(t);
-      setTimeout(() => {
-        progressStage.style.display = 'none';
-        app.style.display = 'grid';
-      }, 300);
+      setTimeout(()=>{
+        progressStage.style.display='none';
+        app.style.display='grid';
+      },300);
     }
-  }, 120);
+  },120);
 }
 </script>
 </body>
