@@ -24,23 +24,31 @@
   }
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .hidden{display:none !important;}
-
   .progressLine{white-space:pre; font-size:14px}
 
   /* ---------- INTRO ---------- */
-  .intro {display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000}
-  .introTextSmall {
-    color:var(--intro-red); font-weight:900; text-transform:uppercase;
-    text-align:center; line-height:0.9; opacity:0;
-    font-size: clamp(30px, 6vw, 90px); font-family: ui-monospace, monospace;
+  .intro {display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; text-align:center;}
+  .introSmall {
+    color:var(--intro-red);
+    font-weight:900;
+    text-transform:uppercase;
+    opacity:0;
+    font-size: clamp(18px, 3vw, 26px);
+    margin:10px 0;
+    font-family: ui-monospace, monospace;
   }
   .title {
-    color:var(--intro-red); font-weight:900; text-transform:uppercase; text-align:center;
-    line-height:0.9; user-select:none; opacity:0;
+    color:var(--intro-red);
+    font-weight:900;
+    text-transform:uppercase;
+    text-align:center;
+    line-height:0.9;
+    user-select:none;
+    opacity:0;
     font-size: clamp(56px, 16vw, 220px);
   }
-  .fadeIn {animation: fadeIn 2s ease forwards;}
-  .fadeOut {animation: fadeOut 2s ease forwards;}
+  .fadeIn {animation: fadeIn 1.5s ease forwards;}
+  .fadeOut {animation: fadeOut 1.5s ease forwards;}
   @keyframes fadeIn {from{opacity:0} to{opacity:1}}
   @keyframes fadeOut {to{opacity:0; visibility:hidden}}
 
@@ -61,18 +69,15 @@
   .toolbar{display:flex; justify-content:flex-end; gap:6px; padding:6px 10px; border-bottom:1px solid var(--border); background:#f7f9fb}
   .btn{background:#eaf0f7; border:1px solid var(--border-dk); border-radius:3px; padding:4px 8px; cursor:pointer}
   .btn:hover{background:#dde7f5}
-
   .columns{display:grid; grid-template-columns:180px 1fr 100px; font-weight:600; border-bottom:1px solid var(--border); background:#f5f8fc}
   .col{padding:6px 8px; border-right:1px solid var(--border)}
   .col:last-child{border-right:none; text-align:right}
-
   .list{overflow:auto; border-bottom:1px solid var(--border); flex:1}
   .row{display:grid; grid-template-columns:180px 1fr 100px; align-items:center; cursor:pointer}
   .cell{padding:6px 8px; border-right:1px solid var(--border)}
   .cell:last-child{border-right:none; text-align:right; color:var(--muted)}
   .row:hover{background:var(--row-hover)}
   .row.selected{background:var(--row-select)}
-
   .readerHead{padding:10px; font-weight:600; border-bottom:1px solid var(--border); background:#fafcfe}
   article{flex:1; overflow:auto; padding:12px}
   article .meta{color:var(--muted); margin-bottom:8px}
@@ -98,8 +103,13 @@
 
 <!-- Intro -->
 <div id="intro" class="intro hidden">
-  <div class="introTextSmall" id="introText">In the darkness, something stirs...</div>
-  <div class="title" id="doorTitle">THE DOOR</div>
+  <div id="introContainer">
+    <div class="introSmall" id="line1">This game is protected by an MIT license.</div>
+    <div class="introSmall" id="line2">This game is based on Wayward and other movies.</div>
+    <div class="introSmall" id="line3">Contains flashing lights, loud sounds, and psychological horror.</div>
+    <div class="introSmall" id="line4">Presenting...</div>
+    <div class="title" id="doorTitle">THE DOOR</div>
+  </div>
 </div>
 
 <!-- App -->
@@ -112,7 +122,6 @@
     </div>
     <div class="status" id="status">Ready</div>
   </aside>
-
   <main>
     <div class="toolbar">
       <button id="deleteBtn" class="btn">Delete Selected</button>
@@ -135,9 +144,8 @@ const bootEl=document.getElementById('boot');
 const boot2=document.getElementById('boot2');
 const progressStage=document.getElementById('progressStage');
 const intro=document.getElementById('intro');
-const introText=document.getElementById('introText');
-const doorTitle=document.getElementById('doorTitle');
 const app=document.getElementById('app');
+const doorTitle=document.getElementById('doorTitle');
 
 const bootLines=[
   "[    0.000000] Linux version 6.8.1-arch",
@@ -188,26 +196,33 @@ function startProgress(){
 /* ===== INTRO ===== */
 function startIntro(){
   intro.classList.remove('hidden');
-
-  // Play intro music
   const audio = new Audio('sounds/intro.mp3');
-  audio.volume = 1.0;
+  audio.volume=1.0;
   audio.play();
 
-  // Fade in small text
-  setTimeout(()=>introText.classList.add('fadeIn'), 1000);
-  // Fade out small text after ~22s
-  setTimeout(()=>introText.classList.add('fadeOut'), 22000);
-  // Big THE DOOR fade in at 29s
-  setTimeout(()=>doorTitle.classList.add('fadeIn'), 29000);
-  // Fade out THE DOOR at 36s
-  setTimeout(()=>doorTitle.classList.add('fadeOut'), 36000);
+  const lines=[
+    document.getElementById('line1'),
+    document.getElementById('line2'),
+    document.getElementById('line3'),
+    document.getElementById('line4')
+  ];
 
-  // Fade out sound and transition to app at ~40s
+  // Sequentially fade each line in/out
+  let delay=1000;
+  for(let j=0;j<lines.length;j++){
+    setTimeout(()=>lines[j].classList.add('fadeIn'),delay);
+    setTimeout(()=>lines[j].classList.add('fadeOut'),delay+4000);
+    delay+=5000;
+  }
+
+  // THE DOOR fade in at 29s, out at 36s
+  setTimeout(()=>doorTitle.classList.add('fadeIn'),29000);
+  setTimeout(()=>doorTitle.classList.add('fadeOut'),36000);
+
+  // Fade out audio and show app at 40s
   setTimeout(()=>{
-    const fadeInterval = setInterval(()=>{
-      if(audio.volume > 0.05){audio.volume -= 0.05;}
-      else {clearInterval(fadeInterval);audio.pause();}
+    const fade = setInterval(()=>{
+      if(audio.volume>0.05){audio.volume-=0.05;}else{clearInterval(fade);audio.pause();}
     },200);
     setTimeout(()=>{
       intro.classList.add('hidden');
