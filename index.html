@@ -1,3 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>THE DOOR</title>
+<style>
+  :root{
+    --boot-bg:#000; 
+    --boot-fg:#fff; 
+    --intro-red:#d20000;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    height:100%;
+    background:#000;
+    overflow:hidden;
+    color:#fff;
+    font-family:ui-monospace,monospace;
+  }
+
+  /* ---------- START SCREEN ---------- */
+  .startScreen {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#000; color:#fff; cursor:pointer;
+    font-size:clamp(20px,3vw,28px); user-select:none;
+    opacity:1; transition:opacity 1.5s ease;
+    z-index:20;
+  }
+  .fadeOut{opacity:0!important;}
+
+  /* ---------- INTRO ---------- */
+  .intro {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#000; text-align:center; z-index:10;
+  }
+  .introText {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    color:#fff;
+    font-weight:600;
+    text-transform:uppercase;
+    opacity:0;
+    font-size:clamp(18px,3vw,26px);
+    text-align:center;
+    background:transparent;
+  }
+
+  @keyframes fadeInOut {
+    0% {opacity:0;}
+    20% {opacity:1;}
+    80% {opacity:1;}
+    100% {opacity:0;}
+  }
+  .fadeInOut {
+    animation: fadeInOut 9s ease-in-out forwards;
+  }
+
+  /* ---------- THE DOOR ---------- */
+  .title {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    color:var(--intro-red);
+    font-weight:900;
+    text-transform:uppercase;
+    white-space:nowrap;
+    text-align:center;
+    line-height:1;
+    opacity:0;
+    font-size:clamp(56px,16vw,220px);
+  }
+
+  @keyframes doorFade {
+    0% {opacity:0; text-shadow:0 0 0 #f00;}
+    30% {opacity:1; text-shadow:0 0 25px #f00;}
+    70% {opacity:1; text-shadow:0 0 25px #f00;}
+    100% {opacity:0; text-shadow:0 0 0 #f00;}
+  }
+  .doorFadeAnim {
+    animation: doorFade 10s ease-in-out forwards;
+  }
+
+  /* ---------- BOOT ---------- */
+  .boot, .progressStage {
+    position:fixed; inset:0;
+    background:var(--boot-bg); color:var(--boot-fg);
+    font-family:ui-monospace, Menlo, Consolas, monospace;
+    padding:14px; overflow:auto; line-height:1.2;
+    display:none;
+  }
+  .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
+  .progressLine{white-space:pre; font-size:14px}
+
+  /* ---------- APP ---------- */
+  .app{
+    display:none;
+    place-items:center;
+    height:100%;
+    background:#fff;
+    font-size:24px;
+    font-weight:600;
+    color:#111;
+  }
+</style>
+</head>
+<body>
+
+<!-- Start screen -->
+<div id="startScreen" class="startScreen">Click anywhere to begin...</div>
+
+<!-- INTRO -->
+<div id="intro" class="intro" style="display:none;">
+  <div id="introText" class="introText"></div>
+  <div class="title" id="doorTitle">THE DOOR</div>
+</div>
+
+<!-- Boot -->
+<div id="boot" class="boot"></div>
+<div id="progressStage" class="progressStage">
+  <div class="bootLine">:: Starting The Door environment</div>
+  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
+  <div id="pLine" class="progressLine">[                    ] 0%</div>
+</div>
+
+<!-- App -->
+<div id="app" class="app">[ Mail UI Loaded ]</div>
+
 <script>
 const startScreen=document.getElementById('startScreen');
 const intro=document.getElementById('intro');
@@ -31,20 +162,20 @@ function startIntro(){
   const fadeDuration=9000;
   let delay=0;
 
-  // Sequential white lines fade
+  // sequential white text fading
   lines.forEach(text=>{
     setTimeout(()=>{
       introText.textContent=text;
       introText.style.opacity=0;
       introText.style.display='block';
       introText.style.animation='none';
-      void introText.offsetWidth; // reflow
+      void introText.offsetWidth; // force reflow
       introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
     },delay);
     delay+=fadeDuration;
   });
 
-  // 29 s — show THE DOOR
+  // Show THE DOOR at 29 seconds
   setTimeout(()=>{
     introText.textContent='';
     door.style.opacity=0;
@@ -53,7 +184,7 @@ function startIntro(){
     door.classList.add('doorFadeAnim');
   },29000);
 
-  // 40 s — fade audio and switch to boot
+  // Fade out sound and start boot
   setTimeout(()=>{
     const fade=setInterval(()=>{
       if(audio.volume>0.05){audio.volume-=0.05;}
@@ -66,7 +197,7 @@ function startIntro(){
   },40000);
 }
 
-/* ----- BOOT + APP same as before ----- */
+/* ===== BOOT AFTER INTRO ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
@@ -116,3 +247,5 @@ function startProgress(){
   },120);
 }
 </script>
+</body>
+</html>
