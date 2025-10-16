@@ -1,166 +1,273 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>THRESHOLD</title>
-  <link rel="icon" type="image/jpeg" href="door.jpg" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body, html {
-      width: 100%; height: 100%;
-      background: #000; color: #fff; overflow: hidden;
-      font-family: 'Courier New', monospace;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>THRESHOLD</title>
+<link rel="icon" type="image/jpeg" href="door.jpg" />
+<style>
+  :root{
+    --boot-bg:#000; 
+    --boot-fg:#fff; 
+    --intro-red:#b30000; /* deep cinematic crimson */
+    --film-white:#f5f5f5; /* used later for UI background, not in intro */
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    height:100%;
+    background:#000;
+    overflow:hidden;
+    color:#fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; /* keep original terminal vibe */
+  }
 
-    /* Start Screen */
-    #startScreen {
-      position: fixed; inset: 0;
-      background: #000; display: flex;
-      align-items: center; justify-content: center;
-      font-size: 1.5rem; cursor: pointer;
-      transition: opacity 1.5s ease;
-      z-index: 10;
-    }
-    #startScreen.fadeOut { opacity: 0; pointer-events: none; }
+  /* ---------- START SCREEN ---------- */
+  .startScreen {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#000; color:#fff; cursor:pointer;
+    font-size:clamp(20px,3vw,28px); user-select:none;
+    opacity:1; transition:opacity 1.5s ease;
+    z-index:30;
+  }
+  .fadeOut{opacity:0!important; pointer-events:none}
 
-    /* Intro */
-    #intro {
-      position: fixed; inset: 0;
-      background: #000; display: none;
-      align-items: center; justify-content: center;
-      flex-direction: column;
-      text-align: center;
-      z-index: 5;
-    }
-    .introText {
-      opacity: 0;
-      font-size: 1.5rem;
-      color: #fff;
-      animation: none;
-    }
-    #threshold {
-      opacity: 0;
-      color: #b30000;
-      font-size: 6rem;
-      font-weight: bold;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-      text-align: center;
-      transition: transform 5s ease-in, opacity 2s ease;
-    }
-    .fadeInOut {
-      animation: fadeInOut 8s ease-in-out forwards;
-    }
-    @keyframes fadeInOut {
-      0% { opacity: 0; }
-      20% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-    @keyframes zoomIn {
-      0% { transform: scale(1); }
-      100% { transform: scale(40); }
-    }
-    @keyframes fadeToWhite {
-      0% { background: #b30000; }
-      100% { background: #f5f5f5; }
-    }
+  /* ---------- INTRO ---------- */
+  .intro {
+    position:fixed; inset:0;
+    display:none; align-items:center; justify-content:center;
+    background:#000; text-align:center; z-index:20;
+  }
+  .introText {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    color:#fff; background:transparent;
+    font-weight:600; text-transform:uppercase;
+    opacity:0; text-align:center;
+    font-size:clamp(18px,3vw,26px);
+  }
 
-    /* Mail UI (placeholder) */
-    #mailUI {
-      position: fixed; inset: 0;
-      display: none;
-      background: #f5f5f5;
-      color: #000;
-      font-size: 1.2rem;
-      align-items: center;
-      justify-content: center;
-    }
-  </style>
+  /* one-at-a-time fade in/out for white texts */
+  @keyframes fadeInOut {
+    0% {opacity:0;}
+    20% {opacity:1;}
+    80% {opacity:1;}
+    100% {opacity:0;}
+  }
+  .fadeInOut { animation: fadeInOut var(--dur,7s) ease-in-out forwards; }
+
+  /* THRESHOLD title (starts centered, then stretches to fill screen) */
+  .title {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%) scale(1,1);
+    color:var(--intro-red);
+    font-weight:900; text-transform:uppercase;
+    white-space:nowrap; text-align:center; line-height:1;
+    opacity:0;
+    font-size:clamp(56px,16vw,220px);
+    letter-spacing:.2em;
+    will-change: transform, opacity;
+  }
+
+  /* Stretch to fill: scales both width and height dramatically; fades to black */
+  @keyframes stretchFill {
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(1,1); }
+    15%  { opacity:1; transform:translate(-50%,-50%) scale(1.08,1.08); }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(40,28); } /* large enough to cover any screen */
+  }
+  .stretchFill { animation: stretchFill 6s ease-in-out forwards; }
+
+  /* ---------- BOOT ---------- */
+  .boot, .progressStage {
+    position:fixed; inset:0;
+    background:var(--boot-bg); color:var(--boot-fg);
+    font-family:inherit;
+    padding:14px; overflow:auto; line-height:1.2;
+    display:none; z-index:10;
+  }
+  .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
+  .progressLine{white-space:pre; font-size:14px}
+
+  /* ---------- MAIL UI (placeholder) ---------- */
+  .app{
+    display:none;
+    place-items:center;
+    position:fixed; inset:0;
+    background:#fff; color:#111;
+    font-size:24px; font-weight:600;
+  }
+
+  /* a full black overlay for the 1s dramatic pause */
+  .blackout{
+    position:fixed; inset:0; background:#000; z-index:15; display:none;
+  }
+</style>
 </head>
 <body>
 
-  <div id="startScreen">Click anywhere to begin</div>
+<!-- Start screen -->
+<div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
-  <div id="intro">
-    <div id="introText" class="introText"></div>
-    <div id="threshold">THRESHOLD</div>
-  </div>
+<!-- Intro -->
+<div id="intro" class="intro">
+  <div id="introText" class="introText"></div>
+  <div class="title" id="thresholdTitle">THRESHOLD</div>
+</div>
 
-  <div id="mailUI">📧 Welcome to the Mail Interface</div>
+<!-- 1-second black pause before boot -->
+<div id="blackout" class="blackout"></div>
 
-  <script>
-    const startScreen = document.getElementById("startScreen");
-    const intro = document.getElementById("intro");
-    const introText = document.getElementById("introText");
-    const threshold = document.getElementById("threshold");
-    const mailUI = document.getElementById("mailUI");
+<!-- Boot -->
+<div id="boot" class="boot"></div>
+<div id="progressStage" class="progressStage">
+  <div class="bootLine">:: Starting THRESHOLD environment</div>
+  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div>
+  <br>
+  <div id="pLine" class="progressLine">[                    ] 0%</div>
+</div>
 
-    startScreen.addEventListener("click", () => {
-      startScreen.classList.add("fadeOut");
+<!-- App -->
+<div id="app" class="app">[ Mail UI Loaded ]</div>
+
+<script>
+/* ---------- DOM refs ---------- */
+const startScreen      = document.getElementById('startScreen');
+const intro            = document.getElementById('intro');
+const introText        = document.getElementById('introText');
+const thresholdTitle   = document.getElementById('thresholdTitle');
+const blackout         = document.getElementById('blackout');
+const bootEl           = document.getElementById('boot');
+const progressStage    = document.getElementById('progressStage');
+const pLine            = document.getElementById('pLine');
+const app              = document.getElementById('app');
+
+/* ---------- Start screen click ---------- */
+startScreen.addEventListener('click', () => {
+  startScreen.classList.add('fadeOut');
+  setTimeout(() => {
+    startScreen.style.display = 'none';
+    startIntro();
+  }, 1500);
+});
+
+/* ---------- Intro flow ---------- */
+function startIntro(){
+  intro.style.display = 'flex';
+  const audio = new Audio('sounds/intro.mp3');
+  audio.volume = 1;
+  audio.play();
+
+  // Each line runs 7s (fits 4 lines in ~28s), THRESHOLD at 29s
+  const LINES = [
+    "This game is protected by an MIT license.",
+    "This game is based on Wayward and other movies.",
+    "Contains flashing lights, loud sounds, and psychological horror.",
+    "Presenting..."
+  ];
+  const SEG_MS = 7000; // 7s per white line
+  let t = 0;
+
+  LINES.forEach((text) => {
+    setTimeout(() => {
+      introText.textContent = text;
+      introText.style.setProperty('--dur', '7s');
+      introText.style.animation = 'none';
+      void introText.offsetWidth; // reflow to restart animation
+      introText.style.animation = `fadeInOut 7s ease-in-out forwards`;
+    }, t);
+    t += SEG_MS;
+  });
+
+  // 29s: show THRESHOLD, then stretch fill over ~6s while audio fades
+  setTimeout(() => {
+    introText.textContent = '';
+    thresholdTitle.style.opacity = 0;
+    thresholdTitle.classList.remove('stretchFill');
+    void thresholdTitle.offsetWidth;
+    thresholdTitle.classList.add('stretchFill');
+
+    // Fade audio during the stretch
+    const stretchFadeMs = 6000;
+    const steps = 24; // ~0.25s per step
+    let i = 0;
+    const volFade = setInterval(() => {
+      i++;
+      audio.volume = Math.max(0, 1 - i/steps);
+      if(i >= steps){
+        clearInterval(volFade);
+        audio.pause();
+      }
+    }, stretchFadeMs/steps);
+
+  }, 29000);
+
+  // After stretch completes: 1s black pause, then boot
+  setTimeout(() => {
+    intro.style.display = 'none';
+    blackout.style.display = 'block';
+  }, 29000 + 6000); // 35s
+
+  setTimeout(() => {
+    blackout.style.display = 'none';
+    startBoot(); // go to boot after the 1s pause
+  }, 29000 + 6000 + 1000); // 36s
+}
+
+/* ---------- Boot → progress → app ---------- */
+const bootLines = [
+ "[    0.000000] Linux version 6.8.1-arch",
+ "[    0.002314] Booting system modules...",
+ ":: Mounting /dev/sda1 to /mnt/root",
+ ":: Starting udevd...",
+ ":: Network manager started",
+ ":: Boot complete — Press ENTER to continue"
+];
+
+function startBoot(){
+  bootEl.style.display = 'block';
+  let i = 0;
+  function appendBootLine(){
+    if(i >= bootLines.length) return;
+    const l = document.createElement('div');
+    l.className = 'bootLine';
+    l.textContent = bootLines[i++];
+    bootEl.appendChild(l);
+    bootEl.scrollTop = bootEl.scrollHeight;
+    if(i < bootLines.length) setTimeout(appendBootLine, 100);
+  }
+  appendBootLine();
+
+  // ENTER to go to progress bar
+  document.addEventListener('keydown', onEnterToProgress);
+}
+
+function onEnterToProgress(e){
+  if(e.key !== 'Enter') return;
+  if(bootEl.style.display !== 'block') return;
+  document.removeEventListener('keydown', onEnterToProgress);
+  bootEl.style.display = 'none';
+  progressStage.style.display = 'block';
+  startProgress();
+}
+
+function startProgress(){
+  let pct = 0, total = 20;
+  const t = setInterval(() => {
+    pct = Math.min(100, pct + Math.floor(Math.random()*8) + 5);
+    const filled = Math.round((pct/100)*total);
+    const bar = "[" + "#".repeat(filled).padEnd(total, " ") + "] " + String(pct).padStart(2," ") + "%";
+    pLine.textContent = bar;
+    if(pct >= 100){
+      clearInterval(t);
       setTimeout(() => {
-        startScreen.style.display = "none";
-        startIntro();
-      }, 1500);
-    });
-
-    function startIntro() {
-      intro.style.display = "flex";
-      const audio = new Audio("sounds/intro.mp3");
-      audio.volume = 1;
-      audio.play();
-
-      const lines = [
-        "This game is protected by an MIT license.",
-        "This game is based on Wayward and other movies.",
-        "Contains flashing lights, loud sounds, and psychological horror.",
-        "Presenting..."
-      ];
-
-      let delay = 0;
-      const fadeDuration = 8000;
-
-      lines.forEach((text) => {
-        setTimeout(() => {
-          introText.textContent = text;
-          introText.classList.remove("fadeInOut");
-          void introText.offsetWidth;
-          introText.classList.add("fadeInOut");
-        }, delay);
-        delay += fadeDuration;
-      });
-
-      // THRESHOLD appears
-      setTimeout(() => {
-        introText.textContent = "";
-        threshold.style.opacity = 1;
-      }, 29000);
-
-      // Zoom into "S" (red fill)
-      setTimeout(() => {
-        threshold.style.animation = "zoomIn 5s ease forwards";
-      }, 32000);
-
-      // Fade to white background
-      setTimeout(() => {
-        intro.style.animation = "fadeToWhite 4s forwards";
-      }, 37000);
-
-      // Fade out audio slightly after fade starts
-      setTimeout(() => {
-        const fadeAudio = setInterval(() => {
-          if (audio.volume > 0.05) audio.volume -= 0.05;
-          else { clearInterval(fadeAudio); audio.pause(); }
-        }, 200);
-      }, 39000);
-
-      // Show Mail UI
-      setTimeout(() => {
-        intro.style.display = "none";
-        mailUI.style.display = "flex";
-      }, 44000);
+        progressStage.style.display = 'none';
+        app.style.display = 'grid';
+      }, 300);
     }
-  </script>
+  }, 120);
+}
+</script>
 </body>
 </html>
