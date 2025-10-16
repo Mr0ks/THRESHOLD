@@ -174,7 +174,7 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  // Fade each line in and out cleanly
+  // Sequential fade-in/out of intro text
   lines.forEach((text, i) => {
     const startTime = i * 9000;
     setTimeout(() => {
@@ -185,23 +185,23 @@ function startIntro(){
     }, startTime + (i === 0 ? 500 : 0));
   });
 
-  // 27s: show PRESENTING
+  // 27s: Presenting text fades in and out BEFORE Threshold
   setTimeout(()=>{
     introText.textContent="";
     presenting.style.opacity=1;
-    setTimeout(()=>{ presenting.style.opacity=0; },2000);
+    setTimeout(()=>{ presenting.style.opacity=0; },1500);
   },27000);
 
-  // 29s: fade in THRESHOLD
+  // 29s: Fade in THRESHOLD (after Presenting fades out)
   setTimeout(()=>{
     door.style.opacity=1;
     door.style.textShadow='0 0 25px #f00';
   },29000);
 
-  // 36s: fade out THRESHOLD, then fade out intro.mp3 smoothly
+  // 36s: Fade out THRESHOLD and fade out intro.mp3 cleanly
   setTimeout(()=>{
     door.style.opacity=0;
-    let fadeSteps=60; // smooth long fade-out
+    let fadeSteps=30;
     const fadeOutAudio=setInterval(()=>{
       if(audio.volume>0.01){
         audio.volume=Math.max(0,audio.volume-1/fadeSteps);
@@ -212,7 +212,7 @@ function startIntro(){
         setTimeout(()=>{
           intro.style.display='none';
           startDialogue();
-        },800);
+        },500);
       }
     },100);
   },36000);
@@ -222,15 +222,8 @@ function startIntro(){
 function startDialogue(){
   dialogue.style.display='flex';
   const storyAudio=new Audio('sounds/introtalk.mp3');
-  storyAudio.volume=0;
+  storyAudio.volume=1;
   storyAudio.play();
-
-  // long 6s fade-in
-  const fadeIn=setInterval(()=>{
-    if(storyAudio.volume<1){
-      storyAudio.volume=Math.min(1,storyAudio.volume+0.01);
-    } else clearInterval(fadeIn);
-  },60);
 
   const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
@@ -248,22 +241,14 @@ Your task: uncover what really happened to Clara`;
     } else clearInterval(typer);
   },speed);
 
-  // 43s later, fade out dialogue + audio
+  // 43s later, fade out dialogue
   setTimeout(()=>{
     dialogueText.style.opacity=0;
-    const fadeTalk=setInterval(()=>{
-      if(storyAudio.volume>0.02){
-        storyAudio.volume-=0.02;
-      } else {
-        storyAudio.volume=0;
-        storyAudio.pause();
-        clearInterval(fadeTalk);
-      }
-    },120);
+    storyAudio.pause();
     setTimeout(()=>{
       dialogue.style.display='none';
       showPressEnter();
-    },2000);
+    },1500);
   },43000);
 }
 
@@ -271,7 +256,6 @@ Your task: uncover what really happened to Clara`;
 function showPressEnter(){
   pressEnter.style.display='flex';
   pressEnter.style.opacity=1;
-
   document.addEventListener('keydown',function handler(e){
     if(e.key==='Enter'){
       document.removeEventListener('keydown',handler);
