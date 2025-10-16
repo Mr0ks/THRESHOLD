@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>THRESHOLD</title>
-<link rel="icon" type="image/png" href="png" />
+<link rel="icon" type="image/jpeg" href="door.jpg" />
 <style>
   :root{
     --boot-bg:#000; 
@@ -56,11 +56,9 @@
     80% {opacity:1;}
     100% {opacity:0;}
   }
-  .fadeInOut {
-    animation: fadeInOut 9s ease-in-out forwards;
-  }
+  .fadeInOut {animation: fadeInOut 9s ease-in-out forwards;}
 
-  /* ---------- THRESHOLD TITLE ---------- */
+  /* ---------- TITLE ---------- */
   .title {
     position:absolute;
     top:50%; left:50%;
@@ -81,9 +79,7 @@
     70% {opacity:1; text-shadow:0 0 25px #f00;}
     100% {opacity:0; text-shadow:0 0 0 #f00;}
   }
-  .doorFadeAnim {
-    animation: doorFade 10s ease-in-out forwards;
-  }
+  .doorFadeAnim {animation: doorFade 10s ease-in-out forwards;}
 
   /* ---------- DIALOGUE ---------- */
   .dialogue {
@@ -121,6 +117,15 @@
     font-size:24px;
     font-weight:600;
     color:#111;
+  }
+
+  /* ---------- SKIP NOTICE ---------- */
+  .skipNotice {
+    position:fixed;
+    bottom:20px; right:20px;
+    font-size:14px;
+    color:#888;
+    opacity:0.7;
   }
 </style>
 </head>
@@ -163,19 +168,75 @@ const pLine=document.getElementById('pLine');
 const dialogue=document.getElementById('dialogue');
 const dialogueText=document.getElementById('dialogueText');
 
+let introAudio;
+
+// === Fade helper ===
+function fadeOutAudio(audio, duration=2000){
+  return new Promise(resolve=>{
+    if(!audio) return resolve();
+    const step=50;
+    const delta=audio.volume/(duration/step);
+    const f=setInterval(()=>{
+      audio.volume=Math.max(0,audio.volume-delta);
+      if(audio.volume<=0.01){
+        clearInterval(f);
+        audio.pause();
+        audio.currentTime=0;
+        resolve();
+      }
+    },step);
+  });
+}
+
+// === Skip system ===
+let skipNotice, canSkip=false;
+function enableSkip(){
+  canSkip=true;
+  skipNotice=document.createElement('div');
+  skipNotice.className='skipNotice';
+  skipNotice.textContent='Press SPACE to skip intro';
+  document.body.appendChild(skipNotice);
+  document.addEventListener('keydown',skipHandler);
+}
+function skipHandler(e){
+  if(canSkip && e.code==='Space'){
+    e.preventDefault();
+    skipIntro();
+  }
+}
+function skipIntro(){
+  canSkip=false;
+  fadeOutAudio(introAudio,1500).then(()=>{
+    if(skipNotice) skipNotice.remove();
+    intro.style.display='none';
+    startDialogue();
+  });
+}
+
+// === Start ===
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
   setTimeout(()=>{
     startScreen.style.display='none';
-    startIntro();
+    const visited=localStorage.getItem('thresholdVisited');
+    if(visited){ enableSkip(); }
+    startIntro(visited);
   },1500);
 });
 
-function startIntro(){
+function startIntro(visited){
   intro.style.display='flex';
   intro.style.background='#000';
-  const audio=new Audio('sounds/intro.mp3');
-  audio.volume=1; audio.play();
+  introAudio=new Audio('sounds/intro.mp3');
+  introAudio.volume=1; introAudio.play();
+
+  // If returning visitor: shorter intro
+  if(visited){
+    setTimeout(()=>{
+      fadeOutAudio(introAudio,1000).then(()=>startDialogue());
+    },5000);
+    return;
+  }
 
   const lines=[
     "This game is protected by an MIT license.",
@@ -189,14 +250,14 @@ function startIntro(){
   lines.forEach(text=>{
     setTimeout(()=>{
       introText.textContent=text;
-      introText.style.opacity=0;
       introText.style.animation='none';
-      void introText.offsetWidth; 
+      void introText.offsetWidth;
       introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
     },delay);
     delay+=fadeDuration;
   });
 
+  // Title
   setTimeout(()=>{
     introText.textContent='';
     door.style.opacity=0;
@@ -205,16 +266,18 @@ function startIntro(){
     door.classList.add('doorFadeAnim');
   },29000);
 
-  // After title fade, show dialogue
-  setTimeout(()=>{
+  // Fade + dialogue
+  setTimeout(async ()=>{
+    await fadeOutAudio(introAudio,2000);
     intro.style.display='none';
     startDialogue();
   },41000);
 }
 
-/* ===== DIALOGUE SEQUENCE ===== */
+/* ===== DIALOGUE ===== */
 function startDialogue(){
   dialogue.style.display='flex';
+  localStorage.setItem('thresholdVisited','true');
   const storyAudio=new Audio('sounds/introtalk.mp3');
   storyAudio.volume=1; 
   storyAudio.play();
@@ -242,7 +305,7 @@ Your task: uncover what really happened to Clara`;
   },speed);
 }
 
-/* ===== BOOT AFTER DIALOGUE ===== */
+/* ===== BOOT ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
