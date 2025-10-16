@@ -207,7 +207,7 @@ function startIntro(){
     document.getElementById('line4')
   ];
 
-  // Sequentially fade each line in/out
+  // Sequential fade for each line
   let delay=1000;
   for(let j=0;j<lines.length;j++){
     setTimeout(()=>lines[j].classList.add('fadeIn'),delay);
@@ -215,13 +215,13 @@ function startIntro(){
     delay+=5000;
   }
 
-  // THE DOOR fade in at 29s, out at 36s
+  // THE DOOR title sequence
   setTimeout(()=>doorTitle.classList.add('fadeIn'),29000);
   setTimeout(()=>doorTitle.classList.add('fadeOut'),36000);
 
-  // Fade out audio and show app at 40s
+  // Transition to UI
   setTimeout(()=>{
-    const fade = setInterval(()=>{
+    const fade=setInterval(()=>{
       if(audio.volume>0.05){audio.volume-=0.05;}else{clearInterval(fade);audio.pause();}
     },200);
     setTimeout(()=>{
