@@ -31,14 +31,18 @@
     align-items:center; justify-content:center;
     background:#000; text-align:center; z-index:10;
   }
-  .introSmall {
+  .introText {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
     color:#fff;
     font-weight:600;
     text-transform:uppercase;
-    opacity:0; margin:10px 0;
+    opacity:0;
     font-size:clamp(18px,3vw,26px);
     font-family:ui-monospace,monospace;
-    transition:opacity 2s ease;
+    transition:opacity 1.5s ease;
+    text-align:center;
   }
   .title {
     position:absolute;
@@ -47,7 +51,7 @@
     color:var(--intro-red);
     font-weight:900;
     text-transform:uppercase;
-    white-space:nowrap; /* Keeps "THE DOOR" on one line */
+    white-space:nowrap;
     text-align:center;
     line-height:1;
     user-select:none;
@@ -81,16 +85,7 @@
 
 <!-- INTRO -->
 <div id="intro" class="intro" style="display:none;">
-  <div>
-    <div class="introSmall" id="line1">This game is protected by an MIT license.</div>
-    <div class="introSmall" id="line2">This game is based on Wayward and other movies.</div>
-    <div class="introSmall" id="line3">Contains flashing lights, loud sounds, and psychological horror.</div>
-    <div class="introSmall" id="line4">Loading assets...</div>
-    <div class="introSmall" id="line5">Verifying integrity...</div>
-    <div class="introSmall" id="line6">Initializing environment...</div>
-    <div class="introSmall" id="line7">All systems nominal.</div>
-    <div class="introSmall" id="line8">Presenting...</div>
-  </div>
+  <div id="introText" class="introText"></div>
   <div class="title" id="doorTitle">THE DOOR</div>
 </div>
 
@@ -109,6 +104,8 @@
 <script>
 const startScreen=document.getElementById('startScreen');
 const intro=document.getElementById('intro');
+const introText=document.getElementById('introText');
+const door=document.getElementById('doorTitle');
 const bootEl=document.getElementById('boot');
 const boot2=document.getElementById('boot2');
 const progressStage=document.getElementById('progressStage');
@@ -126,21 +123,37 @@ startScreen.addEventListener('click',()=>{
 /* ===== INTRO FIRST ===== */
 function startIntro(){
   intro.style.display='flex';
-  const door=document.getElementById('doorTitle');
   const audio=new Audio('sounds/intro.mp3');
   audio.volume=1; audio.play();
 
-  const lines=[...document.querySelectorAll('.introSmall')];
-  let delay=1000;
-  lines.forEach((line)=>{
-    setTimeout(()=>line.classList.add('fadeIn'),delay);
-    setTimeout(()=>line.classList.add('fadeOutSmooth'),delay+3500);
+  const lines=[
+    "This game is protected by an MIT license.",
+    "This game is based on Wayward and other movies.",
+    "Contains flashing lights, loud sounds, and psychological horror.",
+    "May cause anxiety or unease.",
+    "Viewer discretion is advised.",
+    "Calibrating atmosphere...",
+    "Stabilizing environment...",
+    "Presenting..."
+  ];
+
+  let delay=0;
+  lines.forEach((text, i)=>{
+    setTimeout(()=>{
+      introText.textContent=text;
+      introText.classList.add('fadeIn');
+    },delay);
+    setTimeout(()=>{
+      introText.classList.remove('fadeIn');
+      introText.classList.add('fadeOutSmooth');
+      setTimeout(()=>introText.classList.remove('fadeOutSmooth'),2000);
+    },delay+3500);
     delay+=4000;
   });
 
-  // THE DOOR fade in and out centered
-  setTimeout(()=>door.classList.add('fadeIn'),29000);
-  setTimeout(()=>door.classList.add('fadeOutSmooth'),36000);
+  // After all texts done — fade in THE DOOR alone
+  setTimeout(()=>{introText.style.display='none'; door.classList.add('fadeIn');},delay);
+  setTimeout(()=>door.classList.add('fadeOutSmooth'),delay+7000);
 
   // End of intro → fade music → boot
   setTimeout(()=>{
@@ -151,7 +164,7 @@ function startIntro(){
       intro.style.display='none';
       startBoot();
     },2000);
-  },40000);
+  },delay+9000);
 }
 
 /* ===== BOOT AFTER INTRO ===== */
