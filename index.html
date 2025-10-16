@@ -6,12 +6,18 @@
 <title>THE DOOR</title>
 <style>
   :root{
-    --boot-bg:#000; --boot-fg:#fff; --intro-red:#d20000;
-    --bg:#e9edf2; --panel:#fff; --border:#c7ccd1; --border-dk:#b3b8bd;
-    --ink:#222; --muted:#5a6b7a;
+    --boot-bg:#000; 
+    --boot-fg:#fff; 
+    --intro-red:#d20000;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#000;font:13px/1.45 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);overflow:hidden}
+  html,body{
+    height:100%;
+    background:#000;
+    overflow:hidden;
+    color:#fff;
+    font-family:ui-monospace,monospace;
+  }
 
   /* ---------- START SCREEN ---------- */
   .startScreen {
@@ -27,8 +33,7 @@
   /* ---------- INTRO ---------- */
   .intro {
     position:fixed; inset:0;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center;
     background:#000; text-align:center; z-index:10;
   }
   .introText {
@@ -40,9 +45,8 @@
     text-transform:uppercase;
     opacity:0;
     font-size:clamp(18px,3vw,26px);
-    font-family:ui-monospace,monospace;
-    transition:opacity 1.5s ease;
     text-align:center;
+    transition:opacity 2s ease;
   }
   .title {
     position:absolute;
@@ -54,17 +58,23 @@
     white-space:nowrap;
     text-align:center;
     line-height:1;
-    user-select:none;
     opacity:0;
     font-size:clamp(56px,16vw,220px);
     transition:opacity 2s ease;
   }
+
+  /* subtle red glow pulse for THE DOOR */
+  @keyframes pulse {
+    0%,100% { text-shadow:0 0 10px #800; }
+    50% { text-shadow:0 0 25px #f00; }
+  }
+
   .fadeIn{opacity:1!important;}
   .fadeOutSmooth{animation:fadeOutSmooth 2s ease forwards;}
   @keyframes fadeOutSmooth{to{opacity:0;}}
-  
+
   /* ---------- BOOT ---------- */
-  .boot, .boot2, .progressStage {
+  .boot, .progressStage {
     position:fixed; inset:0;
     background:var(--boot-bg); color:var(--boot-fg);
     font-family:ui-monospace, Menlo, Consolas, monospace;
@@ -75,7 +85,15 @@
   .progressLine{white-space:pre; font-size:14px}
 
   /* ---------- APP ---------- */
-  .app{display:none; place-items:center; height:100%; background:#fff; font-size:24px; font-weight:600;}
+  .app{
+    display:none;
+    place-items:center;
+    height:100%;
+    background:#fff;
+    font-size:24px;
+    font-weight:600;
+    color:#111;
+  }
 </style>
 </head>
 <body>
@@ -91,7 +109,6 @@
 
 <!-- Boot -->
 <div id="boot" class="boot"></div>
-<div id="boot2" class="boot2"><div class="bootLine">:: Preparing userland…</div></div>
 <div id="progressStage" class="progressStage">
   <div class="bootLine">:: Starting The Door environment</div>
   <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
@@ -107,7 +124,6 @@ const intro=document.getElementById('intro');
 const introText=document.getElementById('introText');
 const door=document.getElementById('doorTitle');
 const bootEl=document.getElementById('boot');
-const boot2=document.getElementById('boot2');
 const progressStage=document.getElementById('progressStage');
 const app=document.getElementById('app');
 const pLine=document.getElementById('pLine');
@@ -129,16 +145,13 @@ function startIntro(){
   const lines=[
     "This game is protected by an MIT license.",
     "This game is based on Wayward and other movies.",
-    "Contains flashing lights, loud sounds, and psychological horror.",
-    "May cause anxiety or unease.",
-    "Viewer discretion is advised.",
-    "Calibrating atmosphere...",
-    "Stabilizing environment...",
-    "Presenting..."
+    "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
   let delay=0;
-  lines.forEach((text, i)=>{
+  const fadeDuration=9000; // extended for slower pacing
+
+  lines.forEach((text)=>{
     setTimeout(()=>{
       introText.textContent=text;
       introText.classList.add('fadeIn');
@@ -147,13 +160,19 @@ function startIntro(){
       introText.classList.remove('fadeIn');
       introText.classList.add('fadeOutSmooth');
       setTimeout(()=>introText.classList.remove('fadeOutSmooth'),2000);
-    },delay+3500);
-    delay+=4000;
+    },delay+fadeDuration-2000);
+    delay+=fadeDuration;
   });
 
-  // After all texts done — fade in THE DOOR alone
-  setTimeout(()=>{introText.style.display='none'; door.classList.add('fadeIn');},delay);
-  setTimeout(()=>door.classList.add('fadeOutSmooth'),delay+7000);
+  // Fade in THE DOOR at 29 seconds
+  setTimeout(()=>{
+    introText.style.display='none';
+    door.classList.add('fadeIn');
+    door.style.animation="pulse 3s infinite ease-in-out";
+  },29000);
+
+  // THE DOOR fades out after a few seconds
+  setTimeout(()=>door.classList.add('fadeOutSmooth'),38000);
 
   // End of intro → fade music → boot
   setTimeout(()=>{
@@ -164,7 +183,7 @@ function startIntro(){
       intro.style.display='none';
       startBoot();
     },2000);
-  },delay+9000);
+  },40000);
 }
 
 /* ===== BOOT AFTER INTRO ===== */
@@ -182,8 +201,11 @@ function startBoot(){
   let i=0;
   function appendBootLine(){
     if(i>=bootLines.length)return;
-    const l=document.createElement('div');l.className='bootLine';l.textContent=bootLines[i++];
-    bootEl.appendChild(l);bootEl.scrollTop=bootEl.scrollHeight;
+    const l=document.createElement('div');
+    l.className='bootLine';
+    l.textContent=bootLines[i++];
+    bootEl.appendChild(l);
+    bootEl.scrollTop=bootEl.scrollHeight;
     if(i<bootLines.length)setTimeout(appendBootLine,100);
   }
   appendBootLine();
@@ -191,12 +213,8 @@ function startBoot(){
   document.addEventListener('keydown',e=>{
     if(e.key==='Enter'&&bootEl.style.display==='block'){
       bootEl.style.display='none';
-      boot2.style.display='block';
-      setTimeout(()=>{
-        boot2.style.display='none';
-        progressStage.style.display='block';
-        startProgress();
-      },800);
+      progressStage.style.display='block';
+      startProgress();
     }
   });
 }
@@ -208,7 +226,13 @@ function startProgress(){
     const filled=Math.round((pct/100)*total);
     const bar="["+ "#".repeat(filled).padEnd(total," ")+"] "+String(pct).padStart(2," ")+"%";
     pLine.textContent=bar;
-    if(pct>=100){clearInterval(t);setTimeout(()=>{progressStage.style.display='none';app.style.display='grid';},300);}
+    if(pct>=100){
+      clearInterval(t);
+      setTimeout(()=>{
+        progressStage.style.display='none';
+        app.style.display='grid';
+      },300);
+    }
   },120);
 }
 </script>
