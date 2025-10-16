@@ -20,18 +20,16 @@
     font-family:ui-monospace,monospace;
   }
 
-  /* ---------- START SCREEN ---------- */
   .startScreen {
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
     background:#000; color:#fff; cursor:pointer;
-    font-size:clamp(20px,3vw,28px); user-select:none;
+    font-size:clamp(20px,3vw,28px);
     opacity:1; transition:opacity 1.5s ease;
     z-index:20;
   }
   .fadeOut{opacity:0!important;}
 
-  /* ---------- INTRO ---------- */
   .intro {
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
@@ -41,67 +39,44 @@
     position:absolute;
     top:50%; left:50%;
     transform:translate(-50%,-50%);
-    color:#fff;
-    font-weight:600;
+    color:#fff; font-weight:600;
     text-transform:uppercase;
-    opacity:0;
-    font-size:clamp(18px,3vw,26px);
-    text-align:center;
-    background:transparent;
+    opacity:0; font-size:clamp(18px,3vw,26px);
   }
 
   @keyframes fadeInOut {
-    0% {opacity:0;}
-    20% {opacity:1;}
-    80% {opacity:1;}
-    100% {opacity:0;}
+    0% {opacity:0;} 20% {opacity:1;} 80% {opacity:1;} 100% {opacity:0;}
   }
-  .fadeInOut {
-    animation: fadeInOut 9s ease-in-out forwards;
-  }
+  .fadeInOut {animation: fadeInOut 9s ease-in-out forwards;}
 
-  /* ---------- THRESHOLD TITLE ---------- */
   .title {
     position:absolute;
     top:50%; left:50%;
     transform:translate(-50%,-50%);
     color:var(--intro-red);
-    font-weight:900;
-    text-transform:uppercase;
-    white-space:nowrap;
-    text-align:center;
-    line-height:1;
+    font-weight:900; text-transform:uppercase;
     opacity:0;
     font-size:clamp(56px,16vw,220px);
   }
-
   @keyframes doorFade {
     0% {opacity:0; text-shadow:0 0 0 #f00;}
     30% {opacity:1; text-shadow:0 0 25px #f00;}
     70% {opacity:1; text-shadow:0 0 25px #f00;}
     100% {opacity:0; text-shadow:0 0 0 #f00;}
   }
-  .doorFadeAnim {
-    animation: doorFade 10s ease-in-out forwards;
-  }
+  .doorFadeAnim {animation: doorFade 10s ease-in-out forwards;}
 
-  /* ---------- DIALOGUE ---------- */
   .dialogue {
     position:fixed; inset:0;
     display:none; align-items:center; justify-content:center;
-    background:#000;
-    padding:60px;
-    text-align:center;
+    background:#000; padding:60px; text-align:center;
   }
   .dialogueText {
     max-width:900px;
     font-size:clamp(18px,2.5vw,22px);
-    color:#fff;
-    line-height:1.5;
-    white-space:pre-line;
+    line-height:1.5; white-space:pre-line;
   }
 
-  /* ---------- ENTERING TEXT ---------- */
   .entering {
     position:fixed; inset:0;
     display:none; align-items:center; justify-content:center;
@@ -113,49 +88,34 @@
     font-weight:600;
   }
 
-  /* ---------- BOOT ---------- */
   .boot, .progressStage {
     position:fixed; inset:0;
     background:var(--boot-bg); color:var(--boot-fg);
-    font-family:ui-monospace, Menlo, Consolas, monospace;
     padding:14px; overflow:auto; line-height:1.2;
     display:none;
   }
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .progressLine{white-space:pre; font-size:14px}
 
-  /* ---------- APP ---------- */
-  .app{
-    display:none;
-    place-items:center;
-    height:100%;
-    background:#fff;
-    font-size:24px;
-    font-weight:600;
-    color:#111;
-  }
+  .app{display:none; place-items:center; height:100%;
+    background:#fff; font-size:24px; font-weight:600; color:#111;}
 </style>
 </head>
 <body>
 
-<!-- Start screen -->
 <div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
-<!-- INTRO -->
 <div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
   <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
 
-<!-- Dialogue -->
 <div id="dialogue" class="dialogue">
   <div id="dialogueText" class="dialogueText"></div>
 </div>
 
-<!-- Entering Text -->
 <div id="entering" class="entering">[ENTERING CLARA'S LAPTOP]</div>
 
-<!-- Boot -->
 <div id="boot" class="boot"></div>
 <div id="progressStage" class="progressStage">
   <div class="bootLine">:: Starting THRESHOLD environment</div>
@@ -163,7 +123,6 @@
   <div id="pLine" class="progressLine">[                    ] 0%</div>
 </div>
 
-<!-- App -->
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
@@ -193,24 +152,19 @@ startScreen.addEventListener('click',()=>{
 
 function startIntro(){
   intro.style.display='flex';
-  intro.style.background='#000';
   introAudio=new Audio('sounds/intro.mp3');
   introAudio.volume=1; 
   introAudio.play();
 
-  // Create skip message
+  // Skip text
   const skipMsg=document.createElement('div');
   skipMsg.textContent='Press [S] to skip intro';
-  skipMsg.style.position='absolute';
-  skipMsg.style.bottom='20px';
-  skipMsg.style.right='30px';
-  skipMsg.style.fontSize='16px';
-  skipMsg.style.opacity='0.6';
-  skipMsg.style.fontFamily='ui-monospace, monospace';
-  skipMsg.style.pointerEvents='none';
+  Object.assign(skipMsg.style,{
+    position:'absolute',bottom:'20px',right:'30px',fontSize:'16px',opacity:'0.6',
+    fontFamily:'ui-monospace,monospace',pointerEvents:'none'
+  });
   intro.appendChild(skipMsg);
   skipActive=true;
-
   document.addEventListener('keydown',handleSkip);
 
   const lines=[
@@ -221,47 +175,33 @@ function startIntro(){
 
   const fadeDuration=9000;
   let delay=0;
-
   lines.forEach(text=>{
     setTimeout(()=>{
       if(introSkipped)return;
       introText.textContent=text;
-      introText.style.opacity=0;
-      introText.style.animation='none';
-      void introText.offsetWidth; 
       introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
     },delay);
     delay+=fadeDuration;
   });
 
-  // Fade out intro audio near the end
+  // Fade out intro music before entering screen
   setTimeout(()=>{
     if(introSkipped)return;
-    let fadeOutInt=setInterval(()=>{
-      if(introAudio.volume>0.05){
-        introAudio.volume-=0.05;
-      } else {
-        introAudio.volume=0;
-        clearInterval(fadeOutInt);
-        introAudio.pause();
-      }
+    let fade=setInterval(()=>{
+      if(introAudio.volume>0.05){introAudio.volume-=0.05;}
+      else{introAudio.pause();clearInterval(fade);}
     },200);
   },27000);
 
   setTimeout(()=>{
     if(introSkipped)return;
-    introText.textContent='';
-    door.style.opacity=0;
-    door.classList.remove('doorFadeAnim');
-    void door.offsetWidth;
     door.classList.add('doorFadeAnim');
   },29000);
 
-  // After title fade, show dialogue
   setTimeout(()=>{
     if(introSkipped)return;
     intro.style.display='none';
-    startDialogue();
+    showEnteringText();
   },41000);
 }
 
@@ -272,31 +212,55 @@ function handleSkip(e){
     introSkipped=true;
     skipActive=false;
     document.removeEventListener('keydown',handleSkip);
-
-    let fadeOut=setInterval(()=>{
-      if(introAudio && introAudio.volume>0.05){
-        introAudio.volume-=0.05;
-      } else {
-        if(introAudio){introAudio.pause();}
-        clearInterval(fadeOut);
-      }
-    },100);
-
+    if(introAudio){
+      let fade=setInterval(()=>{
+        if(introAudio.volume>0.05){introAudio.volume-=0.05;}
+        else{introAudio.pause();clearInterval(fade);}
+      },100);
+    }
     intro.style.transition='opacity 1s ease';
     intro.style.opacity='0';
     setTimeout(()=>{
       intro.style.display='none';
-      startDialogue();
+      showEnteringText();
     },1000);
   }
 }
 
-/* ===== DIALOGUE SEQUENCE ===== */
+/* ===== ENTERING TEXT + TRANSITION TO DIALOGUE ===== */
+function showEnteringText(){
+  entering.style.display='flex';
+  entering.animate([{opacity:0},{opacity:1},{opacity:1},{opacity:0}],{
+    duration:7000,easing:'ease-in-out',fill:'forwards'
+  });
+
+  // Immediately fade out intro music if still playing
+  if(introAudio && !introAudio.paused){
+    let fadeOut=setInterval(()=>{
+      if(introAudio.volume>0.05){introAudio.volume-=0.05;}
+      else{introAudio.pause();clearInterval(fadeOut);}
+    },100);
+  }
+
+  // Wait 7 seconds, then start dialogue
+  setTimeout(()=>{
+    entering.style.display='none';
+    startDialogue();
+  },7000);
+}
+
+/* ===== DIALOGUE ===== */
 function startDialogue(){
   dialogue.style.display='flex';
   const storyAudio=new Audio('sounds/introtalk.mp3');
-  storyAudio.volume=1; 
+  storyAudio.volume=0;
   storyAudio.play();
+
+  // Fade up volume smoothly
+  let fadeIn=setInterval(()=>{
+    if(storyAudio.volume<1){storyAudio.volume+=0.05;}
+    else{clearInterval(fadeIn);}
+  },200);
 
   const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
@@ -316,31 +280,16 @@ Your task: uncover what really happened to Clara`;
     }
   },speed);
 
-  // After 43 seconds, fade out dialogue and show entering text
   setTimeout(()=>{
     const fade=dialogue.animate([{opacity:1},{opacity:0}],{duration:1500,fill:'forwards'});
     fade.onfinish=()=>{
       dialogue.style.display='none';
-      showEnteringText();
+      startBoot();
     };
   },43000);
 }
 
-/* ===== ENTERING TEXT ===== */
-function showEnteringText(){
-  entering.style.display='flex';
-  entering.style.opacity='0';
-  entering.animate([{opacity:0},{opacity:1},{opacity:0}],{
-    duration:3000,
-    easing:'ease-in-out',
-    fill:'forwards'
-  }).onfinish=()=>{
-    entering.style.display='none';
-    startBoot();
-  };
-}
-
-/* ===== BOOT AFTER DIALOGUE ===== */
+/* ===== BOOT ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
