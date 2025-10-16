@@ -52,19 +52,22 @@
 
   .presenting {
     position:absolute;
-    top:43%; /* higher than THRESHOLD */
+    top:50%;
     left:50%;
-    transform:translateX(-50%);
-    color:#ccc;
-    font-size:clamp(20px,3vw,36px);
+    transform:translate(-50%,-50%);
+    color:#fff;
+    font-weight:600;
+    text-transform:uppercase;
+    font-family:ui-monospace,monospace;
+    font-size:clamp(20px,3vw,28px);
     letter-spacing:2px;
     opacity:0;
-    transition:opacity 2s ease-in-out;
+    transition:opacity 2s ease-in-out, top 2s ease-in-out;
   }
 
   .title {
     position:absolute;
-    top:52%; /* slightly below presenting */
+    top:52%;
     left:50%;
     transform:translate(-50%,-50%);
     color:var(--intro-red);
@@ -187,7 +190,7 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  // Fade in/out intro text lines
+  // Fade in/out text lines
   lines.forEach((text, i) => {
     const startTime = i * 9000;
     setTimeout(() => {
@@ -197,10 +200,15 @@ function startIntro(){
     }, startTime + (i === 0 ? 500 : 0));
   });
 
-  // 27s: PRESENTING fades in
+  // 27s: PRESENTING fades in at center
   setTimeout(()=>{
     presenting.style.opacity=1;
   },27000);
+
+  // 28s: PRESENTING moves up smoothly
+  setTimeout(()=>{
+    presenting.style.top="43%";
+  },28000);
 
   // 29s: THRESHOLD fades in below PRESENTING
   setTimeout(()=>{
