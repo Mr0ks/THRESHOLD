@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>THRESHOLD</title>
-<link rel="icon" type="image/jpeg" href="door.jpg" />
+<link rel="icon" type="image/png" href="door.png" />
 <style>
   :root{
     --boot-bg:#000; 
@@ -163,6 +163,10 @@ const pLine=document.getElementById('pLine');
 const dialogue=document.getElementById('dialogue');
 const dialogueText=document.getElementById('dialogueText');
 
+let introAudio; 
+let skipActive=false;
+let introSkipped=false;
+
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
   setTimeout(()=>{
@@ -174,8 +178,24 @@ startScreen.addEventListener('click',()=>{
 function startIntro(){
   intro.style.display='flex';
   intro.style.background='#000';
-  const audio=new Audio('sounds/intro.mp3');
-  audio.volume=1; audio.play();
+  introAudio=new Audio('sounds/intro.mp3');
+  introAudio.volume=1; 
+  introAudio.play();
+
+  // Create skip message
+  const skipMsg=document.createElement('div');
+  skipMsg.textContent='Press [S] to skip intro';
+  skipMsg.style.position='absolute';
+  skipMsg.style.bottom='20px';
+  skipMsg.style.right='30px';
+  skipMsg.style.fontSize='16px';
+  skipMsg.style.opacity='0.6';
+  skipMsg.style.fontFamily='ui-monospace, monospace';
+  skipMsg.style.pointerEvents='none';
+  intro.appendChild(skipMsg);
+  skipActive=true;
+
+  document.addEventListener('keydown',handleSkip);
 
   const lines=[
     "This game is protected by an MIT license.",
@@ -188,6 +208,7 @@ function startIntro(){
 
   lines.forEach(text=>{
     setTimeout(()=>{
+      if(introSkipped)return;
       introText.textContent=text;
       introText.style.opacity=0;
       introText.style.animation='none';
@@ -197,7 +218,22 @@ function startIntro(){
     delay+=fadeDuration;
   });
 
+  // Fade out intro audio near the end
   setTimeout(()=>{
+    if(introSkipped)return;
+    let fadeOutInt=setInterval(()=>{
+      if(introAudio.volume>0.05){
+        introAudio.volume-=0.05;
+      } else {
+        introAudio.volume=0;
+        clearInterval(fadeOutInt);
+        introAudio.pause();
+      }
+    },200);
+  },27000);
+
+  setTimeout(()=>{
+    if(introSkipped)return;
     introText.textContent='';
     door.style.opacity=0;
     door.classList.remove('doorFadeAnim');
@@ -207,9 +243,36 @@ function startIntro(){
 
   // After title fade, show dialogue
   setTimeout(()=>{
+    if(introSkipped)return;
     intro.style.display='none';
     startDialogue();
   },41000);
+}
+
+/* ===== SKIP HANDLER ===== */
+function handleSkip(e){
+  if(!skipActive)return;
+  if(e.key.toLowerCase()==='s'){
+    introSkipped=true;
+    skipActive=false;
+    document.removeEventListener('keydown',handleSkip);
+
+    let fadeOut=setInterval(()=>{
+      if(introAudio && introAudio.volume>0.05){
+        introAudio.volume-=0.05;
+      } else {
+        if(introAudio){introAudio.pause();}
+        clearInterval(fadeOut);
+      }
+    },100);
+
+    intro.style.transition='opacity 1s ease';
+    intro.style.opacity='0';
+    setTimeout(()=>{
+      intro.style.display='none';
+      startDialogue();
+    },1000);
+  }
 }
 
 /* ===== DIALOGUE SEQUENCE ===== */
@@ -234,12 +297,17 @@ Your task: uncover what really happened to Clara`;
       dialogueText.textContent+=storyText[idx++];
     }else{
       clearInterval(typewriter);
-      storyAudio.addEventListener('ended',()=>{
-        dialogue.style.display='none';
-        startBoot();
-      });
     }
   },speed);
+
+  // After 43 seconds, fade out dialogue and start boot
+  setTimeout(()=>{
+    const fade=dialogue.animate([{opacity:1},{opacity:0}],{duration:1500,fill:'forwards'});
+    fade.onfinish=()=>{
+      dialogue.style.display='none';
+      startBoot();
+    };
+  },43000);
 }
 
 /* ===== BOOT AFTER DIALOGUE ===== */
