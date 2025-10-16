@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>THE DOOR</title>
+<title>THRESHOLD</title>
 <link rel="icon" type="image/jpeg" href="door.jpg" />
 <style>
   :root{
@@ -60,7 +60,7 @@
     animation: fadeInOut 9s ease-in-out forwards;
   }
 
-  /* ---------- THE DOOR ---------- */
+  /* ---------- THRESHOLD TITLE ---------- */
   .title {
     position:absolute;
     top:50%; left:50%;
@@ -116,13 +116,13 @@
 <!-- INTRO -->
 <div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
-  <div class="title" id="doorTitle">THE DOOR</div>
+  <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
 
 <!-- Boot -->
 <div id="boot" class="boot"></div>
 <div id="progressStage" class="progressStage">
-  <div class="bootLine">:: Starting The Door environment</div>
+  <div class="bootLine">:: Starting THRESHOLD environment</div>
   <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
   <div id="pLine" class="progressLine">[                    ] 0%</div>
 </div>
@@ -176,7 +176,7 @@ function startIntro(){
     delay+=fadeDuration;
   });
 
-  // Show THE DOOR at 29 seconds
+  // Show THRESHOLD at 29 seconds
   setTimeout(()=>{
     introText.textContent='';
     door.style.opacity=0;
