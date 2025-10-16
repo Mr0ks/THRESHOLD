@@ -171,15 +171,19 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  // Fade each line in and out cleanly, with gaps to prevent overlap
-  lines.forEach((text, i)=>{
-    setTimeout(()=>{
-      introText.textContent=text;
-      introText.style.opacity=1;
-      setTimeout(()=>{
-        introText.style.opacity=0;
-      },7000); // visible ~7s
-    }, i*9000); // 9s apart
+  // Fade each line in and out cleanly, ensuring the first one actually fades in
+  lines.forEach((text, i) => {
+    const startTime = i * 9000; // each 9 seconds apart
+    setTimeout(() => {
+      introText.textContent = text;
+      introText.style.transition = "opacity 2s ease-in-out";
+      introText.style.opacity = 1;
+
+      // stay visible ~5s then fade out
+      setTimeout(() => {
+        introText.style.opacity = 0;
+      }, 5000);
+    }, startTime + (i === 0 ? 500 : 0)); // small delay for first line to ensure fade visible
   });
 
   // 29s: fade in THRESHOLD
