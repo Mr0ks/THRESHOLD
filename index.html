@@ -9,8 +9,7 @@
   :root{
     --boot-bg:#000; 
     --boot-fg:#fff; 
-    --intro-red:#b30000; /* deep cinematic crimson */
-    --film-white:#f5f5f5; /* used later for UI background, not in intro */
+    --intro-red:#b30000; /* deep crimson */
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{
@@ -18,7 +17,7 @@
     background:#000;
     overflow:hidden;
     color:#fff;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; /* keep original terminal vibe */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; /* keep your terminal feel */
   }
 
   /* ---------- START SCREEN ---------- */
@@ -48,20 +47,21 @@
     font-size:clamp(18px,3vw,26px);
   }
 
-  /* one-at-a-time fade in/out for white texts */
+  /* one-at-a-time fade for white texts (7s each) */
   @keyframes fadeInOut {
     0% {opacity:0;}
-    20% {opacity:1;}
-    80% {opacity:1;}
+    15% {opacity:1;}
+    85% {opacity:1;}
     100% {opacity:0;}
   }
-  .fadeInOut { animation: fadeInOut var(--dur,7s) ease-in-out forwards; }
+  .fadeInOut { animation: fadeInOut 7s ease-in-out forwards; }
 
-  /* THRESHOLD title (starts centered, then stretches to fill screen) */
+  /* THRESHOLD title */
   .title {
     position:absolute;
     top:50%; left:50%;
     transform:translate(-50%,-50%) scale(1,1);
+    transform-origin:50% 50%;
     color:var(--intro-red);
     font-weight:900; text-transform:uppercase;
     white-space:nowrap; text-align:center; line-height:1;
@@ -71,13 +71,19 @@
     will-change: transform, opacity;
   }
 
-  /* Stretch to fill: scales both width and height dramatically; fades to black */
-  @keyframes stretchFill {
+  /* Smooth stretch: first horizontal (to very wide), then vertical, continuous */
+  @keyframes stretchHV {
     0%   { opacity:0; transform:translate(-50%,-50%) scale(1,1); }
-    15%  { opacity:1; transform:translate(-50%,-50%) scale(1.08,1.08); }
-    100% { opacity:0; transform:translate(-50%,-50%) scale(40,28); } /* large enough to cover any screen */
+    10%  { opacity:1; transform:translate(-50%,-50%) scale(1.06,1.06); }
+    50%  { opacity:1; transform:translate(-50%,-50%) scale(36,1.12); } /* wide, little height */
+    100% { opacity:0; transform:translate(-50%,-50%) scale(36,28); }  /* fill screen */
   }
-  .stretchFill { animation: stretchFill 6s ease-in-out forwards; }
+  .stretchHV { animation: stretchHV 6s ease-in-out forwards; }
+
+  /* ---------- BLACKOUT (dramatic 1s pause) ---------- */
+  .blackout{
+    position:fixed; inset:0; background:#000; z-index:15; display:none;
+  }
 
   /* ---------- BOOT ---------- */
   .boot, .progressStage {
@@ -97,11 +103,6 @@
     position:fixed; inset:0;
     background:#fff; color:#111;
     font-size:24px; font-weight:600;
-  }
-
-  /* a full black overlay for the 1s dramatic pause */
-  .blackout{
-    position:fixed; inset:0; background:#000; z-index:15; display:none;
   }
 </style>
 </head>
@@ -159,36 +160,35 @@ function startIntro(){
   audio.volume = 1;
   audio.play();
 
-  // Each line runs 7s (fits 4 lines in ~28s), THRESHOLD at 29s
+  // 4 lines × 7s = 28s; THRESHOLD starts at 29s
   const LINES = [
     "This game is protected by an MIT license.",
     "This game is based on Wayward and other movies.",
     "Contains flashing lights, loud sounds, and psychological horror.",
     "Presenting..."
   ];
-  const SEG_MS = 7000; // 7s per white line
+  const SEG_MS = 7000;
   let t = 0;
 
   LINES.forEach((text) => {
     setTimeout(() => {
       introText.textContent = text;
-      introText.style.setProperty('--dur', '7s');
       introText.style.animation = 'none';
-      void introText.offsetWidth; // reflow to restart animation
+      void introText.offsetWidth; // reflow to restart animation cleanly
       introText.style.animation = `fadeInOut 7s ease-in-out forwards`;
     }, t);
     t += SEG_MS;
   });
 
-  // 29s: show THRESHOLD, then stretch fill over ~6s while audio fades
+  // 29s: THRESHOLD appears and stretches (horizontal first, then vertical) over 6s
   setTimeout(() => {
     introText.textContent = '';
     thresholdTitle.style.opacity = 0;
-    thresholdTitle.classList.remove('stretchFill');
+    thresholdTitle.classList.remove('stretchHV');
     void thresholdTitle.offsetWidth;
-    thresholdTitle.classList.add('stretchFill');
+    thresholdTitle.classList.add('stretchHV');
 
-    // Fade audio during the stretch
+    // Fade audio gradually during the 6s stretch; end as boot begins
     const stretchFadeMs = 6000;
     const steps = 24; // ~0.25s per step
     let i = 0;
@@ -200,10 +200,9 @@ function startIntro(){
         audio.pause();
       }
     }, stretchFadeMs/steps);
-
   }, 29000);
 
-  // After stretch completes: 1s black pause, then boot
+  // After stretch completes (35s): 1s black pause, then boot
   setTimeout(() => {
     intro.style.display = 'none';
     blackout.style.display = 'block';
