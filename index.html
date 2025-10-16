@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>THRESHOLD</title>
-<link rel="icon" type="image/jpeg" href="door.jpg" />
+<link rel="icon" type="image/png" href="door.png" />
 <style>
   :root{
     --boot-bg:#000; 
@@ -44,18 +44,8 @@
     text-transform:uppercase;
     opacity:0;
     font-size:clamp(18px,3vw,26px);
+    transition:opacity 1s ease-in-out;
     text-align:center;
-    background:transparent;
-  }
-
-  @keyframes fadeInOut {
-    0% {opacity:0;}
-    20% {opacity:1;}
-    80% {opacity:1;}
-    100% {opacity:0;}
-  }
-  .fadeInOut {
-    animation: fadeInOut 9s ease-in-out forwards;
   }
 
   .title {
@@ -70,7 +60,7 @@
     line-height:1;
     opacity:0;
     font-size:clamp(56px,16vw,220px);
-    transition:opacity 2s ease-in-out;
+    transition:opacity 2s ease-in-out, text-shadow 1.2s ease-in-out;
     text-shadow:0 0 0 #f00;
   }
 
@@ -91,19 +81,8 @@
     transition:opacity 2s ease-in-out;
   }
 
-  .boot, .progressStage {
-    position:fixed; inset:0;
-    background:var(--boot-bg); color:var(--boot-fg);
-    font-family:ui-monospace, Menlo, Consolas, monospace;
-    padding:14px; overflow:auto; line-height:1.2;
-    display:none;
-  }
-  .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
-  .progressLine{white-space:pre; font-size:14px}
-
   .pressEnter {
-    position:fixed;
-    inset:0;
+    position:fixed; inset:0;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -115,6 +94,15 @@
     text-align:center;
   }
 
+  .boot, .progressStage {
+    position:fixed; inset:0;
+    background:var(--boot-bg); color:var(--boot-fg);
+    font-family:ui-monospace, Menlo, Consolas, monospace;
+    padding:14px; overflow:auto; line-height:1.2;
+    display:none;
+  }
+  .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
+  .progressLine{white-space:pre; font-size:14px}
   .app{
     display:none;
     place-items:center;
@@ -183,60 +171,58 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  const fadeDuration=9000;
+  // display each for 9s with 1s buffer to avoid overlap
   let delay=0;
-  lines.forEach(text=>{
+  lines.forEach((text,i)=>{
     setTimeout(()=>{
+      introText.style.opacity=1;
       introText.textContent=text;
-      introText.style.animation='none';
-      void introText.offsetWidth;
-      introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
+      setTimeout(()=>{introText.style.opacity=0;},8000);
     },delay);
-    delay+=fadeDuration;
+    delay+=10000;
   });
 
   // 29s: fade in THRESHOLD
   setTimeout(()=>{
+    introText.textContent="";
     door.style.opacity=1;
     door.style.textShadow='0 0 25px #f00';
   },29000);
 
-  // 36s: fade out THRESHOLD + fade out intro.mp3 completely before dialogue
+  // 36s: fade out THRESHOLD and audio
   setTimeout(()=>{
     door.style.opacity=0;
-    const fadeOutAudio = setInterval(()=>{
-      if(audio.volume > 0.02){
-        audio.volume -= 0.02;
+    const fadeOutAudio=setInterval(()=>{
+      if(audio.volume>0.02){
+        audio.volume-=0.02;
       } else {
-        audio.volume = 0;
+        audio.volume=0;
         audio.pause();
         clearInterval(fadeOutAudio);
       }
-    },100);
+    },120);
   },36000);
 
-  // 39s: start dialogue AFTER intro.mp3 is fully gone
+  // 39s: start dialogue after silence
   setTimeout(()=>{
     intro.style.display='none';
     startDialogue();
   },39000);
 }
 
-/* ===== DIALOGUE SEQUENCE ===== */
+/* ===== DIALOGUE ===== */
 function startDialogue(){
   dialogue.style.display='flex';
   const storyAudio=new Audio('sounds/introtalk.mp3');
   storyAudio.volume=0;
   storyAudio.play();
 
-  // Fade in introtalk.mp3 smoothly
-  const fadeInTalk = setInterval(()=>{
-    if(storyAudio.volume < 1){
-      storyAudio.volume = Math.min(1, storyAudio.volume + 0.02);
-    } else {
-      clearInterval(fadeInTalk);
-    }
-  },120);
+  // smooth long fade-in (6s)
+  const fadeIn=setInterval(()=>{
+    if(storyAudio.volume<1){
+      storyAudio.volume=Math.min(1,storyAudio.volume+0.01);
+    } else clearInterval(fadeIn);
+  },60);
 
   const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
@@ -248,27 +234,24 @@ Your task: uncover what really happened to Clara`;
   dialogueText.textContent="";
   let idx=0;
   const speed=40;
-  const typewriter=setInterval(()=>{
+  const typer=setInterval(()=>{
     if(idx<storyText.length){
       dialogueText.textContent+=storyText[idx++];
-    }else{
-      clearInterval(typewriter);
-    }
+    } else clearInterval(typer);
   },speed);
 
-  // 43s later: fade out dialogue, fade in "Press ENTER"
+  // after 43s, fade out dialogue and audio
   setTimeout(()=>{
     dialogueText.style.opacity=0;
-    const fadeTalk = setInterval(()=>{
-      if(storyAudio.volume > 0.02){
-        storyAudio.volume -= 0.02;
+    const fadeTalk=setInterval(()=>{
+      if(storyAudio.volume>0.02){
+        storyAudio.volume-=0.02;
       } else {
-        storyAudio.volume = 0;
+        storyAudio.volume=0;
         storyAudio.pause();
         clearInterval(fadeTalk);
       }
-    },150);
-
+    },120);
     setTimeout(()=>{
       dialogue.style.display='none';
       showPressEnter();
@@ -278,22 +261,22 @@ Your task: uncover what really happened to Clara`;
 
 /* ===== PRESS ENTER ===== */
 function showPressEnter(){
-  pressEnter.style.opacity=1;
   pressEnter.style.display='flex';
+  pressEnter.style.opacity=1;
 
-  document.addEventListener('keydown',function enterHandler(e){
-    if(e.key === 'Enter'){
-      document.removeEventListener('keydown', enterHandler);
+  document.addEventListener('keydown',function handler(e){
+    if(e.key==='Enter'){
+      document.removeEventListener('keydown',handler);
       pressEnter.style.opacity=0;
       setTimeout(()=>{
         pressEnter.style.display='none';
-        startBoot(); // straight to mail UI flow
-      },2000);
+        startBoot();
+      },1500);
     }
   });
 }
 
-/* ===== BOOT AFTER PRESS ENTER ===== */
+/* ===== BOOT ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
@@ -306,16 +289,16 @@ const bootLines=[
 function startBoot(){
   bootEl.style.display='block';
   let i=0;
-  function appendBootLine(){
+  function append(){
     if(i>=bootLines.length)return;
     const l=document.createElement('div');
     l.className='bootLine';
     l.textContent=bootLines[i++];
     bootEl.appendChild(l);
     bootEl.scrollTop=bootEl.scrollHeight;
-    if(i<bootLines.length)setTimeout(appendBootLine,100);
+    if(i<bootLines.length)setTimeout(append,100);
   }
-  appendBootLine();
+  append();
 
   document.addEventListener('keydown',e=>{
     if(e.key==='Enter'&&bootEl.style.display==='block'){
@@ -331,8 +314,7 @@ function startProgress(){
   const t=setInterval(()=>{
     pct=Math.min(100,pct+Math.floor(Math.random()*8)+5);
     const filled=Math.round((pct/100)*total);
-    const bar="["+ "#".repeat(filled).padEnd(total," ")+"] "+String(pct).padStart(2," ")+"%";
-    pLine.textContent=bar;
+    pLine.textContent="["+ "#".repeat(filled).padEnd(total," ")+"] "+String(pct).padStart(2," ")+"%";
     if(pct>=100){
       clearInterval(t);
       setTimeout(()=>{
