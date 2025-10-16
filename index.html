@@ -36,6 +36,7 @@
     background:#000; text-align:center; z-index:10;
     flex-direction:column;
   }
+
   .introText {
     position:absolute;
     top:50%; left:50%;
@@ -51,7 +52,7 @@
 
   .presenting {
     position:absolute;
-    top:38%;
+    top:43%; /* higher than THRESHOLD */
     left:50%;
     transform:translateX(-50%);
     color:#ccc;
@@ -63,7 +64,7 @@
 
   .title {
     position:absolute;
-    top:50%;
+    top:52%; /* slightly below presenting */
     left:50%;
     transform:translate(-50%,-50%);
     color:var(--intro-red);
@@ -186,7 +187,7 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  // Fade in/out text lines cleanly
+  // Fade in/out intro text lines
   lines.forEach((text, i) => {
     const startTime = i * 9000;
     setTimeout(() => {
@@ -201,19 +202,15 @@ function startIntro(){
     presenting.style.opacity=1;
   },27000);
 
-  // 29s: THRESHOLD fades in
+  // 29s: THRESHOLD fades in below PRESENTING
   setTimeout(()=>{
     door.style.opacity=1;
     door.style.textShadow='0 0 25px #f00';
   },29000);
 
-  // 31s: PRESENTING fades out (after threshold appears)
+  // 36s: fade both out, intro.mp3 fades smoothly
   setTimeout(()=>{
     presenting.style.opacity=0;
-  },31000);
-
-  // 36s: THRESHOLD fades out, intro.mp3 fades smoothly (no cutoff)
-  setTimeout(()=>{
     door.style.opacity=0;
     let fadeSteps=100;
     const fadeOutAudio=setInterval(()=>{
