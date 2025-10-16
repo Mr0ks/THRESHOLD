@@ -9,7 +9,7 @@
   :root{
     --boot-bg:#000; 
     --boot-fg:#fff; 
-    --intro-red:#b30000; /* deep crimson */
+    --intro-red:#b30000;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{
@@ -17,7 +17,7 @@
     background:#000;
     overflow:hidden;
     color:#fff;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; /* keep your terminal feel */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   }
 
   /* ---------- START SCREEN ---------- */
@@ -47,7 +47,7 @@
     font-size:clamp(18px,3vw,26px);
   }
 
-  /* one-at-a-time fade for white texts (7s each) */
+  /* Fade in/out for white texts */
   @keyframes fadeInOut {
     0% {opacity:0;}
     15% {opacity:1;}
@@ -71,16 +71,28 @@
     will-change: transform, opacity;
   }
 
-  /* Smooth stretch: first horizontal (to very wide), then vertical, continuous */
+  /* ---------- SMOOTH STRETCH ---------- */
   @keyframes stretchHV {
-    0%   { opacity:0; transform:translate(-50%,-50%) scale(1,1); }
-    10%  { opacity:1; transform:translate(-50%,-50%) scale(1.06,1.06); }
-    50%  { opacity:1; transform:translate(-50%,-50%) scale(36,1.12); } /* wide, little height */
-    100% { opacity:0; transform:translate(-50%,-50%) scale(36,28); }  /* fill screen */
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1, 1);
+    }
+    10% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.05, 1.05);
+    }
+    50% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(7.5, 1.6);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(9.5, 4.5);
+    }
   }
   .stretchHV { animation: stretchHV 6s ease-in-out forwards; }
 
-  /* ---------- BLACKOUT (dramatic 1s pause) ---------- */
+  /* ---------- BLACKOUT ---------- */
   .blackout{
     position:fixed; inset:0; background:#000; z-index:15; display:none;
   }
@@ -96,7 +108,7 @@
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .progressLine{white-space:pre; font-size:14px}
 
-  /* ---------- MAIL UI (placeholder) ---------- */
+  /* ---------- MAIL UI ---------- */
   .app{
     display:none;
     place-items:center;
@@ -117,7 +129,7 @@
   <div class="title" id="thresholdTitle">THRESHOLD</div>
 </div>
 
-<!-- 1-second black pause before boot -->
+<!-- 1s Black pause -->
 <div id="blackout" class="blackout"></div>
 
 <!-- Boot -->
@@ -133,7 +145,6 @@
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
-/* ---------- DOM refs ---------- */
 const startScreen      = document.getElementById('startScreen');
 const intro            = document.getElementById('intro');
 const introText        = document.getElementById('introText');
@@ -144,7 +155,6 @@ const progressStage    = document.getElementById('progressStage');
 const pLine            = document.getElementById('pLine');
 const app              = document.getElementById('app');
 
-/* ---------- Start screen click ---------- */
 startScreen.addEventListener('click', () => {
   startScreen.classList.add('fadeOut');
   setTimeout(() => {
@@ -153,14 +163,12 @@ startScreen.addEventListener('click', () => {
   }, 1500);
 });
 
-/* ---------- Intro flow ---------- */
 function startIntro(){
   intro.style.display = 'flex';
   const audio = new Audio('sounds/intro.mp3');
   audio.volume = 1;
   audio.play();
 
-  // 4 lines × 7s = 28s; THRESHOLD starts at 29s
   const LINES = [
     "This game is protected by an MIT license.",
     "This game is based on Wayward and other movies.",
@@ -174,13 +182,13 @@ function startIntro(){
     setTimeout(() => {
       introText.textContent = text;
       introText.style.animation = 'none';
-      void introText.offsetWidth; // reflow to restart animation cleanly
+      void introText.offsetWidth;
       introText.style.animation = `fadeInOut 7s ease-in-out forwards`;
     }, t);
     t += SEG_MS;
   });
 
-  // 29s: THRESHOLD appears and stretches (horizontal first, then vertical) over 6s
+  // 29s: THRESHOLD appears and stretches
   setTimeout(() => {
     introText.textContent = '';
     thresholdTitle.style.opacity = 0;
@@ -188,9 +196,9 @@ function startIntro(){
     void thresholdTitle.offsetWidth;
     thresholdTitle.classList.add('stretchHV');
 
-    // Fade audio gradually during the 6s stretch; end as boot begins
+    // Fade out music smoothly
     const stretchFadeMs = 6000;
-    const steps = 24; // ~0.25s per step
+    const steps = 24;
     let i = 0;
     const volFade = setInterval(() => {
       i++;
@@ -202,19 +210,19 @@ function startIntro(){
     }, stretchFadeMs/steps);
   }, 29000);
 
-  // After stretch completes (35s): 1s black pause, then boot
+  // After stretch: 1s black pause, then boot
   setTimeout(() => {
     intro.style.display = 'none';
     blackout.style.display = 'block';
-  }, 29000 + 6000); // 35s
+  }, 29000 + 6000);
 
   setTimeout(() => {
     blackout.style.display = 'none';
-    startBoot(); // go to boot after the 1s pause
-  }, 29000 + 6000 + 1000); // 36s
+    startBoot();
+  }, 29000 + 6000 + 1000);
 }
 
-/* ---------- Boot → progress → app ---------- */
+/* ---------- BOOT ---------- */
 const bootLines = [
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
@@ -238,7 +246,6 @@ function startBoot(){
   }
   appendBootLine();
 
-  // ENTER to go to progress bar
   document.addEventListener('keydown', onEnterToProgress);
 }
 
