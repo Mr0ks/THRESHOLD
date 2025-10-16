@@ -62,9 +62,9 @@
   /* ---------- PRESENTING + THRESHOLD ---------- */
   .presenting {
     position:absolute;
-    top:45%; left:50%;
+    top:50%; left:50%;
     transform:translate(-50%,-50%);
-    color:var(--intro-red);
+    color:#fff;
     font-weight:700;
     text-transform:uppercase;
     font-size:clamp(22px,4vw,40px);
@@ -73,8 +73,8 @@
 
   .title {
     position:absolute;
-    top:55%; left:50%;
-    transform:translate(-50%,-50%) scale(1);
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
     color:var(--intro-red);
     font-weight:900;
     text-transform:uppercase;
@@ -85,16 +85,6 @@
     font-size:clamp(56px,16vw,220px);
   }
 
-  @keyframes doorReveal {
-    0% {opacity:0; transform:translate(-50%,-50%) scale(1);}
-    20% {opacity:1; transform:translate(-50%,-50%) scale(1);}
-    80% {opacity:1; transform:translate(-50%,-50%) scale(2);}
-    100% {opacity:0; transform:translate(-50%,-50%) scale(2);}
-  }
-  .doorReveal {
-    animation: doorReveal 10s ease-in-out forwards;
-  }
-
   @keyframes presentFade {
     0% {opacity:0;}
     20% {opacity:1;}
@@ -102,7 +92,17 @@
     100% {opacity:0;}
   }
   .presentFade {
-    animation: presentFade 10s ease-in-out forwards;
+    animation: presentFade 8s ease-in-out forwards;
+  }
+
+  @keyframes titleFade {
+    0% {opacity:0;}
+    20% {opacity:1;}
+    80% {opacity:1;}
+    100% {opacity:0;}
+  }
+  .titleFade {
+    animation: titleFade 10s ease-in-out forwards;
   }
 
   /* ---------- BOOT ---------- */
@@ -196,17 +196,21 @@ function startIntro(){
     delay+=fadeDuration;
   });
 
-  // Presenting + THRESHOLD
+  // Presenting fades in white, then THRESHOLD in red
   setTimeout(()=>{
     introText.textContent='';
     presenting.style.opacity=0;
-    presenting.classList.remove('presentFade');
     door.style.opacity=0;
-    door.classList.remove('doorReveal');
+    presenting.classList.remove('presentFade');
+    door.classList.remove('titleFade');
     void intro.offsetWidth;
     presenting.classList.add('presentFade');
-    door.classList.add('doorReveal');
-  },29000);
+  },27000);
+
+  setTimeout(()=>{
+    presenting.style.opacity=0;
+    door.classList.add('titleFade');
+  },35000);
 
   // Fade out audio and move to boot
   setTimeout(()=>{
@@ -218,7 +222,7 @@ function startIntro(){
       intro.style.display='none';
       startBoot();
     },2000);
-  },40000);
+  },45000);
 }
 
 /* ===== BOOT ===== */
