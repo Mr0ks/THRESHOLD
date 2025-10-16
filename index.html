@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>THRESHOLD</title>
-<link rel="icon" type="image/jpeg" href="door.png" />
+<link rel="icon" type="image/jpeg" href="door.jpg" />
 <style>
   :root{
     --boot-bg:#000; 
@@ -20,7 +20,6 @@
     font-family:ui-monospace,monospace;
   }
 
-  /* ---------- START SCREEN ---------- */
   .startScreen {
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
@@ -31,7 +30,6 @@
   }
   .fadeOut{opacity:0!important;}
 
-  /* ---------- INTRO ---------- */
   .intro {
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
@@ -47,7 +45,6 @@
     opacity:0;
     font-size:clamp(18px,3vw,26px);
     text-align:center;
-    background:transparent;
   }
 
   @keyframes fadeInOut {
@@ -58,7 +55,6 @@
   }
   .fadeInOut {animation: fadeInOut 9s ease-in-out forwards;}
 
-  /* ---------- TITLE ---------- */
   .title {
     position:absolute;
     top:50%; left:50%;
@@ -81,7 +77,6 @@
   }
   .doorFadeAnim {animation: doorFade 10s ease-in-out forwards;}
 
-  /* ---------- DIALOGUE ---------- */
   .dialogue {
     position:fixed; inset:0;
     display:none; align-items:center; justify-content:center;
@@ -97,7 +92,6 @@
     white-space:pre-line;
   }
 
-  /* ---------- BOOT ---------- */
   .boot, .progressStage {
     position:fixed; inset:0;
     background:var(--boot-bg); color:var(--boot-fg);
@@ -108,7 +102,6 @@
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .progressLine{white-space:pre; font-size:14px}
 
-  /* ---------- APP ---------- */
   .app{
     display:none;
     place-items:center;
@@ -118,42 +111,28 @@
     font-weight:600;
     color:#111;
   }
-
-  /* ---------- SKIP NOTICE ---------- */
-  .skipNotice {
-    position:fixed;
-    bottom:20px; right:20px;
-    font-size:14px;
-    color:#888;
-    opacity:0.7;
-  }
 </style>
 </head>
 <body>
 
-<!-- Start screen -->
-<div id="startScreen" class="startScreen">Click anywhere to begin...</div>
+<div id="startScreen" class="startScreen">Click to start | note: refreshing will reset the game</div>
 
-<!-- INTRO -->
 <div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
   <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
 
-<!-- Dialogue -->
 <div id="dialogue" class="dialogue">
   <div id="dialogueText" class="dialogueText"></div>
 </div>
 
-<!-- Boot -->
 <div id="boot" class="boot"></div>
 <div id="progressStage" class="progressStage">
-  <div class="bootLine">:: Starting THRESHOLD environment</div>
+  <div class="bootLine">:: Starting boot environment</div>
   <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
   <div id="pLine" class="progressLine">[                    ] 0%</div>
 </div>
 
-<!-- App -->
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
@@ -170,7 +149,7 @@ const dialogueText=document.getElementById('dialogueText');
 
 let introAudio;
 
-// === Fade helper ===
+// Fade helper
 function fadeOutAudio(audio, duration=2000){
   return new Promise(resolve=>{
     if(!audio) return resolve();
@@ -188,38 +167,12 @@ function fadeOutAudio(audio, duration=2000){
   });
 }
 
-// === Skip system ===
-let skipNotice, canSkip=false;
-function enableSkip(){
-  canSkip=true;
-  skipNotice=document.createElement('div');
-  skipNotice.className='skipNotice';
-  skipNotice.textContent='Press SPACE to skip intro';
-  document.body.appendChild(skipNotice);
-  document.addEventListener('keydown',skipHandler);
-}
-function skipHandler(e){
-  if(canSkip && e.code==='Space'){
-    e.preventDefault();
-    skipIntro();
-  }
-}
-function skipIntro(){
-  canSkip=false;
-  fadeOutAudio(introAudio,1500).then(()=>{
-    if(skipNotice) skipNotice.remove();
-    intro.style.display='none';
-    startDialogue();
-  });
-}
-
-// === Start ===
+// Start
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
   setTimeout(()=>{
     startScreen.style.display='none';
     const visited=localStorage.getItem('thresholdVisited');
-    if(visited){ enableSkip(); }
     startIntro(visited);
   },1500);
 });
@@ -230,7 +183,7 @@ function startIntro(visited){
   introAudio=new Audio('sounds/intro.mp3');
   introAudio.volume=1; introAudio.play();
 
-  // If returning visitor: shorter intro
+  // Shorter intro for returning users
   if(visited){
     setTimeout(()=>{
       fadeOutAudio(introAudio,1000).then(()=>startDialogue());
@@ -257,7 +210,7 @@ function startIntro(visited){
     delay+=fadeDuration;
   });
 
-  // Title
+  // Show THRESHOLD title
   setTimeout(()=>{
     introText.textContent='';
     door.style.opacity=0;
@@ -266,7 +219,7 @@ function startIntro(visited){
     door.classList.add('doorFadeAnim');
   },29000);
 
-  // Fade + dialogue
+  // Fade out + move to dialogue
   setTimeout(async ()=>{
     await fadeOutAudio(introAudio,2000);
     intro.style.display='none';
@@ -274,7 +227,7 @@ function startIntro(visited){
   },41000);
 }
 
-/* ===== DIALOGUE ===== */
+// Dialogue
 function startDialogue(){
   dialogue.style.display='flex';
   localStorage.setItem('thresholdVisited','true');
@@ -305,7 +258,7 @@ Your task: uncover what really happened to Clara`;
   },speed);
 }
 
-/* ===== BOOT ===== */
+// Boot
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
