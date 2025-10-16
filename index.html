@@ -35,33 +35,34 @@
     display:flex; align-items:center; justify-content:center;
     background:#000; text-align:center; z-index:10;
   }
-  .introText {
+  .introText, .presenting, .title {
     position:absolute;
     top:50%; left:50%;
     transform:translate(-50%,-50%);
-    color:#fff;
-    font-weight:600;
     text-transform:uppercase;
-    opacity:0;
-    font-size:clamp(18px,3vw,26px);
     text-align:center;
+    opacity:0;
     transition:opacity 2s ease-in-out;
   }
-
+  .introText {
+    color:#fff;
+    font-weight:600;
+    font-size:clamp(18px,3vw,26px);
+  }
+  .presenting {
+    color:#bbb;
+    font-weight:600;
+    font-size:clamp(22px,4vw,40px);
+    letter-spacing:2px;
+  }
   .title {
-    position:absolute;
-    top:50%; left:50%;
-    transform:translate(-50%,-50%);
     color:var(--intro-red);
     font-weight:900;
-    text-transform:uppercase;
     white-space:nowrap;
-    text-align:center;
     line-height:1;
-    opacity:0;
     font-size:clamp(56px,16vw,220px);
-    transition:opacity 2s ease-in-out, text-shadow 1.2s ease-in-out;
     text-shadow:0 0 0 #f00;
+    transition:opacity 2s ease-in-out, text-shadow 1.2s ease-in-out;
   }
 
   .dialogue {
@@ -120,6 +121,7 @@
 
 <div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
+  <div id="presenting" class="presenting">PRESENTING</div>
   <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
 
@@ -142,6 +144,7 @@
 const startScreen=document.getElementById('startScreen');
 const intro=document.getElementById('intro');
 const introText=document.getElementById('introText');
+const presenting=document.getElementById('presenting');
 const door=document.getElementById('doorTitle');
 const bootEl=document.getElementById('boot');
 const progressStage=document.getElementById('progressStage');
@@ -171,46 +174,47 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  // Fade each line in and out cleanly, ensuring the first one actually fades in
+  // Fade each line in and out cleanly
   lines.forEach((text, i) => {
-    const startTime = i * 9000; // each 9 seconds apart
+    const startTime = i * 9000;
     setTimeout(() => {
       introText.textContent = text;
       introText.style.transition = "opacity 2s ease-in-out";
       introText.style.opacity = 1;
-
-      // stay visible ~5s then fade out
-      setTimeout(() => {
-        introText.style.opacity = 0;
-      }, 5000);
-    }, startTime + (i === 0 ? 500 : 0)); // small delay for first line to ensure fade visible
+      setTimeout(() => { introText.style.opacity = 0; }, 5000);
+    }, startTime + (i === 0 ? 500 : 0));
   });
+
+  // 27s: show PRESENTING
+  setTimeout(()=>{
+    introText.textContent="";
+    presenting.style.opacity=1;
+    setTimeout(()=>{ presenting.style.opacity=0; },2000);
+  },27000);
 
   // 29s: fade in THRESHOLD
   setTimeout(()=>{
-    introText.textContent="";
     door.style.opacity=1;
     door.style.textShadow='0 0 25px #f00';
   },29000);
 
-  // 36s: fade out THRESHOLD, then fade out intro.mp3 fully
+  // 36s: fade out THRESHOLD, then fade out intro.mp3 smoothly
   setTimeout(()=>{
     door.style.opacity=0;
+    let fadeSteps=60; // smooth long fade-out
     const fadeOutAudio=setInterval(()=>{
-      if(audio.volume>0.02){
-        audio.volume-=0.02;
+      if(audio.volume>0.01){
+        audio.volume=Math.max(0,audio.volume-1/fadeSteps);
       } else {
         audio.volume=0;
         audio.pause();
         clearInterval(fadeOutAudio);
-
-        // after intro.mp3 is fully gone, start dialogue
         setTimeout(()=>{
           intro.style.display='none';
           startDialogue();
-        },500);
+        },800);
       }
-    },120);
+    },100);
   },36000);
 }
 
