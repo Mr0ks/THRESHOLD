@@ -54,11 +54,11 @@
     80% {opacity:1;}
     100% {opacity:0;}
   }
-
   .fadeInOut {
     animation: fadeInOut 9s ease-in-out forwards;
   }
 
+  /* ---------- THE DOOR ---------- */
   .title {
     position:absolute;
     top:50%; left:50%;
@@ -79,7 +79,6 @@
     70% {opacity:1; text-shadow:0 0 25px #f00;}
     100% {opacity:0; text-shadow:0 0 0 #f00;}
   }
-
   .doorFadeAnim {
     animation: doorFade 10s ease-in-out forwards;
   }
@@ -159,19 +158,24 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  let delay=0;
-  const fadeDuration=9000; // each text fades in/out smoothly
+  const fadeDuration = 9000;
+  let delay = 0;
 
-  lines.forEach((text)=>{
+  // Show each line one by one with fade animation
+  lines.forEach((text, index)=>{
     setTimeout(()=>{
-      introText.textContent=text;
-      introText.classList.add('fadeInOut');
-      setTimeout(()=>introText.classList.remove('fadeInOut'),fadeDuration);
-    },delay);
-    delay+=fadeDuration;
+      introText.textContent = text;
+      // Force reflow to restart animation properly each time
+      void introText.offsetWidth;
+      introText.style.animation = 'none';
+      setTimeout(()=>{
+        introText.style.animation = `fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
+      },10);
+    }, delay);
+    delay += fadeDuration;
   });
 
-  // Fade in THE DOOR at 29 seconds
+  // THE DOOR fades in at 29s
   setTimeout(()=>{
     introText.style.display='none';
     door.classList.add('doorFadeAnim');
