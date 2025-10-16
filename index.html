@@ -6,10 +6,9 @@
 <title>THE DOOR</title>
 <style>
   :root{
-    --bg:#e9edf2; --panel:#fff; --border:#c7ccd1; --border-dk:#b3b8bd;
-    --ink:#222; --muted:#5a6b7a; --accent:#2a6dce;
-    --row-hover:#f3f6f9; --row-select:#cfe8ff;
     --boot-bg:#000; --boot-fg:#fff; --intro-red:#d20000;
+    --bg:#e9edf2; --panel:#fff; --border:#c7ccd1; --border-dk:#b3b8bd;
+    --ink:#222; --muted:#5a6b7a;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;font:13px/1.45 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
@@ -23,148 +22,86 @@
     padding:14px; overflow:auto; line-height:1.2;
   }
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
-  .hidden{display:none !important;}
+  .hidden{display:none!important}
   .progressLine{white-space:pre; font-size:14px}
 
   /* ---------- INTRO ---------- */
-  .intro {display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; text-align:center;}
+  .intro {
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    background:#000; text-align:center;
+  }
   .introSmall {
     color:var(--intro-red);
-    font-weight:900;
-    text-transform:uppercase;
-    opacity:0;
-    font-size: clamp(18px, 3vw, 26px);
-    margin:10px 0;
-    font-family: ui-monospace, monospace;
+    font-weight:900; text-transform:uppercase;
+    opacity:0; margin:10px 0;
+    font-size:clamp(18px,3vw,26px);
+    font-family:ui-monospace,monospace;
+    transition:opacity 2s ease;
   }
   .title {
     color:var(--intro-red);
-    font-weight:900;
-    text-transform:uppercase;
-    text-align:center;
-    line-height:0.9;
-    user-select:none;
-    opacity:0;
-    font-size: clamp(56px, 16vw, 220px);
+    font-weight:900; text-transform:uppercase;
+    text-align:center; line-height:.9;
+    user-select:none; opacity:0;
+    font-size:clamp(56px,16vw,220px);
+    transition:opacity 2s ease;
   }
-  .fadeIn {animation: fadeIn 1.5s ease forwards;}
-  .fadeOut {animation: fadeOut 1.5s ease forwards;}
-  @keyframes fadeIn {from{opacity:0} to{opacity:1}}
-  @keyframes fadeOut {to{opacity:0; visibility:hidden}}
+  .fadeIn{opacity:1!important;}
+  .fadeOut{opacity:0!important;}
 
-  /* ---------- APP (MAIL) ---------- */
-  .app{display:none; grid-template-columns:220px 1fr; height:100%; border-top:1px solid var(--border)}
-  aside{border-right:1px solid var(--border-dk); background:var(--panel); display:flex; flex-direction:column}
-  header{padding:10px; font-weight:600; border-bottom:1px solid var(--border)}
-  .search{padding:8px 10px; border-bottom:1px solid var(--border)}
-  .search input{width:100%; padding:6px 8px; border:1px solid var(--border-dk); border-radius:3px}
-  .folders{flex:1; overflow:auto; padding:6px}
-  .folder{display:flex; align-items:center; gap:6px; padding:6px 8px; border-radius:4px; cursor:pointer}
-  .folder:hover{background:#f6f8fa}
-  .folder.active{background:#eaf2ff}
-  .folder small{color:var(--muted); margin-left:auto}
-  .status{padding:6px 8px; font-size:12px; border-top:1px solid var(--border); background:#f7f9fb; color:#3c4a57}
-
-  main{display:flex; flex-direction:column; background:var(--panel)}
-  .toolbar{display:flex; justify-content:flex-end; gap:6px; padding:6px 10px; border-bottom:1px solid var(--border); background:#f7f9fb}
-  .btn{background:#eaf0f7; border:1px solid var(--border-dk); border-radius:3px; padding:4px 8px; cursor:pointer}
-  .btn:hover{background:#dde7f5}
-  .columns{display:grid; grid-template-columns:180px 1fr 100px; font-weight:600; border-bottom:1px solid var(--border); background:#f5f8fc}
-  .col{padding:6px 8px; border-right:1px solid var(--border)}
-  .col:last-child{border-right:none; text-align:right}
-  .list{overflow:auto; border-bottom:1px solid var(--border); flex:1}
-  .row{display:grid; grid-template-columns:180px 1fr 100px; align-items:center; cursor:pointer}
-  .cell{padding:6px 8px; border-right:1px solid var(--border)}
-  .cell:last-child{border-right:none; text-align:right; color:var(--muted)}
-  .row:hover{background:var(--row-hover)}
-  .row.selected{background:var(--row-select)}
-  .readerHead{padding:10px; font-weight:600; border-bottom:1px solid var(--border); background:#fafcfe}
-  article{flex:1; overflow:auto; padding:12px}
-  article .meta{color:var(--muted); margin-bottom:8px}
+  /* ---------- APP (placeholder) ---------- */
+  .app{display:none; place-items:center; height:100%; background:#fff; font-size:24px; font-weight:600;}
 </style>
 </head>
 <body>
 
-<!-- Boot logs -->
 <div id="boot" class="boot"></div>
-
-<!-- Boot stage 2 -->
-<div id="boot2" class="boot2 hidden">
-  <div class="bootLine">:: Preparing userland…</div>
-</div>
-
-<!-- Boot progress -->
+<div id="boot2" class="boot2 hidden"><div class="bootLine">:: Preparing userland…</div></div>
 <div id="progressStage" class="progressStage hidden">
   <div class="bootLine">:: Starting The Door environment</div>
-  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div>
-  <br>
+  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
   <div id="pLine" class="progressLine">[                    ] 0%</div>
 </div>
 
-<!-- Intro -->
+<!-- INTRO -->
 <div id="intro" class="intro hidden">
-  <div id="introContainer">
+  <div>
     <div class="introSmall" id="line1">This game is protected by an MIT license.</div>
     <div class="introSmall" id="line2">This game is based on Wayward and other movies.</div>
     <div class="introSmall" id="line3">Contains flashing lights, loud sounds, and psychological horror.</div>
-    <div class="introSmall" id="line4">Presenting...</div>
+    <div class="introSmall" id="line4">Loading assets...</div>
+    <div class="introSmall" id="line5">Verifying integrity...</div>
+    <div class="introSmall" id="line6">Initializing environment...</div>
+    <div class="introSmall" id="line7">All systems nominal.</div>
+    <div class="introSmall" id="line8">Presenting...</div>
     <div class="title" id="doorTitle">THE DOOR</div>
   </div>
 </div>
 
-<!-- App -->
-<div class="app" id="app">
-  <aside>
-    <header>Mail</header>
-    <div class="search"><input id="q" type="search" placeholder="Search mail"></div>
-    <div class="folders">
-      <div class="folder active">📥 Inbox <small id="unread">0</small></div>
-    </div>
-    <div class="status" id="status">Ready</div>
-  </aside>
-  <main>
-    <div class="toolbar">
-      <button id="deleteBtn" class="btn">Delete Selected</button>
-    </div>
-    <div class="columns">
-      <div class="col">From</div>
-      <div class="col">Subject</div>
-      <div class="col">Date</div>
-    </div>
-    <div id="list" class="list"></div>
-    <div id="readerHead" class="readerHead">No message selected</div>
-    <article id="reader">
-      <p class="meta">Select a message to preview.</p>
-    </article>
-  </main>
-</div>
+<div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
-const bootEl=document.getElementById('boot');
-const boot2=document.getElementById('boot2');
-const progressStage=document.getElementById('progressStage');
-const intro=document.getElementById('intro');
-const app=document.getElementById('app');
-const doorTitle=document.getElementById('doorTitle');
+const bootEl=document.getElementById('boot'),
+      boot2=document.getElementById('boot2'),
+      progressStage=document.getElementById('progressStage'),
+      intro=document.getElementById('intro'),
+      app=document.getElementById('app'),
+      pLine=document.getElementById('pLine');
 
 const bootLines=[
-  "[    0.000000] Linux version 6.8.1-arch",
-  "[    0.003214] Command line: BOOT_IMAGE=/vmlinuz-linux root=UUID=xxxx rw",
-  "[    1.210034] random: crng init done",
-  ":: Loading kernel modules...",
-  ":: Mounting /dev/sda1 to /mnt/root",
-  ":: Starting udevd...",
-  ":: Enabling network manager",
-  ":: Boot complete — Press ENTER to continue"
+ "[    0.000000] Linux version 6.8.1-arch",
+ "[    0.002314] Booting system modules...",
+ ":: Mounting /dev/sda1 to /mnt/root",
+ ":: Starting udevd...",
+ ":: Network manager started",
+ ":: Boot complete — Press ENTER to continue"
 ];
-
 let i=0;
 function appendBootLine(){
   if(i>=bootLines.length)return;
-  const l=document.createElement('div');
-  l.className='bootLine';l.textContent=bootLines[i++];
-  bootEl.appendChild(l);
-  bootEl.scrollTop=bootEl.scrollHeight;
+  const l=document.createElement('div');l.className='bootLine';l.textContent=bootLines[i++];
+  bootEl.appendChild(l);bootEl.scrollTop=bootEl.scrollHeight;
   if(i<bootLines.length)setTimeout(appendBootLine,100);
 }
 appendBootLine();
@@ -181,7 +118,6 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-const pLine=document.getElementById('pLine');
 function startProgress(){
   let pct=0;const total=20;
   const t=setInterval(()=>{
@@ -193,33 +129,28 @@ function startProgress(){
   },120);
 }
 
-/* ===== INTRO ===== */
+/* ===== INTRO SEQUENCE ===== */
 function startIntro(){
   intro.classList.remove('hidden');
-  const audio = new Audio('sounds/intro.mp3');
-  audio.volume=1.0;
-  audio.play();
+  const audio=new Audio('sounds/intro.mp3');
+  audio.volume=1;audio.play();
 
-  const lines=[
-    document.getElementById('line1'),
-    document.getElementById('line2'),
-    document.getElementById('line3'),
-    document.getElementById('line4')
-  ];
+  const lines=[...document.querySelectorAll('.introSmall')];
+  const door=document.getElementById('doorTitle');
 
-  // Sequential fade for each line
-  let delay=1000;
-  for(let j=0;j<lines.length;j++){
-    setTimeout(()=>lines[j].classList.add('fadeIn'),delay);
-    setTimeout(()=>lines[j].classList.add('fadeOut'),delay+4000);
-    delay+=5000;
-  }
+  let delay=1000; // first fade
+  lines.forEach((line,idx)=>{
+    setTimeout(()=>line.classList.add('fadeIn'),delay);
+    setTimeout(()=>line.classList.add('fadeOut'),delay+3500);
+    delay+=4000;
+  });
 
-  // THE DOOR title sequence
-  setTimeout(()=>doorTitle.classList.add('fadeIn'),29000);
-  setTimeout(()=>doorTitle.classList.add('fadeOut'),36000);
+  // "Presenting..." appears around 25s
+  // "THE DOOR" fade-in/out
+  setTimeout(()=>door.classList.add('fadeIn'),29000);
+  setTimeout(()=>door.classList.add('fadeOut'),36000);
 
-  // Transition to UI
+  // Fade audio + show UI at 40s
   setTimeout(()=>{
     const fade=setInterval(()=>{
       if(audio.volume>0.05){audio.volume-=0.05;}else{clearInterval(fade);audio.pause();}
@@ -230,27 +161,6 @@ function startIntro(){
     },2000);
   },40000);
 }
-
-/* ===== MAIL APP ===== */
-const listEl=document.getElementById('list');
-const reader=document.getElementById('reader');
-const readerHead=document.getElementById('readerHead');
-const unreadEl=document.getElementById('unread');
-const statusEl=document.getElementById('status');
-const q=document.getElementById('q');
-const deleteBtn=document.getElementById('deleteBtn');
-let messages=[
-  {id:'1',from:'HR – Alice',subject:'Welcome to the facility',preview:'Please read carefully…',date:'Oct 16',body:'<h2>Welcome</h2><p>Please complete all tasks assigned to you.</p>',unread:true},
-  {id:'2',from:'Ops – Dana',subject:'Access policy updated',preview:'Your keycard…',date:'Oct 15',body:'<h2>Access Update</h2><p>Your keycard access has been updated.</p>',unread:true},
-  {id:'3',from:'Support',subject:'Ticket #39210 resolved',preview:'We have fixed your issue…',date:'Oct 14',body:'<h2>Ticket Closed</h2><p>Issue resolved. Reply if it reoccurs.</p>',unread:false}
-];
-let selectedId=null;
-function rowTemplate(m){return `<div class="row ${m.id===selectedId?'selected':''}" data-id="${m.id}"><div class="cell">${m.from}</div><div class="cell">${m.subject}</div><div class="cell">${m.date}</div></div>`;}
-function renderList(f=''){const qf=f.trim().toLowerCase();const filtered=messages.filter(m=>(m.from+' '+m.subject+' '+m.preview).toLowerCase().includes(qf));listEl.innerHTML=filtered.map(rowTemplate).join('');unreadEl.textContent=messages.filter(m=>m.unread).length;statusEl.textContent=`${filtered.length} message${filtered.length===1?'':'s'}`;listEl.querySelectorAll('.row').forEach(r=>r.onclick=()=>openMessage(r.dataset.id));}
-function openMessage(id){const m=messages.find(x=>x.id===id);if(!m)return;selectedId=id;m.unread=false;readerHead.textContent=`${m.from} — ${m.subject}`;reader.innerHTML=`<p class="meta">${m.date}</p>`+m.body;renderList(q.value);}
-deleteBtn.onclick=()=>{if(!selectedId){alert('No email selected');return;}messages=messages.filter(m=>m.id!==selectedId);selectedId=null;readerHead.textContent='No message selected';reader.innerHTML='<p class="meta">Select a message to preview.</p>';renderList(q.value);};
-q.oninput=e=>renderList(e.target.value);
-renderList();
 </script>
 </body>
 </html>
