@@ -101,6 +101,20 @@
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .progressLine{white-space:pre; font-size:14px}
 
+  .pressEnter {
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(20px,3vw,30px);
+    color:#fff;
+    background:#000;
+    opacity:0;
+    transition:opacity 2s ease-in-out;
+    text-align:center;
+  }
+
   .app{
     display:none;
     place-items:center;
@@ -125,6 +139,8 @@
   <div id="dialogueText" class="dialogueText"></div>
 </div>
 
+<div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
+
 <div id="boot" class="boot"></div>
 <div id="progressStage" class="progressStage">
   <div class="bootLine">:: Starting THRESHOLD environment</div>
@@ -145,6 +161,7 @@ const app=document.getElementById('app');
 const pLine=document.getElementById('pLine');
 const dialogue=document.getElementById('dialogue');
 const dialogueText=document.getElementById('dialogueText');
+const pressEnter=document.getElementById('pressEnter');
 
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
@@ -184,7 +201,7 @@ function startIntro(){
     door.style.textShadow='0 0 25px #f00';
   },29000);
 
-  // 36s: fade out THRESHOLD and fade out intro.mp3
+  // 36s: fade out THRESHOLD + fade out intro.mp3 completely before dialogue
   setTimeout(()=>{
     door.style.opacity=0;
     const fadeOutAudio = setInterval(()=>{
@@ -198,7 +215,7 @@ function startIntro(){
     },100);
   },36000);
 
-  // 39s: start dialogue
+  // 39s: start dialogue AFTER intro.mp3 is fully gone
   setTimeout(()=>{
     intro.style.display='none';
     startDialogue();
@@ -209,8 +226,17 @@ function startIntro(){
 function startDialogue(){
   dialogue.style.display='flex';
   const storyAudio=new Audio('sounds/introtalk.mp3');
-  storyAudio.volume=1; 
+  storyAudio.volume=0;
   storyAudio.play();
+
+  // Fade in introtalk.mp3 smoothly
+  const fadeInTalk = setInterval(()=>{
+    if(storyAudio.volume < 1){
+      storyAudio.volume = Math.min(1, storyAudio.volume + 0.02);
+    } else {
+      clearInterval(fadeInTalk);
+    }
+  },120);
 
   const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
@@ -230,10 +256,9 @@ Your task: uncover what really happened to Clara`;
     }
   },speed);
 
-  // 43s after start of dialogue: fade out dialogue and go to boot
+  // 43s later: fade out dialogue, fade in "Press ENTER"
   setTimeout(()=>{
     dialogueText.style.opacity=0;
-    storyAudio.volume=1;
     const fadeTalk = setInterval(()=>{
       if(storyAudio.volume > 0.02){
         storyAudio.volume -= 0.02;
@@ -243,14 +268,32 @@ Your task: uncover what really happened to Clara`;
         clearInterval(fadeTalk);
       }
     },150);
+
     setTimeout(()=>{
       dialogue.style.display='none';
-      startBoot();
+      showPressEnter();
     },2000);
   },43000);
 }
 
-/* ===== BOOT AFTER DIALOGUE ===== */
+/* ===== PRESS ENTER ===== */
+function showPressEnter(){
+  pressEnter.style.opacity=1;
+  pressEnter.style.display='flex';
+
+  document.addEventListener('keydown',function enterHandler(e){
+    if(e.key === 'Enter'){
+      document.removeEventListener('keydown', enterHandler);
+      pressEnter.style.opacity=0;
+      setTimeout(()=>{
+        pressEnter.style.display='none';
+        startBoot(); // straight to mail UI flow
+      },2000);
+    }
+  });
+}
+
+/* ===== BOOT AFTER PRESS ENTER ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
