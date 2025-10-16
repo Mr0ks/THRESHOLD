@@ -171,9 +171,9 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  // display each for 9s with 1s buffer to avoid overlap
+  // Display each intro line for 9s with 1s gap — prevents overlap
   let delay=0;
-  lines.forEach((text,i)=>{
+  lines.forEach(text=>{
     setTimeout(()=>{
       introText.style.opacity=1;
       introText.textContent=text;
@@ -189,7 +189,7 @@ function startIntro(){
     door.style.textShadow='0 0 25px #f00';
   },29000);
 
-  // 36s: fade out THRESHOLD and audio
+  // 36s: fade out THRESHOLD and intro.mp3 completely
   setTimeout(()=>{
     door.style.opacity=0;
     const fadeOutAudio=setInterval(()=>{
@@ -199,25 +199,25 @@ function startIntro(){
         audio.volume=0;
         audio.pause();
         clearInterval(fadeOutAudio);
+
+        // Once intro.mp3 is FULLY faded out, continue to dialogue
+        setTimeout(()=>{
+          intro.style.display='none';
+          startDialogue();
+        },500);
       }
     },120);
   },36000);
-
-  // 39s: start dialogue after silence
-  setTimeout(()=>{
-    intro.style.display='none';
-    startDialogue();
-  },39000);
 }
 
-/* ===== DIALOGUE ===== */
+/* ===== DIALOGUE SEQUENCE ===== */
 function startDialogue(){
   dialogue.style.display='flex';
   const storyAudio=new Audio('sounds/introtalk.mp3');
   storyAudio.volume=0;
   storyAudio.play();
 
-  // smooth long fade-in (6s)
+  // fade in slowly over ~6 seconds
   const fadeIn=setInterval(()=>{
     if(storyAudio.volume<1){
       storyAudio.volume=Math.min(1,storyAudio.volume+0.01);
@@ -240,7 +240,7 @@ Your task: uncover what really happened to Clara`;
     } else clearInterval(typer);
   },speed);
 
-  // after 43s, fade out dialogue and audio
+  // After 43s, fade out dialogue and sound
   setTimeout(()=>{
     dialogueText.style.opacity=0;
     const fadeTalk=setInterval(()=>{
@@ -276,7 +276,7 @@ function showPressEnter(){
   });
 }
 
-/* ===== BOOT ===== */
+/* ===== BOOT SEQUENCE ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
