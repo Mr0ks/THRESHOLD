@@ -46,8 +46,19 @@
     opacity:0;
     font-size:clamp(18px,3vw,26px);
     text-align:center;
-    transition:opacity 2s ease;
   }
+
+  @keyframes fadeInOut {
+    0% {opacity:0;}
+    20% {opacity:1;}
+    80% {opacity:1;}
+    100% {opacity:0;}
+  }
+
+  .fadeInOut {
+    animation: fadeInOut 9s ease-in-out forwards;
+  }
+
   .title {
     position:absolute;
     top:50%; left:50%;
@@ -60,18 +71,18 @@
     line-height:1;
     opacity:0;
     font-size:clamp(56px,16vw,220px);
-    transition:opacity 2s ease;
   }
 
-  /* subtle red glow pulse for THE DOOR */
-  @keyframes pulse {
-    0%,100% { text-shadow:0 0 10px #800; }
-    50% { text-shadow:0 0 25px #f00; }
+  @keyframes doorFade {
+    0% {opacity:0; text-shadow:0 0 0 #f00;}
+    30% {opacity:1; text-shadow:0 0 25px #f00;}
+    70% {opacity:1; text-shadow:0 0 25px #f00;}
+    100% {opacity:0; text-shadow:0 0 0 #f00;}
   }
 
-  .fadeIn{opacity:1!important;}
-  .fadeOutSmooth{animation:fadeOutSmooth 2s ease forwards;}
-  @keyframes fadeOutSmooth{to{opacity:0;}}
+  .doorFadeAnim {
+    animation: doorFade 10s ease-in-out forwards;
+  }
 
   /* ---------- BOOT ---------- */
   .boot, .progressStage {
@@ -149,30 +160,22 @@ function startIntro(){
   ];
 
   let delay=0;
-  const fadeDuration=9000; // extended for slower pacing
+  const fadeDuration=9000; // each text fades in/out smoothly
 
   lines.forEach((text)=>{
     setTimeout(()=>{
       introText.textContent=text;
-      introText.classList.add('fadeIn');
+      introText.classList.add('fadeInOut');
+      setTimeout(()=>introText.classList.remove('fadeInOut'),fadeDuration);
     },delay);
-    setTimeout(()=>{
-      introText.classList.remove('fadeIn');
-      introText.classList.add('fadeOutSmooth');
-      setTimeout(()=>introText.classList.remove('fadeOutSmooth'),2000);
-    },delay+fadeDuration-2000);
     delay+=fadeDuration;
   });
 
   // Fade in THE DOOR at 29 seconds
   setTimeout(()=>{
     introText.style.display='none';
-    door.classList.add('fadeIn');
-    door.style.animation="pulse 3s infinite ease-in-out";
+    door.classList.add('doorFadeAnim');
   },29000);
-
-  // THE DOOR fades out after a few seconds
-  setTimeout(()=>door.classList.add('fadeOutSmooth'),38000);
 
   // End of intro → fade music → boot
   setTimeout(()=>{
