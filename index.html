@@ -13,23 +13,12 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;font:13px/1.45 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
 
-  /* ---------- BOOT ---------- */
-  .boot, .boot2, .progressStage, .intro {
-    position:fixed; inset:0; background:var(--boot-bg); color:var(--boot-fg);
-  }
-  .boot, .boot2, .progressStage {
-    font-family: ui-monospace, Menlo, Consolas, monospace;
-    padding:14px; overflow:auto; line-height:1.2;
-  }
-  .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
-  .hidden{display:none!important}
-  .progressLine{white-space:pre; font-size:14px}
-
   /* ---------- INTRO ---------- */
   .intro {
+    position:fixed; inset:0;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    background:#000; text-align:center;
+    background:#000; text-align:center; z-index:10;
   }
   .introSmall {
     color:var(--intro-red);
@@ -50,22 +39,25 @@
   .fadeIn{opacity:1!important;}
   .fadeOut{opacity:0!important;}
 
-  /* ---------- APP (placeholder) ---------- */
+  /* ---------- BOOT ---------- */
+  .boot, .boot2, .progressStage {
+    position:fixed; inset:0;
+    background:var(--boot-bg); color:var(--boot-fg);
+    font-family:ui-monospace, Menlo, Consolas, monospace;
+    padding:14px; overflow:auto; line-height:1.2;
+    display:none;
+  }
+  .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
+  .progressLine{white-space:pre; font-size:14px}
+
+  /* ---------- APP ---------- */
   .app{display:none; place-items:center; height:100%; background:#fff; font-size:24px; font-weight:600;}
 </style>
 </head>
 <body>
 
-<div id="boot" class="boot"></div>
-<div id="boot2" class="boot2 hidden"><div class="bootLine">:: Preparing userland…</div></div>
-<div id="progressStage" class="progressStage hidden">
-  <div class="bootLine">:: Starting The Door environment</div>
-  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
-  <div id="pLine" class="progressLine">[                    ] 0%</div>
-</div>
-
 <!-- INTRO -->
-<div id="intro" class="intro hidden">
+<div id="intro" class="intro">
   <div>
     <div class="introSmall" id="line1">This game is protected by an MIT license.</div>
     <div class="introSmall" id="line2">This game is based on Wayward and other movies.</div>
@@ -79,15 +71,56 @@
   </div>
 </div>
 
+<!-- Boot -->
+<div id="boot" class="boot"></div>
+<div id="boot2" class="boot2"><div class="bootLine">:: Preparing userland…</div></div>
+<div id="progressStage" class="progressStage">
+  <div class="bootLine">:: Starting The Door environment</div>
+  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
+  <div id="pLine" class="progressLine">[                    ] 0%</div>
+</div>
+
+<!-- App -->
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
-const bootEl=document.getElementById('boot'),
-      boot2=document.getElementById('boot2'),
-      progressStage=document.getElementById('progressStage'),
-      intro=document.getElementById('intro'),
-      app=document.getElementById('app'),
-      pLine=document.getElementById('pLine');
+/* ===== INTRO FIRST ===== */
+function startIntro(){
+  const intro=document.getElementById('intro');
+  const door=document.getElementById('doorTitle');
+  const audio=new Audio('sounds/intro.mp3');
+  audio.volume=1; audio.play();
+
+  const lines=[...document.querySelectorAll('.introSmall')];
+  let delay=1000;
+  lines.forEach((line)=>{
+    setTimeout(()=>line.classList.add('fadeIn'),delay);
+    setTimeout(()=>line.classList.add('fadeOut'),delay+3500);
+    delay+=4000;
+  });
+
+  setTimeout(()=>door.classList.add('fadeIn'),29000);
+  setTimeout(()=>door.classList.add('fadeOut'),36000);
+
+  // End of intro → fade music → boot
+  setTimeout(()=>{
+    const fade=setInterval(()=>{
+      if(audio.volume>0.05){audio.volume-=0.05;}else{clearInterval(fade);audio.pause();}
+    },200);
+    setTimeout(()=>{
+      intro.style.display='none';
+      startBoot();
+    },2000);
+  },40000);
+}
+startIntro();
+
+/* ===== BOOT AFTER INTRO ===== */
+const bootEl=document.getElementById('boot');
+const boot2=document.getElementById('boot2');
+const progressStage=document.getElementById('progressStage');
+const app=document.getElementById('app');
+const pLine=document.getElementById('pLine');
 
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
@@ -97,26 +130,30 @@ const bootLines=[
  ":: Network manager started",
  ":: Boot complete — Press ENTER to continue"
 ];
-let i=0;
-function appendBootLine(){
-  if(i>=bootLines.length)return;
-  const l=document.createElement('div');l.className='bootLine';l.textContent=bootLines[i++];
-  bootEl.appendChild(l);bootEl.scrollTop=bootEl.scrollHeight;
-  if(i<bootLines.length)setTimeout(appendBootLine,100);
-}
-appendBootLine();
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&!bootEl.classList.contains('hidden')){
-    bootEl.classList.add('hidden');
-    boot2.classList.remove('hidden');
-    setTimeout(()=>{
-      boot2.classList.add('hidden');
-      progressStage.classList.remove('hidden');
-      startProgress();
-    },800);
+function startBoot(){
+  bootEl.style.display='block';
+  let i=0;
+  function appendBootLine(){
+    if(i>=bootLines.length)return;
+    const l=document.createElement('div');l.className='bootLine';l.textContent=bootLines[i++];
+    bootEl.appendChild(l);bootEl.scrollTop=bootEl.scrollHeight;
+    if(i<bootLines.length)setTimeout(appendBootLine,100);
   }
-});
+  appendBootLine();
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&bootEl.style.display==='block'){
+      bootEl.style.display='none';
+      boot2.style.display='block';
+      setTimeout(()=>{
+        boot2.style.display='none';
+        progressStage.style.display='block';
+        startProgress();
+      },800);
+    }
+  });
+}
 
 function startProgress(){
   let pct=0;const total=20;
@@ -125,41 +162,8 @@ function startProgress(){
     const filled=Math.round((pct/100)*total);
     const bar="["+ "#".repeat(filled).padEnd(total," ")+"] "+String(pct).padStart(2," ")+"%";
     pLine.textContent=bar;
-    if(pct>=100){clearInterval(t);setTimeout(()=>{progressStage.classList.add('hidden');startIntro();},300);}
+    if(pct>=100){clearInterval(t);setTimeout(()=>{progressStage.style.display='none';app.style.display='grid';},300);}
   },120);
-}
-
-/* ===== INTRO SEQUENCE ===== */
-function startIntro(){
-  intro.classList.remove('hidden');
-  const audio=new Audio('sounds/intro.mp3');
-  audio.volume=1;audio.play();
-
-  const lines=[...document.querySelectorAll('.introSmall')];
-  const door=document.getElementById('doorTitle');
-
-  let delay=1000; // first fade
-  lines.forEach((line,idx)=>{
-    setTimeout(()=>line.classList.add('fadeIn'),delay);
-    setTimeout(()=>line.classList.add('fadeOut'),delay+3500);
-    delay+=4000;
-  });
-
-  // "Presenting..." appears around 25s
-  // "THE DOOR" fade-in/out
-  setTimeout(()=>door.classList.add('fadeIn'),29000);
-  setTimeout(()=>door.classList.add('fadeOut'),36000);
-
-  // Fade audio + show UI at 40s
-  setTimeout(()=>{
-    const fade=setInterval(()=>{
-      if(audio.volume>0.05){audio.volume-=0.05;}else{clearInterval(fade);audio.pause();}
-    },200);
-    setTimeout(()=>{
-      intro.classList.add('hidden');
-      app.style.display='grid';
-    },2000);
-  },40000);
 }
 </script>
 </body>
