@@ -70,16 +70,8 @@
     line-height:1;
     opacity:0;
     font-size:clamp(56px,16vw,220px);
-  }
-
-  @keyframes doorFade {
-    0% {opacity:0; text-shadow:0 0 0 #f00;}
-    30% {opacity:1; text-shadow:0 0 25px #f00;}
-    70% {opacity:1; text-shadow:0 0 25px #f00;}
-    100% {opacity:0; text-shadow:0 0 0 #f00;}
-  }
-  .doorFadeAnim {
-    animation: doorFade 10s ease-in-out forwards;
+    transition:opacity 2s ease-in-out;
+    text-shadow:0 0 0 #f00;
   }
 
   .dialogue {
@@ -165,7 +157,8 @@ startScreen.addEventListener('click',()=>{
 function startIntro(){
   intro.style.display='flex';
   const audio=new Audio('sounds/intro.mp3');
-  audio.volume=1; audio.play();
+  audio.volume=1; 
+  audio.play();
 
   const lines=[
     "This game is protected by an MIT license.",
@@ -175,7 +168,6 @@ function startIntro(){
 
   const fadeDuration=9000;
   let delay=0;
-
   lines.forEach(text=>{
     setTimeout(()=>{
       introText.textContent=text;
@@ -186,28 +178,31 @@ function startIntro(){
     delay+=fadeDuration;
   });
 
+  // 29s: fade in THRESHOLD
   setTimeout(()=>{
-    introText.textContent='';
-    door.classList.remove('doorFadeAnim');
-    void door.offsetWidth;
-    door.classList.add('doorFadeAnim');
+    door.style.opacity=1;
+    door.style.textShadow='0 0 25px #f00';
+  },29000);
 
-    // Fade out intro.mp3 during title
-    const fadeOutInterval = setInterval(()=>{
+  // 36s: fade out THRESHOLD and fade out intro.mp3
+  setTimeout(()=>{
+    door.style.opacity=0;
+    const fadeOutAudio = setInterval(()=>{
       if(audio.volume > 0.02){
         audio.volume -= 0.02;
       } else {
         audio.volume = 0;
-        clearInterval(fadeOutInterval);
         audio.pause();
+        clearInterval(fadeOutAudio);
       }
-    },150);
-  },29000);
+    },100);
+  },36000);
 
+  // 39s: start dialogue
   setTimeout(()=>{
     intro.style.display='none';
     startDialogue();
-  },41000);
+  },39000);
 }
 
 /* ===== DIALOGUE SEQUENCE ===== */
@@ -235,9 +230,19 @@ Your task: uncover what really happened to Clara`;
     }
   },speed);
 
-  // Fade out after 43 seconds and go to boot
+  // 43s after start of dialogue: fade out dialogue and go to boot
   setTimeout(()=>{
     dialogueText.style.opacity=0;
+    storyAudio.volume=1;
+    const fadeTalk = setInterval(()=>{
+      if(storyAudio.volume > 0.02){
+        storyAudio.volume -= 0.02;
+      } else {
+        storyAudio.volume = 0;
+        storyAudio.pause();
+        clearInterval(fadeTalk);
+      }
+    },150);
     setTimeout(()=>{
       dialogue.style.display='none';
       startBoot();
