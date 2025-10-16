@@ -45,7 +45,10 @@
   }
 
   @keyframes fadeInOut {
-    0% {opacity:0;} 20% {opacity:1;} 80% {opacity:1;} 100% {opacity:0;}
+    0% {opacity:0;} 
+    20% {opacity:1;} 
+    80% {opacity:1;} 
+    100% {opacity:0;}
   }
   .fadeInOut {animation: fadeInOut 9s ease-in-out forwards;}
 
@@ -142,6 +145,11 @@ let introAudio;
 let skipActive=false;
 let introSkipped=false;
 
+// PRELOAD intro audio
+introAudio = new Audio('sounds/intro.mp3');
+introAudio.preload = 'auto';
+introAudio.load();
+
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
   setTimeout(()=>{
@@ -152,11 +160,11 @@ startScreen.addEventListener('click',()=>{
 
 function startIntro(){
   intro.style.display='flex';
-  introAudio=new Audio('sounds/intro.mp3');
-  introAudio.volume=1; 
+  introAudio.currentTime = 0;
+  introAudio.volume = 1;
   introAudio.play();
 
-  // Skip text
+  // Skip prompt
   const skipMsg=document.createElement('div');
   skipMsg.textContent='Press [S] to skip intro';
   Object.assign(skipMsg.style,{
@@ -178,13 +186,15 @@ function startIntro(){
   lines.forEach(text=>{
     setTimeout(()=>{
       if(introSkipped)return;
+      introText.style.animation='none';
+      void introText.offsetWidth;
       introText.textContent=text;
       introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
     },delay);
     delay+=fadeDuration;
   });
 
-  // Fade out intro music before entering screen
+  // Fade out intro music near end
   setTimeout(()=>{
     if(introSkipped)return;
     let fade=setInterval(()=>{
@@ -193,11 +203,13 @@ function startIntro(){
     },200);
   },27000);
 
+  // Title fade
   setTimeout(()=>{
     if(introSkipped)return;
     door.classList.add('doorFadeAnim');
   },29000);
 
+  // Move to "Entering Clara's Laptop"
   setTimeout(()=>{
     if(introSkipped)return;
     intro.style.display='none';
@@ -234,7 +246,7 @@ function showEnteringText(){
     duration:7000,easing:'ease-in-out',fill:'forwards'
   });
 
-  // Immediately fade out intro music if still playing
+  // Fade out intro sound immediately
   if(introAudio && !introAudio.paused){
     let fadeOut=setInterval(()=>{
       if(introAudio.volume>0.05){introAudio.volume-=0.05;}
@@ -242,7 +254,7 @@ function showEnteringText(){
     },100);
   }
 
-  // Wait 7 seconds, then start dialogue
+  // Wait 7 seconds then fade into dialogue
   setTimeout(()=>{
     entering.style.display='none';
     startDialogue();
@@ -253,10 +265,12 @@ function showEnteringText(){
 function startDialogue(){
   dialogue.style.display='flex';
   const storyAudio=new Audio('sounds/introtalk.mp3');
+  storyAudio.preload='auto';
+  storyAudio.load();
   storyAudio.volume=0;
   storyAudio.play();
 
-  // Fade up volume smoothly
+  // Fade in volume smoothly
   let fadeIn=setInterval(()=>{
     if(storyAudio.volume<1){storyAudio.volume+=0.05;}
     else{clearInterval(fadeIn);}
