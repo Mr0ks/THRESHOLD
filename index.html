@@ -1,171 +1,166 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>THRESHOLD</title>
-<link rel="icon" type="image/jpeg" href="door.jpg" />
-<style>
-  :root {
-    --boot-bg:#000;
-    --boot-fg:#fff;
-    --intro-red:#d20000;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#000;color:#fff;font-family:ui-monospace,monospace;overflow:hidden}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>THRESHOLD</title>
+  <link rel="icon" type="image/jpeg" href="door.jpg" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html {
+      width: 100%; height: 100%;
+      background: #000; color: #fff; overflow: hidden;
+      font-family: 'Courier New', monospace;
+    }
 
-  .startScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;cursor:pointer;font-size:clamp(20px,3vw,28px);transition:opacity 1.5s ease;z-index:20}
-  .fadeOut{opacity:0!important}
+    /* Start Screen */
+    #startScreen {
+      position: fixed; inset: 0;
+      background: #000; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.5rem; cursor: pointer;
+      transition: opacity 1.5s ease;
+      z-index: 10;
+    }
+    #startScreen.fadeOut { opacity: 0; pointer-events: none; }
 
-  .intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;text-align:center;z-index:10}
-  .introText{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:600;text-transform:uppercase;opacity:0;font-size:clamp(18px,3vw,26px);text-align:center}
+    /* Intro */
+    #intro {
+      position: fixed; inset: 0;
+      background: #000; display: none;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      z-index: 5;
+    }
+    .introText {
+      opacity: 0;
+      font-size: 1.5rem;
+      color: #fff;
+      animation: none;
+    }
+    #threshold {
+      opacity: 0;
+      color: #b30000;
+      font-size: 6rem;
+      font-weight: bold;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      text-align: center;
+      transition: transform 5s ease-in, opacity 2s ease;
+    }
+    .fadeInOut {
+      animation: fadeInOut 8s ease-in-out forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes zoomIn {
+      0% { transform: scale(1); }
+      100% { transform: scale(40); }
+    }
+    @keyframes fadeToWhite {
+      0% { background: #b30000; }
+      100% { background: #f5f5f5; }
+    }
 
-  @keyframes fadeInOut{0%{opacity:0}20%{opacity:1}80%{opacity:1}100%{opacity:0}}
-  .fadeInOut{animation:fadeInOut 9s ease-in-out forwards}
-
-  .title{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);color:var(--intro-red);font-weight:900;text-transform:uppercase;white-space:nowrap;text-align:center;opacity:0;font-size:clamp(56px,16vw,220px)}
-  @keyframes zoomToS{
-    0%{opacity:0;transform:translate(-50%,-50%) scale(1);background:#000}
-    20%{opacity:1;transform:translate(-50%,-50%) scale(1)}
-    70%{opacity:1;transform:translate(-50%,-50%) scale(12);color:#fff}
-    100%{opacity:0;background:#fff;transform:translate(-50%,-50%) scale(12)}
-  }
-  .zoomToS{animation:zoomToS 10s ease-in-out forwards}
-
-  .boot,.progressStage{position:fixed;inset:0;background:var(--boot-bg);color:var(--boot-fg);padding:14px;overflow:auto;line-height:1.2;display:none}
-  .bootLine{white-space:pre;font-size:14px;margin-bottom:2px}
-  .progressLine{white-space:pre;font-size:14px}
-  .app{display:none;place-items:center;height:100%;background:#fff;font-size:24px;font-weight:600;color:#111}
-</style>
+    /* Mail UI (placeholder) */
+    #mailUI {
+      position: fixed; inset: 0;
+      display: none;
+      background: #f5f5f5;
+      color: #000;
+      font-size: 1.2rem;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
 </head>
 <body>
-<div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
-<div id="intro" class="intro" style="display:none;">
-  <div id="introText" class="introText"></div>
-  <div class="title" id="doorTitle">THRESHOLD</div>
-</div>
+  <div id="startScreen">Click anywhere to begin</div>
 
-<div id="boot" class="boot"></div>
-<div id="progressStage" class="progressStage">
-  <div class="bootLine">:: Starting THRESHOLD environment</div>
-  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
-  <div id="pLine" class="progressLine">[                    ] 0%</div>
-</div>
+  <div id="intro">
+    <div id="introText" class="introText"></div>
+    <div id="threshold">THRESHOLD</div>
+  </div>
 
-<div id="app" class="app">[ Mail UI Loaded ]</div>
+  <div id="mailUI">📧 Welcome to the Mail Interface</div>
 
-<script>
-const startScreen=document.getElementById('startScreen');
-const intro=document.getElementById('intro');
-const introText=document.getElementById('introText');
-const door=document.getElementById('doorTitle');
-const bootEl=document.getElementById('boot');
-const progressStage=document.getElementById('progressStage');
-const app=document.getElementById('app');
-const pLine=document.getElementById('pLine');
+  <script>
+    const startScreen = document.getElementById("startScreen");
+    const intro = document.getElementById("intro");
+    const introText = document.getElementById("introText");
+    const threshold = document.getElementById("threshold");
+    const mailUI = document.getElementById("mailUI");
 
-startScreen.addEventListener('click',()=>{
-  startScreen.classList.add('fadeOut');
-  setTimeout(()=>{
-    startScreen.style.display='none';
-    startIntro();
-  },1500);
-});
+    startScreen.addEventListener("click", () => {
+      startScreen.classList.add("fadeOut");
+      setTimeout(() => {
+        startScreen.style.display = "none";
+        startIntro();
+      }, 1500);
+    });
 
-function startIntro(){
-  intro.style.display='flex';
-  const audio=new Audio('sounds/intro.mp3');
-  audio.volume=1; audio.play();
+    function startIntro() {
+      intro.style.display = "flex";
+      const audio = new Audio("sounds/intro.mp3");
+      audio.volume = 1;
+      audio.play();
 
-  const lines=[
-    "This game is protected by an MIT license.",
-    "This game is based on Wayward and other movies.",
-    "Contains flashing lights, loud sounds, and psychological horror.",
-    "Presenting..."
-  ];
-  const fadeDuration=9000;
-  let delay=0;
-  lines.forEach(text=>{
-    setTimeout(()=>{
-      introText.textContent=text;
-      introText.style.animation='none';
-      void introText.offsetWidth;
-      introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
-    },delay);
-    delay+=fadeDuration;
-  });
+      const lines = [
+        "This game is protected by an MIT license.",
+        "This game is based on Wayward and other movies.",
+        "Contains flashing lights, loud sounds, and psychological horror.",
+        "Presenting..."
+      ];
 
-  // Zoom into S at 29s
-  setTimeout(()=>{
-    introText.textContent='';
-    door.style.opacity=0;
-    door.classList.remove('zoomToS');
-    void door.offsetWidth;
-    door.classList.add('zoomToS');
-  },29000);
+      let delay = 0;
+      const fadeDuration = 8000;
 
-  // Fade to mail UI
-  setTimeout(()=>{
-    const fade=setInterval(()=>{
-      if(audio.volume>0.05){audio.volume-=0.05;}
-      else{clearInterval(fade);audio.pause();}
-    },200);
-    setTimeout(()=>{
-      intro.style.display='none';
-      startBoot();
-    },3000);
-  },40000);
-}
+      lines.forEach((text) => {
+        setTimeout(() => {
+          introText.textContent = text;
+          introText.classList.remove("fadeInOut");
+          void introText.offsetWidth;
+          introText.classList.add("fadeInOut");
+        }, delay);
+        delay += fadeDuration;
+      });
 
-const bootLines=[
- "[    0.000000] Linux version 6.8.1-arch",
- "[    0.002314] Booting system modules...",
- ":: Mounting /dev/sda1 to /mnt/root",
- ":: Starting udevd...",
- ":: Network manager started",
- ":: Boot complete — Press ENTER to continue"
-];
+      // THRESHOLD appears
+      setTimeout(() => {
+        introText.textContent = "";
+        threshold.style.opacity = 1;
+      }, 29000);
 
-function startBoot(){
-  bootEl.style.display='block';
-  let i=0;
-  function appendBootLine(){
-    if(i>=bootLines.length)return;
-    const l=document.createElement('div');
-    l.className='bootLine';
-    l.textContent=bootLines[i++];
-    bootEl.appendChild(l);
-    bootEl.scrollTop=bootEl.scrollHeight;
-    if(i<bootLines.length)setTimeout(appendBootLine,100);
-  }
-  appendBootLine();
+      // Zoom into "S" (red fill)
+      setTimeout(() => {
+        threshold.style.animation = "zoomIn 5s ease forwards";
+      }, 32000);
 
-  document.addEventListener('keydown',e=>{
-    if(e.key==='Enter'&&bootEl.style.display==='block'){
-      bootEl.style.display='none';
-      progressStage.style.display='block';
-      startProgress();
+      // Fade to white background
+      setTimeout(() => {
+        intro.style.animation = "fadeToWhite 4s forwards";
+      }, 37000);
+
+      // Fade out audio slightly after fade starts
+      setTimeout(() => {
+        const fadeAudio = setInterval(() => {
+          if (audio.volume > 0.05) audio.volume -= 0.05;
+          else { clearInterval(fadeAudio); audio.pause(); }
+        }, 200);
+      }, 39000);
+
+      // Show Mail UI
+      setTimeout(() => {
+        intro.style.display = "none";
+        mailUI.style.display = "flex";
+      }, 44000);
     }
-  });
-}
-
-function startProgress(){
-  let pct=0;const total=20;
-  const t=setInterval(()=>{
-    pct=Math.min(100,pct+Math.floor(Math.random()*8)+5);
-    const filled=Math.round((pct/100)*total);
-    const bar="["+ "#".repeat(filled).padEnd(total," ")+"] "+String(pct).padStart(2," ")+"%";
-    pLine.textContent=bar;
-    if(pct>=100){
-      clearInterval(t);
-      setTimeout(()=>{
-        progressStage.style.display='none';
-        app.style.display='grid';
-      },300);
-    }
-  },120);
-}
-</script>
+  </script>
 </body>
 </html>
