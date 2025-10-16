@@ -85,6 +85,22 @@
     animation: doorFade 10s ease-in-out forwards;
   }
 
+  /* ---------- DIALOGUE ---------- */
+  .dialogue {
+    position:fixed; inset:0;
+    display:none; align-items:center; justify-content:center;
+    background:#000;
+    padding:60px;
+    text-align:center;
+  }
+  .dialogueText {
+    max-width:900px;
+    font-size:clamp(18px,2.5vw,22px);
+    color:#fff;
+    line-height:1.5;
+    white-space:pre-line;
+  }
+
   /* ---------- BOOT ---------- */
   .boot, .progressStage {
     position:fixed; inset:0;
@@ -119,6 +135,11 @@
   <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
 
+<!-- Dialogue -->
+<div id="dialogue" class="dialogue">
+  <div id="dialogueText" class="dialogueText"></div>
+</div>
+
 <!-- Boot -->
 <div id="boot" class="boot"></div>
 <div id="progressStage" class="progressStage">
@@ -139,6 +160,8 @@ const bootEl=document.getElementById('boot');
 const progressStage=document.getElementById('progressStage');
 const app=document.getElementById('app');
 const pLine=document.getElementById('pLine');
+const dialogue=document.getElementById('dialogue');
+const dialogueText=document.getElementById('dialogueText');
 
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
@@ -163,20 +186,17 @@ function startIntro(){
   const fadeDuration=9000;
   let delay=0;
 
-  // sequential white text fading
   lines.forEach(text=>{
     setTimeout(()=>{
       introText.textContent=text;
       introText.style.opacity=0;
-      introText.style.display='block';
       introText.style.animation='none';
-      void introText.offsetWidth; // force reflow
+      void introText.offsetWidth; 
       introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
     },delay);
     delay+=fadeDuration;
   });
 
-  // Show THRESHOLD at 29 seconds
   setTimeout(()=>{
     introText.textContent='';
     door.style.opacity=0;
@@ -185,20 +205,44 @@ function startIntro(){
     door.classList.add('doorFadeAnim');
   },29000);
 
-  // Fade out sound and start boot
+  // After title fade, show dialogue
   setTimeout(()=>{
-    const fade=setInterval(()=>{
-      if(audio.volume>0.05){audio.volume-=0.05;}
-      else{clearInterval(fade);audio.pause();}
-    },200);
-    setTimeout(()=>{
-      intro.style.display='none';
-      startBoot();
-    },2000);
-  },40000);
+    intro.style.display='none';
+    startDialogue();
+  },41000);
 }
 
-/* ===== BOOT AFTER INTRO ===== */
+/* ===== DIALOGUE SEQUENCE ===== */
+function startDialogue(){
+  dialogue.style.display='flex';
+  const storyAudio=new Audio('sounds/introtalk.mp3');
+  storyAudio.volume=1; 
+  storyAudio.play();
+
+  const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
+You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
+
+Inside the dimly lit apartment, you find Clara, a devoted member of Higher Heaven — a healing cult that once promised salvation, now steeped in blood and mystery. She lies lifeless on the floor. Her laptop glows faintly beside her, the screen still open… as if she was in the middle of something she shouldn’t have seen.
+
+Your task: uncover what really happened to Clara`;
+
+  dialogueText.textContent="";
+  let idx=0;
+  const speed=40;
+  const typewriter=setInterval(()=>{
+    if(idx<storyText.length){
+      dialogueText.textContent+=storyText[idx++];
+    }else{
+      clearInterval(typewriter);
+      storyAudio.addEventListener('ended',()=>{
+        dialogue.style.display='none';
+        startBoot();
+      });
+    }
+  },speed);
+}
+
+/* ===== BOOT AFTER DIALOGUE ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
