@@ -20,6 +20,7 @@
     font-family:ui-monospace,monospace;
   }
 
+  /* ---------- START SCREEN ---------- */
   .startScreen {
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
@@ -30,6 +31,7 @@
   }
   .fadeOut{opacity:0!important;}
 
+  /* ---------- INTRO ---------- */
   .intro {
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
@@ -45,6 +47,7 @@
     opacity:0;
     font-size:clamp(18px,3vw,26px);
     text-align:center;
+    background:transparent;
   }
 
   @keyframes fadeInOut {
@@ -53,8 +56,11 @@
     80% {opacity:1;}
     100% {opacity:0;}
   }
-  .fadeInOut {animation: fadeInOut 9s ease-in-out forwards;}
+  .fadeInOut {
+    animation: fadeInOut 9s ease-in-out forwards;
+  }
 
+  /* ---------- THRESHOLD TITLE ---------- */
   .title {
     position:absolute;
     top:50%; left:50%;
@@ -75,8 +81,11 @@
     70% {opacity:1; text-shadow:0 0 25px #f00;}
     100% {opacity:0; text-shadow:0 0 0 #f00;}
   }
-  .doorFadeAnim {animation: doorFade 10s ease-in-out forwards;}
+  .doorFadeAnim {
+    animation: doorFade 10s ease-in-out forwards;
+  }
 
+  /* ---------- DIALOGUE ---------- */
   .dialogue {
     position:fixed; inset:0;
     display:none; align-items:center; justify-content:center;
@@ -92,6 +101,7 @@
     white-space:pre-line;
   }
 
+  /* ---------- BOOT ---------- */
   .boot, .progressStage {
     position:fixed; inset:0;
     background:var(--boot-bg); color:var(--boot-fg);
@@ -102,6 +112,7 @@
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .progressLine{white-space:pre; font-size:14px}
 
+  /* ---------- APP ---------- */
   .app{
     display:none;
     place-items:center;
@@ -115,17 +126,21 @@
 </head>
 <body>
 
+<!-- Start screen -->
 <div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
+<!-- INTRO -->
 <div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
   <div class="title" id="doorTitle">THRESHOLD</div>
 </div>
 
+<!-- Dialogue -->
 <div id="dialogue" class="dialogue">
   <div id="dialogueText" class="dialogueText"></div>
 </div>
 
+<!-- Boot -->
 <div id="boot" class="boot"></div>
 <div id="progressStage" class="progressStage">
   <div class="bootLine">:: Starting THRESHOLD environment</div>
@@ -133,6 +148,7 @@
   <div id="pLine" class="progressLine">[                    ] 0%</div>
 </div>
 
+<!-- App -->
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
@@ -147,49 +163,19 @@ const pLine=document.getElementById('pLine');
 const dialogue=document.getElementById('dialogue');
 const dialogueText=document.getElementById('dialogueText');
 
-let introAudio;
-
-// Fade helper
-function fadeOutAudio(audio, duration=2000){
-  return new Promise(resolve=>{
-    if(!audio) return resolve();
-    const step=50;
-    const delta=audio.volume/(duration/step);
-    const f=setInterval(()=>{
-      audio.volume=Math.max(0,audio.volume-delta);
-      if(audio.volume<=0.01){
-        clearInterval(f);
-        audio.pause();
-        audio.currentTime=0;
-        resolve();
-      }
-    },step);
-  });
-}
-
-// Start
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
   setTimeout(()=>{
     startScreen.style.display='none';
-    const visited=localStorage.getItem('thresholdVisited');
-    startIntro(visited);
+    startIntro();
   },1500);
 });
 
-function startIntro(visited){
+function startIntro(){
   intro.style.display='flex';
   intro.style.background='#000';
-  introAudio=new Audio('sounds/intro.mp3');
-  introAudio.volume=1; introAudio.play();
-
-  // Shorter intro for returning users
-  if(visited){
-    setTimeout(()=>{
-      fadeOutAudio(introAudio,1000).then(()=>startDialogue());
-    },5000);
-    return;
-  }
+  const audio=new Audio('sounds/intro.mp3');
+  audio.volume=1; audio.play();
 
   const lines=[
     "This game is protected by an MIT license.",
@@ -203,14 +189,14 @@ function startIntro(visited){
   lines.forEach(text=>{
     setTimeout(()=>{
       introText.textContent=text;
+      introText.style.opacity=0;
       introText.style.animation='none';
-      void introText.offsetWidth;
+      void introText.offsetWidth; 
       introText.style.animation=`fadeInOut ${fadeDuration/1000}s ease-in-out forwards`;
     },delay);
     delay+=fadeDuration;
   });
 
-  // Show THRESHOLD title
   setTimeout(()=>{
     introText.textContent='';
     door.style.opacity=0;
@@ -219,18 +205,16 @@ function startIntro(visited){
     door.classList.add('doorFadeAnim');
   },29000);
 
-  // Fade out + move to dialogue
-  setTimeout(async ()=>{
-    await fadeOutAudio(introAudio,2000);
+  // After title fade, show dialogue
+  setTimeout(()=>{
     intro.style.display='none';
     startDialogue();
   },41000);
 }
 
-// Dialogue
+/* ===== DIALOGUE SEQUENCE ===== */
 function startDialogue(){
   dialogue.style.display='flex';
-  localStorage.setItem('thresholdVisited','true');
   const storyAudio=new Audio('sounds/introtalk.mp3');
   storyAudio.volume=1; 
   storyAudio.play();
@@ -258,7 +242,7 @@ Your task: uncover what really happened to Clara`;
   },speed);
 }
 
-// Boot
+/* ===== BOOT AFTER DIALOGUE ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
