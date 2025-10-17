@@ -157,6 +157,28 @@
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
+// ====== PRELOAD & PROTECT AUDIO ======
+const introAudio = new Audio('sounds/intro.mp3');
+const talkAudio = new Audio('sounds/introtalk.mp3');
+[introAudio, talkAudio].forEach(a => {
+  a.preload = 'auto';
+  a.load();
+  a.loop = false;
+  a.autoplay = false;
+  // prevent pausing (e.g., headphone unplug)
+  a.addEventListener('pause', () => {
+    if (!a.ended) a.play().catch(()=>{});
+  });
+});
+window.addEventListener('blur', () => {
+  if (!introAudio.paused && !introAudio.ended) introAudio.play().catch(()=>{});
+});
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && !introAudio.ended) {
+    introAudio.play().catch(()=>{});
+  }
+});
+
 const startScreen=document.getElementById('startScreen');
 const intro=document.getElementById('intro');
 const introText=document.getElementById('introText');
@@ -180,9 +202,9 @@ startScreen.addEventListener('click',()=>{
 
 function startIntro(){
   intro.style.display='flex';
-  const audio=new Audio('sounds/intro.mp3');
-  audio.volume=1; 
-  audio.play();
+  introAudio.currentTime=0;
+  introAudio.volume=1;
+  introAudio.play().catch(()=>{});
 
   const lines=[
     "This game is protected by an MIT license.",
@@ -190,7 +212,6 @@ function startIntro(){
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  // Fade in/out text lines
   lines.forEach((text, i) => {
     const startTime = i * 9000;
     setTimeout(() => {
@@ -200,33 +221,26 @@ function startIntro(){
     }, startTime + (i === 0 ? 500 : 0));
   });
 
-  // 27s: PRESENTING fades in at center
-  setTimeout(()=>{
-    presenting.style.opacity=1;
-  },27000);
-
-  // 27s–29s: PRESENTING moves up smoothly (finishes before THRESHOLD starts)
-  setTimeout(()=>{
-    presenting.style.top="38%";
-  },27050);
-
-  // 29s: THRESHOLD fades in AFTER movement done
+  // PRESENTING sequence
+  setTimeout(()=>{ presenting.style.opacity=1; },27000);
+  setTimeout(()=>{ presenting.style.top="38%"; },27050);
+  // THRESHOLD starts only after presenting finishes moving
   setTimeout(()=>{
     door.style.opacity=1;
     door.style.textShadow='0 0 25px #f00';
   },29000);
 
-  // 36s: fade both out, intro.mp3 fades smoothly
+  // Fade everything out smoothly at 36s
   setTimeout(()=>{
     presenting.style.opacity=0;
     door.style.opacity=0;
     let fadeSteps=100;
     const fadeOutAudio=setInterval(()=>{
-      if(audio.volume>0.005){
-        audio.volume=Math.max(0,audio.volume-1/fadeSteps);
+      if(introAudio.volume>0.005){
+        introAudio.volume=Math.max(0,introAudio.volume-1/fadeSteps);
       } else {
-        audio.volume=0;
-        audio.pause();
+        introAudio.volume=0;
+        introAudio.pause();
         clearInterval(fadeOutAudio);
         setTimeout(()=>{
           intro.style.display='none';
@@ -237,12 +251,11 @@ function startIntro(){
   },36000);
 }
 
-/* ===== DIALOGUE ===== */
 function startDialogue(){
   dialogue.style.display='flex';
-  const storyAudio=new Audio('sounds/introtalk.mp3');
-  storyAudio.volume=1;
-  storyAudio.play(); // plays immediately, no fade
+  talkAudio.currentTime=0;
+  talkAudio.volume=1;
+  talkAudio.play().catch(()=>{});
 
   const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
@@ -260,10 +273,9 @@ Your task: uncover what really happened to Clara`;
     } else clearInterval(typer);
   },speed);
 
-  // 43s later, fade out dialogue
   setTimeout(()=>{
     dialogueText.style.opacity=0;
-    storyAudio.pause();
+    talkAudio.pause();
     setTimeout(()=>{
       dialogue.style.display='none';
       showPressEnter();
@@ -271,11 +283,9 @@ Your task: uncover what really happened to Clara`;
   },43000);
 }
 
-/* ===== PRESS ENTER ===== */
 function showPressEnter(){
   pressEnter.style.display='flex';
   pressEnter.style.opacity=1;
-
   document.addEventListener('keydown',function handler(e){
     if(e.key==='Enter'){
       document.removeEventListener('keydown',handler);
@@ -288,7 +298,6 @@ function showPressEnter(){
   });
 }
 
-/* ===== BOOT ===== */
 const bootLines=[
  "[    0.000000] Linux version 6.8.1-arch",
  "[    0.002314] Booting system modules...",
@@ -311,7 +320,6 @@ function startBoot(){
     if(i<bootLines.length)setTimeout(append,100);
   }
   append();
-
   document.addEventListener('keydown',e=>{
     if(e.key==='Enter'&&bootEl.style.display==='block'){
       bootEl.style.display='none';
