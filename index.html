@@ -37,49 +37,56 @@
     flex-direction:column;
   }
 
-  .introText {
+  .introText, .presenting, .title {
     position:absolute;
-    top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    color:#fff;
-    font-weight:600;
+    left:50%;
+    transform:translateX(-50%);
     text-transform:uppercase;
     opacity:0;
-    font-size:clamp(18px,3vw,26px);
-    text-align:center;
     transition:opacity 2s ease-in-out;
   }
 
-  .presenting {
-    position:absolute;
+  .introText {
     top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
     color:#fff;
     font-weight:600;
-    text-transform:uppercase;
+    font-size:clamp(18px,3vw,26px);
+  }
+
+  .presenting {
+    top:50%;
+    color:#fff;
+    font-weight:600;
     font-family:ui-monospace,monospace;
     font-size:clamp(20px,3vw,28px);
     letter-spacing:2px;
-    opacity:0;
     transition:opacity 2s ease-in-out, top 2s ease-in-out;
   }
 
   .title {
-    position:absolute;
     top:52%;
-    left:50%;
-    transform:translate(-50%,-50%);
     color:var(--intro-red);
     font-weight:900;
-    text-transform:uppercase;
     white-space:nowrap;
-    line-height:1;
-    opacity:0;
     font-size:clamp(56px,16vw,220px);
-    transition:opacity 2s ease-in-out, text-shadow 1.2s ease-in-out;
     text-shadow:0 0 0 #f00;
+    transition:opacity 2s ease-in-out, text-shadow 1.2s ease-in-out;
   }
+
+  .skipButton {
+    position:absolute;
+    bottom:30px; right:30px;
+    background:rgba(255,255,255,0.1);
+    border:1px solid #fff;
+    padding:10px 18px;
+    font-size:16px;
+    cursor:pointer;
+    color:#fff;
+    border-radius:6px;
+    transition:background 0.3s;
+    z-index:30;
+  }
+  .skipButton:hover { background:rgba(255,255,255,0.3); }
 
   .dialogue {
     position:fixed; inset:0;
@@ -87,6 +94,7 @@
     background:#000;
     padding:60px;
     text-align:center;
+    flex-direction:column;
   }
   .dialogueText {
     max-width:900px;
@@ -139,10 +147,12 @@
   <div id="introText" class="introText"></div>
   <div id="presenting" class="presenting">PRESENTING...</div>
   <div id="doorTitle" class="title">THRESHOLD</div>
+  <button id="skipIntro" class="skipButton">Skip</button>
 </div>
 
 <div id="dialogue" class="dialogue">
   <div id="dialogueText" class="dialogueText"></div>
+  <button id="skipDialogue" class="skipButton">Skip</button>
 </div>
 
 <div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
@@ -157,33 +167,18 @@
 <div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
-// ====== PRELOAD & PROTECT AUDIO ======
 const introAudio = new Audio('sounds/intro.mp3');
 const talkAudio = new Audio('sounds/introtalk.mp3');
 [introAudio, talkAudio].forEach(a => {
-  a.preload = 'auto';
-  a.load();
-  a.loop = false;
-  a.autoplay = false;
-  // prevent pausing (e.g., headphone unplug)
-  a.addEventListener('pause', () => {
-    if (!a.ended) a.play().catch(()=>{});
-  });
+  a.preload='auto'; a.load(); a.loop=false; a.autoplay=false;
 });
-window.addEventListener('blur', () => {
-  if (!introAudio.paused && !introAudio.ended) introAudio.play().catch(()=>{});
-});
-window.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && !introAudio.ended) {
-    introAudio.play().catch(()=>{});
-  }
-});
-
 const startScreen=document.getElementById('startScreen');
 const intro=document.getElementById('intro');
 const introText=document.getElementById('introText');
 const presenting=document.getElementById('presenting');
 const door=document.getElementById('doorTitle');
+const skipIntro=document.getElementById('skipIntro');
+const skipDialogue=document.getElementById('skipDialogue');
 const dialogue=document.getElementById('dialogue');
 const dialogueText=document.getElementById('dialogueText');
 const pressEnter=document.getElementById('pressEnter');
@@ -191,6 +186,8 @@ const bootEl=document.getElementById('boot');
 const progressStage=document.getElementById('progressStage');
 const app=document.getElementById('app');
 const pLine=document.getElementById('pLine');
+
+let introSkipped=false, dialogueSkipped=false;
 
 startScreen.addEventListener('click',()=>{
   startScreen.classList.add('fadeOut');
@@ -200,54 +197,67 @@ startScreen.addEventListener('click',()=>{
   },1500);
 });
 
+function fadeOutIntroNow(){
+  if(introSkipped) return;
+  introSkipped=true;
+  introAudio.volume=0;
+  introAudio.pause();
+  intro.style.opacity=0;
+  setTimeout(()=>{
+    intro.style.display='none';
+    startDialogue();
+  },800);
+}
+
+skipIntro.addEventListener('click', fadeOutIntroNow);
+
 function startIntro(){
   intro.style.display='flex';
   introAudio.currentTime=0;
   introAudio.volume=1;
   introAudio.play().catch(()=>{});
-
   const lines=[
     "This game is protected by an MIT license.",
     "This game is based on Wayward and other movies.",
     "Contains flashing lights, loud sounds, and psychological horror."
   ];
 
-  lines.forEach((text, i) => {
-    const startTime = i * 9000;
-    setTimeout(() => {
-      introText.textContent = text;
-      introText.style.opacity = 1;
-      setTimeout(() => { introText.style.opacity = 0; }, 5000);
-    }, startTime + (i === 0 ? 500 : 0));
+  lines.forEach((text,i)=>{
+    const startTime=i*9000;
+    setTimeout(()=>{
+      if(introSkipped) return;
+      introText.textContent=text;
+      introText.style.opacity=1;
+      setTimeout(()=>{ introText.style.opacity=0; },5000);
+    },startTime+(i===0?500:0));
   });
 
-  // PRESENTING sequence
-  setTimeout(()=>{ presenting.style.opacity=1; },27000);
-  setTimeout(()=>{ presenting.style.top="38%"; },27050);
-  // THRESHOLD starts only after presenting finishes moving
+  setTimeout(()=>{ if(!introSkipped) presenting.style.opacity=1; },27000);
+  setTimeout(()=>{ if(!introSkipped) presenting.style.top="38%"; },27050);
   setTimeout(()=>{
-    door.style.opacity=1;
-    door.style.textShadow='0 0 25px #f00';
+    if(!introSkipped){
+      door.style.opacity=1;
+      door.style.textShadow='0 0 25px #f00';
+    }
   },29000);
 
-  // Fade everything out smoothly at 36s
   setTimeout(()=>{
-    presenting.style.opacity=0;
-    door.style.opacity=0;
-    let fadeSteps=100;
-    const fadeOutAudio=setInterval(()=>{
-      if(introAudio.volume>0.005){
-        introAudio.volume=Math.max(0,introAudio.volume-1/fadeSteps);
-      } else {
-        introAudio.volume=0;
-        introAudio.pause();
-        clearInterval(fadeOutAudio);
-        setTimeout(()=>{
-          intro.style.display='none';
-          startDialogue();
-        },800);
-      }
-    },100);
+    if(!introSkipped){
+      presenting.style.opacity=0;
+      door.style.opacity=0;
+      let fadeSteps=100;
+      const fadeOutAudio=setInterval(()=>{
+        if(introAudio.volume>0.005){
+          introAudio.volume=Math.max(0,introAudio.volume-1/fadeSteps);
+        }else{
+          introAudio.volume=0; introAudio.pause(); clearInterval(fadeOutAudio);
+          setTimeout(()=>{
+            intro.style.display='none';
+            startDialogue();
+          },800);
+        }
+      },100);
+    }
   },36000);
 }
 
@@ -268,19 +278,25 @@ Your task: uncover what really happened to Clara`;
   let idx=0;
   const speed=40;
   const typer=setInterval(()=>{
+    if(dialogueSkipped){clearInterval(typer);return;}
     if(idx<storyText.length){
       dialogueText.textContent+=storyText[idx++];
     } else clearInterval(typer);
   },speed);
 
-  setTimeout(()=>{
+  const endDialogue=()=>{
+    if(dialogueSkipped)return;
+    dialogueSkipped=true;
     dialogueText.style.opacity=0;
     talkAudio.pause();
     setTimeout(()=>{
       dialogue.style.display='none';
       showPressEnter();
     },2000);
-  },43000);
+  };
+
+  skipDialogue.addEventListener('click', endDialogue);
+  setTimeout(endDialogue,43000);
 }
 
 function showPressEnter(){
