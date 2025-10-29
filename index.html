@@ -1,250 +1,432 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>THRESHOLD</title>
-<link rel="icon" type="image/png" href="door.png" />
-<style>
-  :root { --boot-bg:#000; --boot-fg:#fff; --intro-red:#d20000; }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  html, body { height:100%; background:#000; overflow:hidden; color:#fff; font-family:ui-monospace,monospace; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>THRESHOLD</title>
+  <link rel="icon" type="image/png" href="door.png" />
+  <style>
+    :root {
+      --boot-bg: #000;
+      --boot-fg: #fff;
+      --intro-red: #d20000;
+    }
 
-  .startScreen{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#000; color:#fff; cursor:pointer; font-size:clamp(20px,3vw,28px); user-select:none; opacity:1; transition:opacity 1.5s ease; z-index:20;}
-  .fadeOut{opacity:0!important;}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  .intro{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#000; text-align:center; flex-direction:column; z-index:10;}
-  .introText,.presenting,.title{position:absolute; left:50%; transform:translateX(-50%); text-transform:uppercase; opacity:0; transition:opacity 2s ease-in-out;}
-  .introText{top:50%; color:#fff; font-weight:600; font-size:clamp(18px,3vw,26px);}
-  .presenting{top:50%; color:#fff; font-weight:600; font-family:ui-monospace,monospace; font-size:clamp(20px,3vw,28px); letter-spacing:2px; transition:opacity 2s ease-in-out, top 2s ease-in-out;}
-  .title{top:52%; color:var(--intro-red); font-weight:900; white-space:nowrap; font-size:clamp(56px,16vw,220px); text-shadow:0 0 0 #f00; transition:opacity 2s ease-in-out, text-shadow 1.2s ease-in-out;}
+    html, body {
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      color: #fff;
+      font-family: ui-monospace, monospace;
+    }
 
-  .skipButton{position:fixed; bottom:30px; right:30px; background:rgba(255,255,255,0.1); border:1px solid #fff; padding:10px 18px; font-size:16px; cursor:pointer; color:#fff; border-radius:6px; transition:background .3s, opacity .5s; z-index:9999;}
-  .skipButton:hover{background:rgba(255,255,255,0.3);}
+    .startScreen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+      font-size: clamp(20px, 3vw, 28px);
+      user-select: none;
+      opacity: 1;
+      transition: opacity 1.5s ease;
+      z-index: 20;
+    }
 
-  .dialogue{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#000; padding:60px; text-align:center; flex-direction:column; z-index:8;}
-  .dialogueText{max-width:900px; font-size:clamp(18px,2.5vw,22px); color:#fff; line-height:1.5; white-space:pre-line; opacity:1; transition:opacity 2s ease-in-out;}
+    .fadeOut { opacity: 0 !important; }
 
-  .pressEnter{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-size:clamp(20px,3vw,30px); color:#fff; background:#000; opacity:0; transition:opacity 2s ease-in-out; text-align:center;}
+    .intro {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      text-align: center;
+      flex-direction: column;
+      z-index: 10;
+    }
 
-  .boot,.progressStage{position:fixed; inset:0; background:var(--boot-bg); color:var(--boot-fg); font-family:ui-monospace, Menlo, Consolas, monospace; padding:14px; overflow:auto; line-height:1.2; display:none;}
-  .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
-  .progressLine{white-space:pre; font-size:14px}
-  .app{display:none; place-items:center; height:100%; background:#fff; font-size:24px; font-weight:600; color:#111;}
-</style>
+    .introText, .presenting, .title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+    }
+
+    .introText {
+      top: 50%;
+      color: #fff;
+      font-weight: 600;
+      font-size: clamp(18px, 3vw, 26px);
+    }
+
+    .presenting {
+      top: 50%;
+      color: #fff;
+      font-weight: 600;
+      font-family: ui-monospace, monospace;
+      font-size: clamp(20px, 3vw, 28px);
+      letter-spacing: 2px;
+      transition: opacity 2s ease-in-out, top 2s ease-in-out;
+    }
+
+    .title {
+      top: 52%;
+      color: var(--intro-red);
+      font-weight: 900;
+      white-space: nowrap;
+      font-size: clamp(56px, 16vw, 220px);
+      text-shadow: 0 0 0 #f00;
+      transition: opacity 2s ease-in-out, text-shadow 1.2s ease-in-out;
+    }
+
+    .skipButton {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid #fff;
+      padding: 10px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #fff;
+      border-radius: 6px;
+      transition: background .3s, opacity .5s;
+      z-index: 9999;
+    }
+
+    .skipButton:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .dialogue {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      padding: 60px;
+      text-align: center;
+      flex-direction: column;
+      z-index: 8;
+    }
+
+    .dialogueText {
+      max-width: 900px;
+      font-size: clamp(18px, 2.5vw, 22px);
+      color: #fff;
+      line-height: 1.5;
+      white-space: pre-line;
+      opacity: 1;
+      transition: opacity 2s ease-in-out;
+    }
+
+    .pressEnter {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(20px, 3vw, 30px);
+      color: #fff;
+      background: #000;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+      text-align: center;
+    }
+
+    .boot, .progressStage {
+      position: fixed;
+      inset: 0;
+      background: var(--boot-bg);
+      color: var(--boot-fg);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      padding: 14px;
+      overflow: auto;
+      line-height: 1.2;
+      display: none;
+    }
+
+    .bootLine {
+      white-space: pre;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .progressLine {
+      white-space: pre;
+      font-size: 14px;
+    }
+
+    .app {
+      display: none;
+      place-items: center;
+      height: 100%;
+      background: #fff;
+      font-size: 24px;
+      font-weight: 600;
+      color: #111;
+    }
+  </style>
 </head>
+
 <body>
+  <div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
-<div id="startScreen" class="startScreen">Click anywhere to begin...</div>
+  <div id="intro" class="intro" style="display:none;">
+    <div id="introText" class="introText"></div>
+    <div id="presenting" class="presenting">PRESENTING...</div>
+    <div id="doorTitle" class="title">THRESHOLD</div>
+  </div>
 
-<div id="intro" class="intro" style="display:none;">
-  <div id="introText" class="introText"></div>
-  <div id="presenting" class="presenting">PRESENTING...</div>
-  <div id="doorTitle" class="title">THRESHOLD</div>
-</div>
+  <button id="skipIntro" class="skipButton" style="display:none;">Skip Intro</button>
+  <button id="skipDialogue" class="skipButton" style="display:none;">Skip Dialogue</button>
 
-<button id="skipIntro" class="skipButton" style="display:none;">Skip Intro</button>
-<button id="skipDialogue" class="skipButton" style="display:none;">Skip Dialogue</button>
+  <div id="dialogue" class="dialogue">
+    <div id="dialogueText" class="dialogueText"></div>
+  </div>
 
-<div id="dialogue" class="dialogue">
-  <div id="dialogueText" class="dialogueText"></div>
-</div>
+  <div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
 
-<div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
+  <div id="boot" class="boot"></div>
 
-<div id="boot" class="boot"></div>
-<div id="progressStage" class="progressStage">
-  <div class="bootLine">:: Starting THRESHOLD environment</div>
-  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
-  <div id="pLine" class="progressLine">[                    ] 0%</div>
-</div>
+  <div id="progressStage" class="progressStage">
+    <div class="bootLine">:: Starting THRESHOLD environment</div>
+    <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
+    <div id="pLine" class="progressLine">[                    ] 0%</div>
+  </div>
 
-<div id="app" class="app">[ Mail UI Loaded ]</div>
+  <div id="app" class="app">[ Mail UI Loaded ]</div>
 
-<script>
-const introAudio = new Audio('sounds/intro.mp3');
-const talkAudio  = new Audio('sounds/introtalk.mp3');
-[introAudio, talkAudio].forEach(a => { a.preload='auto'; a.load(); a.loop=false; a.autoplay=false; });
+  <script>
+    // ---------- AUDIO ----------
+    const introAudio = new Audio('sounds/intro.mp3');
+    const talkAudio = new Audio('sounds/introtalk.mp3');
+    [introAudio, talkAudio].forEach(a => {
+      a.preload = 'auto';
+      a.load();
+      a.loop = false;
+      a.autoplay = false;
+    });
 
-const startScreen   = document.getElementById('startScreen');
-const intro         = document.getElementById('intro');
-const introText     = document.getElementById('introText');
-const presenting    = document.getElementById('presenting');
-const door          = document.getElementById('doorTitle');
-const skipIntroBtn  = document.getElementById('skipIntro');
-const skipDlgBtn    = document.getElementById('skipDialogue');
-const dialogue      = document.getElementById('dialogue');
-const dialogueText  = document.getElementById('dialogueText');
-const pressEnter    = document.getElementById('pressEnter');
-const bootEl        = document.getElementById('boot');
-const progressStage = document.getElementById('progressStage');
-const app           = document.getElementById('app');
-const pLine         = document.getElementById('pLine');
+    // ---------- ELEMENTS ----------
+    const startScreen = document.getElementById('startScreen');
+    const intro = document.getElementById('intro');
+    const introText = document.getElementById('introText');
+    const presenting = document.getElementById('presenting');
+    const door = document.getElementById('doorTitle');
+    const skipIntroBtn = document.getElementById('skipIntro');
+    const skipDlgBtn = document.getElementById('skipDialogue');
+    const dialogue = document.getElementById('dialogue');
+    const dialogueText = document.getElementById('dialogueText');
+    const pressEnter = document.getElementById('pressEnter');
+    const bootEl = document.getElementById('boot');
+    const progressStage = document.getElementById('progressStage');
+    const app = document.getElementById('app');
+    const pLine = document.getElementById('pLine');
 
-let introSkipped=false;
-let dialogueActive=false;
-let dialogueSkipped=false;
-let typerId=null;
+    // ---------- STATE ----------
+    let introSkipped = false;
+    let dialogueActive = false;
+    let dialogueSkipped = false;
+    let typerId = null;
 
-startScreen.addEventListener('click', ()=>{
-  startScreen.classList.add('fadeOut');
-  setTimeout(()=>{ startScreen.style.display='none'; startIntro(); }, 1500);
-});
+    // ---------- START ----------
+    startScreen.addEventListener('click', () => {
+      startScreen.classList.add('fadeOut');
+      setTimeout(() => {
+        startScreen.style.display = 'none';
+        startIntro();
+      }, 1500);
+    });
 
-function startIntro(){
-  intro.style.display='flex';
-  skipIntroBtn.style.display='block';
+    // ---------- INTRO ----------
+    function startIntro() {
+      intro.style.display = 'flex';
+      skipIntroBtn.style.display = 'block';
 
-  introAudio.currentTime=0; introAudio.volume=1;
-  introAudio.play().catch(()=>{});
+      introAudio.currentTime = 0;
+      introAudio.volume = 1;
+      introAudio.play().catch(() => {});
 
-  const lines=[
-    "This game is protected by an MIT license.",
-    "This game is based on Wayward and other movies.",
-    "Contains flashing lights, loud sounds, and psychological horror."
-  ];
-  lines.forEach((text,i)=>{
-    const t=i*9000;
-    setTimeout(()=>{
-      if(introSkipped) return;
-      introText.textContent=text;
-      introText.style.opacity=1;
-      setTimeout(()=>{ introText.style.opacity=0; }, 5000);
-    }, t + (i===0?500:0));
-  });
+      const lines = [
+        "This game is protected by an MIT license.",
+        "This game is based on Wayward and other movies.",
+        "Contains flashing lights, loud sounds, and psychological horror."
+      ];
 
-  setTimeout(()=>{ if(!introSkipped) presenting.style.opacity=1; }, 27000);
-  setTimeout(()=>{ if(!introSkipped) presenting.style.top="38%"; }, 27050);
-  setTimeout(()=>{ if(!introSkipped){ door.style.opacity=1; door.style.textShadow='0 0 25px #f00'; } }, 29000);
-  setTimeout(()=>{ if(!introSkipped) fadeOutIntroAndStartDialogue(); }, 36000);
-}
+      lines.forEach((text, i) => {
+        const t = i * 9000;
+        setTimeout(() => {
+          if (introSkipped) return;
+          introText.textContent = text;
+          introText.style.opacity = 1;
+          setTimeout(() => { introText.style.opacity = 0; }, 5000);
+        }, t + (i === 0 ? 500 : 0));
+      });
 
-function fadeOutIntroAndStartDialogue(){
-  skipIntroBtn.style.display='none';
-  presenting.style.opacity=0; door.style.opacity=0;
+      setTimeout(() => { if (!introSkipped) presenting.style.opacity = 1; }, 27000);
+      setTimeout(() => { if (!introSkipped) presenting.style.top = "38%"; }, 27050);
+      setTimeout(() => { if (!introSkipped) { door.style.opacity = 1; door.style.textShadow = '0 0 25px #f00'; } }, 29000);
+      setTimeout(() => { if (!introSkipped) fadeOutIntroAndStartDialogue(); }, 36000);
+    }
 
-  const fade = setInterval(()=>{
-    introAudio.volume = Math.max(0, introAudio.volume - 0.06);
-    if(introAudio.volume <= 0){ introAudio.pause(); clearInterval(fade); }
-  }, 30);
+    function fadeOutIntroAndStartDialogue() {
+      skipIntroBtn.style.display = 'none';
+      presenting.style.opacity = 0;
+      door.style.opacity = 0;
 
-  setTimeout(()=>{
-    intro.style.display='none';
-    startDialogue();
-  }, 300);
-}
+      const fade = setInterval(() => {
+        introAudio.volume = Math.max(0, introAudio.volume - 0.06);
+        if (introAudio.volume <= 0) {
+          introAudio.pause();
+          clearInterval(fade);
+        }
+      }, 30);
 
-skipIntroBtn.addEventListener('click', ()=>{
-  if(introSkipped) return;
-  introSkipped=true;
-  fadeOutIntroAndStartDialogue();
-});
+      setTimeout(() => {
+        intro.style.display = 'none';
+        startDialogue();
+      }, 300);
+    }
 
-function startDialogue(){
-  dialogue.style.display='flex';
-  skipDlgBtn.style.display='block';
-  dialogueActive=true;
-  dialogueSkipped=false;
+    skipIntroBtn.addEventListener('click', () => {
+      if (introSkipped) return;
+      introSkipped = true;
+      fadeOutIntroAndStartDialogue();
+    });
 
-  talkAudio.currentTime=0; talkAudio.volume=1;
-  talkAudio.play().catch(()=>{});
+    // ---------- DIALOGUE ----------
+    function startDialogue() {
+      dialogue.style.display = 'flex';
+      skipDlgBtn.style.display = 'block';
+      dialogueActive = true;
+      dialogueSkipped = false;
 
-  const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
+      talkAudio.currentTime = 0;
+      talkAudio.volume = 1;
+      talkAudio.play().catch(() => {});
+
+      const storyText = `This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
 
 Inside the dimly lit apartment, you find Clara, a devoted member of Higher Heaven — a healing cult that once promised salvation, now steeped in blood and mystery. She lies lifeless on the floor. Her laptop glows faintly beside her, the screen still open… as if she was in the middle of something she shouldn’t have seen.
 
 Your task: uncover what really happened to Clara`;
 
-  dialogueText.textContent="";
-  let idx=0;
-  clearInterval(typerId);
-  typerId = setInterval(()=>{
-    if(!dialogueActive){ clearInterval(typerId); return; }
-    if(idx < storyText.length){
-      dialogueText.textContent += storyText[idx++];
-    } else {
+      dialogueText.textContent = "";
+      let idx = 0;
       clearInterval(typerId);
+      typerId = setInterval(() => {
+        if (!dialogueActive) {
+          clearInterval(typerId);
+          return;
+        }
+        if (idx < storyText.length) {
+          dialogueText.textContent += storyText[idx++];
+        } else {
+          clearInterval(typerId);
+        }
+      }, 40);
+
+      setTimeout(() => finishDialogue(), 43000);
     }
-  }, 40);
 
-  setTimeout(()=> finishDialogue(), 43000);
-}
+    skipDlgBtn.addEventListener('click', () => finishDialogue(true));
 
-skipDlgBtn.addEventListener('click', ()=> finishDialogue(true));
-
-function finishDialogue(force=false){
-  if(!dialogueActive) return;
-  dialogueActive=false;
-  if(typerId) { clearInterval(typerId); typerId=null; }
-  if(!dialogueSkipped || force){
-    dialogueSkipped=true;
-    skipDlgBtn.style.display='none';
-    dialogueText.style.opacity=0;
-    talkAudio.pause();
-    setTimeout(()=>{
-      dialogue.style.display='none';
-      showPressEnter();
-    }, 600);
-  }
-}
-
-function showPressEnter(){
-  pressEnter.style.display='flex';
-  pressEnter.style.opacity=1;
-  document.addEventListener('keydown', function handler(e){
-    if(e.key==='Enter'){
-      document.removeEventListener('keydown', handler);
-      pressEnter.style.opacity=0;
-      setTimeout(()=>{ pressEnter.style.display='none'; startBoot(); }, 500);
+    function finishDialogue(force = false) {
+      if (!dialogueActive) return;
+      dialogueActive = false;
+      if (typerId) { clearInterval(typerId); typerId = null; }
+      if (!dialogueSkipped || force) {
+        dialogueSkipped = true;
+        skipDlgBtn.style.display = 'none';
+        dialogueText.style.opacity = 0;
+        talkAudio.pause();
+        setTimeout(() => {
+          dialogue.style.display = 'none';
+          showPressEnter();
+        }, 600);
+      }
     }
-  });
-}
 
-const bootLines=[
- "[    0.000000] Linux version 6.8.1-arch",
- "[    0.002314] Booting system modules...",
- ":: Mounting /dev/sda1 to /mnt/root",
- ":: Starting udevd...",
- ":: Network manager started",
- ":: Boot complete — Press ENTER to continue"
-];
-
-function startBoot(){
-  bootEl.style.display='block';
-  let i=0;
-  (function append(){
-    if(i>=bootLines.length) return;
-    const l=document.createElement('div');
-    l.className='bootLine';
-    l.textContent=bootLines[i++];
-    bootEl.appendChild(l);
-    bootEl.scrollTop=bootEl.scrollHeight;
-    if(i<bootLines.length) setTimeout(append, 100);
-  })();
-
-  document.addEventListener('keydown', function handler(e){
-    if(e.key==='Enter' && bootEl.style.display==='block'){
-      document.removeEventListener('keydown', handler);
-      bootEl.style.display='none';
-      progressStage.style.display='block';
-      startProgress();
+    // ---------- PRESS ENTER ----------
+    function showPressEnter() {
+      pressEnter.style.display = 'flex';
+      pressEnter.style.opacity = 1;
+      document.addEventListener('keydown', function handler(e) {
+        if (e.key === 'Enter') {
+          document.removeEventListener('keydown', handler);
+          pressEnter.style.opacity = 0;
+          setTimeout(() => {
+            pressEnter.style.display = 'none';
+            startBoot();
+          }, 500);
+        }
+      });
     }
-  });
-}
 
-function startProgress(){
-  let pct=0, total=20;
-  const t=setInterval(()=>{
-    pct=Math.min(100, pct + Math.floor(Math.random()*8)+5);
-    const filled=Math.round((pct/100)*total);
-    pLine.textContent="[" + "#".repeat(filled).padEnd(total," ") + "] " + String(pct).padStart(2," ") + "%";
-    if(pct>=100){
-      clearInterval(t);
-      setTimeout(()=>{ progressStage.style.display='none'; app.style.display='grid'; }, 300);
+    // ---------- BOOT / PROGRESS ----------
+    const bootLines = [
+      "[    0.000000] Linux version 6.8.1-arch",
+      "[    0.002314] Booting system modules...",
+      ":: Mounting /dev/sda1 to /mnt/root",
+      ":: Starting udevd...",
+      ":: Network manager started",
+      ":: Boot complete — Press ENTER to continue"
+    ];
+
+    function startBoot() {
+      bootEl.style.display = 'block';
+      let i = 0;
+      (function append() {
+        if (i >= bootLines.length) return;
+        const l = document.createElement('div');
+        l.className = 'bootLine';
+        l.textContent = bootLines[i++];
+        bootEl.appendChild(l);
+        bootEl.scrollTop = bootEl.scrollHeight;
+        if (i < bootLines.length) setTimeout(append, 100);
+      })();
+
+      document.addEventListener('keydown', function handler(e) {
+        if (e.key === 'Enter' && bootEl.style.display === 'block') {
+          document.removeEventListener('keydown', handler);
+          bootEl.style.display = 'none';
+          progressStage.style.display = 'block';
+          startProgress();
+        }
+      });
     }
-  }, 120);
-}
-</script>
+
+    function startProgress() {
+      let pct = 0, total = 20;
+      const t = setInterval(() => {
+        pct = Math.min(100, pct + Math.floor(Math.random() * 8) + 5);
+        const filled = Math.round((pct / 100) * total);
+        pLine.textContent = "[" + "#".repeat(filled).padEnd(total, " ") + "] " + String(pct).padStart(2, " ") + "%";
+        if (pct >= 100) {
+          clearInterval(t);
+          setTimeout(() => {
+            progressStage.style.display = 'none';
+            app.style.display = 'grid';
+          }, 300);
+        }
+      }, 120);
+    }
+  </script>
 </body>
 </html>
