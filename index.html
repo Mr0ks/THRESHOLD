@@ -10,7 +10,6 @@
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { height:100%; background:#000; overflow:hidden; color:#fff; font-family:ui-monospace,monospace; }
 
-  /* Original intro elements */
   .startScreen{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#000; color:#fff; cursor:pointer; font-size:clamp(20px,3vw,28px); user-select:none; opacity:1; transition:opacity 1.5s ease; z-index:20;}
   .fadeOut{opacity:0!important;}
 
@@ -28,34 +27,14 @@
 
   .pressEnter{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-size:clamp(20px,3vw,30px); color:#fff; background:#000; opacity:0; transition:opacity 2s ease-in-out; text-align:center;}
 
-  /* boot/progress (kept in original style, but with XP messages) */
   .boot,.progressStage{position:fixed; inset:0; background:var(--boot-bg); color:var(--boot-fg); font-family:ui-monospace, Menlo, Consolas, monospace; padding:14px; overflow:auto; line-height:1.2; display:none;}
   .bootLine{white-space:pre; font-size:14px; margin-bottom:2px}
   .progressLine{white-space:pre; font-size:14px}
-
-  /* XP desktop styles (appended, non-destructive) */
-  .xpDesktop{position:fixed; inset:0; background:#00309C; font-family:Tahoma, sans-serif; color:#fff; display:none; overflow:hidden;}
-  .xpDesktop .wallpaper{position:absolute; inset:0; background:url('https://upload.wikimedia.org/wikipedia/en/2/24/Bliss_%28Windows_XP%29.png') center/cover no-repeat; filter:none;}
-  .icon{position:absolute;width:96px;text-align:center;font-size:13px;color:white;text-shadow:1px 1px 2px black;cursor:pointer;}
-  .icon img{width:48px;height:48px;display:block;margin:0 auto 5px;}
-  .taskbar{position:fixed;bottom:0;left:0;right:0;height:38px;background:linear-gradient(to bottom,#1C52C6,#163A8D);display:flex;align-items:center;padding:0 10px;z-index:40;}
-  .startBtn{background:linear-gradient(to bottom,#3DB13D,#2B7C2B);color:white;border:none;border-radius:3px;padding:4px 10px;font-weight:bold;font-size:14px;cursor:default;display:flex;align-items:center;gap:6px;}
-  .clock{margin-left:auto;font-size:13px;color:white;padding-right:12px;}
-
-  /* XP window / dialog */
-  .window{position:absolute;width:480px;height:320px;background:#ECE9D8;border:2px solid #000;box-shadow:4px 4px 8px rgba(0,0,0,.5);display:none;flex-direction:column;z-index:50;}
-  .windowHeader{background:linear-gradient(to bottom,#2B7CDA,#1851A3);color:white;padding:4px 8px;font-weight:bold;cursor:move;display:flex;justify-content:space-between;align-items:center;}
-  .windowContent{flex:1;background:white;color:black;padding:10px;overflow:auto;}
-  .minBtn{background:#d4d0c8;border:1px solid #808080;width:22px;height:20px;text-align:center;line-height:16px;cursor:pointer;border-radius:2px;font-weight:bold;}
-  .errorBox{display:flex;align-items:center;gap:10px;}
-  .errorIcon{width:32px;height:32px;}
-  .okBtn{margin-top:15px;padding:6px 12px;background:#d4d0c8;border:1px solid #808080;cursor:pointer;border-radius:3px;}
-  /* make sure desktop icons are above boot area when shown */
+  .app{display:none; place-items:center; height:100%; background:#fff; font-size:24px; font-weight:600; color:#111;}
 </style>
 </head>
 <body>
 
-<!-- ========== ORIGINAL UI (preserved) ========== -->
 <div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
 <div id="intro" class="intro" style="display:none;">
@@ -64,7 +43,6 @@
   <div id="doorTitle" class="title">THRESHOLD</div>
 </div>
 
-<!-- Skip buttons (fixed position, always above content) -->
 <button id="skipIntro" class="skipButton" style="display:none;">Skip Intro</button>
 <button id="skipDialogue" class="skipButton" style="display:none;">Skip Dialogue</button>
 
@@ -75,90 +53,19 @@
 <div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
 
 <div id="boot" class="boot"></div>
-<div id="progressStage" class="progressStage" style="display:none;">
-  <div class="bootLine">:: Starting Windows XP environment</div>
+<div id="progressStage" class="progressStage">
+  <div class="bootLine">:: Starting THRESHOLD environment</div>
   <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
   <div id="pLine" class="progressLine">[                    ] 0%</div>
 </div>
 
-<!-- XP desktop container added but hidden until progress completes -->
-<div id="xpDesktop" class="xpDesktop" aria-hidden="true" style="display:none;">
-  <div class="wallpaper"></div>
-  <!-- icons (positions approximate) -->
-  <div class="icon" id="iconMyComputer" style="top:40px;left:24px;">
-    <img src="https://icons.iconarchive.com/icons/tpdkdesign.net/refresh-cl/256/My-Computer-icon.png" alt="My Computer"><div>My Computer</div>
-  </div>
-  <div class="icon" id="iconMyDocs" style="top:130px;left:24px;">
-    <img src="https://icons.iconarchive.com/icons/tpdkdesign.net/refresh-cl/256/My-Documents-icon.png" alt="My Documents"><div>My Documents</div>
-  </div>
-  <div class="icon" id="iconIE" style="top:220px;left:24px;">
-    <img src="https://icons.iconarchive.com/icons/tpdkdesign.net/refresh-cl/256/Internet-Explorer-icon.png" alt="IE"><div>Internet Explorer</div>
-  </div>
-  <div class="icon" id="iconNet" style="top:310px;left:24px;">
-    <img src="https://icons.iconarchive.com/icons/tpdkdesign.net/refresh-cl/256/My-Network-Places-icon.png" alt="Network"><div>Network Places</div>
-  </div>
-  <div class="icon" id="iconMail" style="top:400px;left:24px;">
-    <img src="https://icons.iconarchive.com/icons/dtafalonso/win-10x/256/Mail-icon.png" alt="Mail"><div>Mail</div>
-  </div>
-  <div class="icon" id="iconChrome" style="top:490px;left:24px;">
-    <img src="https://icons.iconarchive.com/icons/google/chrome/256/Google-Chrome-icon.png" alt="Chrome"><div>Chrome</div>
-  </div>
-  <div class="icon" id="iconBin" style="top:580px;left:24px;">
-    <img src="https://icons.iconarchive.com/icons/tpdkdesign.net/refresh-cl/256/Recycle-Bin-Full-icon.png" alt="Bin"><div>Recycle Bin</div>
-  </div>
-
-  <div class="taskbar" role="toolbar" aria-hidden="false">
-    <button class="startBtn" id="startButton">🪟 Start</button>
-    <div class="clock" id="xpClock"></div>
-  </div>
-</div>
-
-<!-- place-holder windows (hidden initially) -->
-<div id="winMail" class="window" style="display:none;">
-  <div class="windowHeader"><span>Mail</span><div style="display:flex;gap:6px;"><div class="minBtn" data-min="winMail">_</div></div></div>
-  <div class="windowContent">
-    <b>Inbox</b><br><br>
-    You have 1 new message.<br><br>
-    <b>From:</b> Clara<br>
-    <b>Subject:</b> Don’t open the door.
-  </div>
-</div>
-
-<div id="winChrome" class="window" style="display:none;">
-  <div class="windowHeader"><span>Chrome</span><div style="display:flex;gap:6px;"><div class="minBtn" data-min="winChrome">_</div></div></div>
-  <div class="windowContent">
-    <b>Clara's Secret Site</b><br><br>
-    Access denied. Connection terminated unexpectedly.
-  </div>
-</div>
-
-<div id="winBin" class="window" style="display:none;">
-  <div class="windowHeader"><span>Recycle Bin</span><div style="display:flex;gap:6px;"><div class="minBtn" data-min="winBin">_</div></div></div>
-  <div class="windowContent">
-    <b>Deleted Files</b>
-    <ul>
-      <li>clara_laptop_log.txt</li>
-      <li>higherheaven_members.csv</li>
-      <li>door_key.jpg</li>
-    </ul>
-  </div>
-</div>
-
-<!-- XP startup sound (public link) -->
-<audio id="xpStartup" preload="auto" src="https://archive.org/download/windows-xp-startup_202403/WindowsXP_Startup.mp3"></audio>
+<div id="app" class="app">[ Mail UI Loaded ]</div>
 
 <script>
-// ==========================
-// PRESERVED ORIGINAL SCRIPT
-// (I kept your exact intro/dialogue flow & audio variables; only adjusted boot text & timing)
-// ==========================
-
-// ---------- AUDIO (preserve original audio vars) ----------
 const introAudio = new Audio('sounds/intro.mp3');
 const talkAudio  = new Audio('sounds/introtalk.mp3');
 [introAudio, talkAudio].forEach(a => { a.preload='auto'; a.load(); a.loop=false; a.autoplay=false; });
 
-// ---------- ELEMENTS (original) ----------
 const startScreen   = document.getElementById('startScreen');
 const intro         = document.getElementById('intro');
 const introText     = document.getElementById('introText');
@@ -171,26 +78,19 @@ const dialogueText  = document.getElementById('dialogueText');
 const pressEnter    = document.getElementById('pressEnter');
 const bootEl        = document.getElementById('boot');
 const progressStage = document.getElementById('progressStage');
+const app           = document.getElementById('app');
 const pLine         = document.getElementById('pLine');
 
-// XP desktop elements
-const xpDesktop = document.getElementById('xpDesktop');
-const xpClock = document.getElementById('xpClock');
-const xpStartup = document.getElementById('xpStartup');
-
-// ---------- STATE ----------
 let introSkipped=false;
 let dialogueActive=false;
 let dialogueSkipped=false;
 let typerId=null;
 
-// ---------- START (keep original) ----------
 startScreen.addEventListener('click', ()=>{
   startScreen.classList.add('fadeOut');
   setTimeout(()=>{ startScreen.style.display='none'; startIntro(); }, 1500);
 });
 
-// ---------- INTRO (unchanged logic) ----------
 function startIntro(){
   intro.style.display='flex';
   skipIntroBtn.style.display='block';
@@ -231,7 +131,7 @@ function fadeOutIntroAndStartDialogue(){
   setTimeout(()=>{
     intro.style.display='none';
     startDialogue();
-  }, 300); // snappy cut to dialogue
+  }, 300);
 }
 
 skipIntroBtn.addEventListener('click', ()=>{
@@ -240,7 +140,6 @@ skipIntroBtn.addEventListener('click', ()=>{
   fadeOutIntroAndStartDialogue();
 });
 
-// ---------- DIALOGUE (preserved) ----------
 function startDialogue(){
   dialogue.style.display='flex';
   skipDlgBtn.style.display='block';
@@ -269,11 +168,9 @@ Your task: uncover what really happened to Clara`;
     }
   }, 40);
 
-  // Auto-finish after 43s as before
   setTimeout(()=> finishDialogue(), 43000);
 }
 
-// Bind ONCE, globally — works even if intro was skipped
 skipDlgBtn.addEventListener('click', ()=> finishDialogue(true));
 
 function finishDialogue(force=false){
@@ -292,7 +189,6 @@ function finishDialogue(force=false){
   }
 }
 
-// ---------- PRESS ENTER (preserved) ----------
 function showPressEnter(){
   pressEnter.style.display='flex';
   pressEnter.style.opacity=1;
@@ -305,26 +201,17 @@ function showPressEnter(){
   });
 }
 
-// ---------- BOOT / PROGRESS (modified messages to Windows XP style; slowed increments) ----------
 const bootLines=[
- "Windows XP Professional",
- "Copyright (c) Microsoft Corporation. All rights reserved.",
- "Starting Windows...",
- ":: Initializing kernel components...",
- ":: Loading device drivers... OK",
- ":: Starting system services... OK",
- ":: Network: OK",
- ":: Display: OK",
- ":: Input devices: OK",
- ":: Preparing user environment...",
- ":: Windows XP environment ready — Press ENTER to continue"
+ "[    0.000000] Linux version 6.8.1-arch",
+ "[    0.002314] Booting system modules...",
+ ":: Mounting /dev/sda1 to /mnt/root",
+ ":: Starting udevd...",
+ ":: Network manager started",
+ ":: Boot complete — Press ENTER to continue"
 ];
 
-// show boot lines gradually (preserve original boot element)
 function startBoot(){
   bootEl.style.display='block';
-  // clear any previous content
-  bootEl.innerHTML = '';
   let i=0;
   (function append(){
     if(i>=bootLines.length) return;
@@ -333,15 +220,12 @@ function startBoot(){
     l.textContent=bootLines[i++];
     bootEl.appendChild(l);
     bootEl.scrollTop=bootEl.scrollHeight;
-    // slower reveal timing (keeps it dramatic)
-    if(i<bootLines.length) setTimeout(append, 600);
+    if(i<bootLines.length) setTimeout(append, 100);
   })();
 
-  // wait for ENTER to move to progress (preserved behavior)
   document.addEventListener('keydown', function handler(e){
     if(e.key==='Enter' && bootEl.style.display==='block'){
       document.removeEventListener('keydown', handler);
-      // hide boot and show progress stage (progressStage already in DOM)
       bootEl.style.display='none';
       progressStage.style.display='block';
       startProgress();
@@ -349,191 +233,18 @@ function startBoot(){
   });
 }
 
-// Slower, less jumpy progress bar (smaller increments, longer interval)
 function startProgress(){
   let pct=0, total=20;
   const t=setInterval(()=>{
-    // smaller increments, 3-6 each tick
-    pct=Math.min(100, pct + Math.floor(Math.random()*4)+3);
+    pct=Math.min(100, pct + Math.floor(Math.random()*8)+5);
     const filled=Math.round((pct/100)*total);
     pLine.textContent="[" + "#".repeat(filled).padEnd(total," ") + "] " + String(pct).padStart(2," ") + "%";
     if(pct>=100){
       clearInterval(t);
-      // fade out and load XP desktop after a short pause
-      setTimeout(()=>{ progressStage.style.display='none'; loadXPDesktop(); }, 800);
+      setTimeout(()=>{ progressStage.style.display='none'; app.style.display='grid'; }, 300);
     }
-  }, 200); // slower ticks for less rushed feel
+  }, 120);
 }
-
-// --------------------------
-// WINDOWS XP DESKTOP (added WITHOUT removing prior content)
-// --------------------------
-function loadXPDesktop(){
-  // show the xpDesktop container (keeps everything else intact)
-  xpDesktop.style.display='block';
-  xpDesktop.setAttribute('aria-hidden','false');
-
-  // play XP startup sound
-  xpStartup.currentTime = 0;
-  xpStartup.volume = 1;
-  xpStartup.play().catch(()=>{});
-
-  // start clock
-  if(xpClock) setInterval(()=>{ xpClock.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
-
-  // wire up icons: working ones vs corrupted ones
-  const working = {
-    iconMail: 'winMail',
-    iconChrome: 'winChrome',
-    iconBin: 'winBin'
-  };
-  // add click handlers
-  Object.keys(working).forEach(iconId=>{
-    const el = document.getElementById(iconId);
-    if(!el) return;
-    el.addEventListener('click', ()=> openWindowById(working[iconId]));
-  });
-
-  // corrupted icons (spawn genuine XP-style error dialogs)
-  const corruptedIcons = ['iconMyComputer','iconMyDocs','iconIE','iconNet'];
-  corruptedIcons.forEach(id=>{
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('click', ()=> spawnCorruptedDialog("Corrupted Application", "This application is corrupted and cannot be opened."));
-  });
-
-  // Start button must do nothing (visual only) — ensure cursor shows default and no handlers
-  const sb = document.getElementById('startButton');
-  if(sb){ sb.addEventListener('click', (e)=> { e.preventDefault(); /* intentionally do nothing */ }); }
-
-  // make windows draggable/minimizable
-  initWindowBehavior();
-}
-
-// Open a pre-defined window by element ID (placed onscreen)
-function openWindowById(winId){
-  const win = document.getElementById(winId);
-  if(!win) return;
-  // place window near center with small random offset
-  win.style.display = 'flex';
-  win.style.top = (80 + Math.random()*120) + 'px';
-  win.style.left = (100 + Math.random()*260) + 'px';
-  // ensure on top
-  bringToFront(win);
-}
-
-// bring window to top by incrementing zIndex
-let zTop = 100;
-function bringToFront(el){
-  zTop += 1;
-  el.style.zIndex = zTop;
-}
-
-// initialize drag + minimize behavior for windows (including spawned dialogs)
-function initWindowBehavior(){
-  // target any element with class "window" (existing and future)
-  enableDragAndMinFor(document.querySelectorAll('.window'));
-
-  // also add click-to-focus to icon-opened windows
-  document.body.addEventListener('mousedown', (e)=>{
-    const w = e.target.closest('.window');
-    if(w) bringToFront(w);
-  });
-}
-
-// utility: enable drag & minimize on a NodeList (callable again after spawning)
-function enableDragAndMinFor(nodeList){
-  nodeList.forEach(win=>{
-    if(win.__dragEnabled) return; // only once per element
-    win.__dragEnabled = true;
-
-    const header = win.querySelector('.windowHeader');
-    if(!header) return;
-
-    let isDown = false, offX=0, offY=0;
-    header.addEventListener('mousedown', (e)=>{
-      isDown = true;
-      // compute offset relative to left/top
-      offX = e.clientX - (win.offsetLeft || 0);
-      offY = e.clientY - (win.offsetTop || 0);
-      bringToFront(win);
-      document.body.style.userSelect = 'none';
-    });
-    document.addEventListener('mouseup', ()=>{ isDown = false; document.body.style.userSelect = ''; });
-    document.addEventListener('mousemove', (e)=>{
-      if(!isDown) return;
-      // move window — keep inside viewport loosely
-      let left = e.clientX - offX;
-      let top  = e.clientY - offY;
-      // clamp (optional)
-      if(left < 0) left = 0;
-      if(top < 0) top = 0;
-      win.style.left = left + 'px';
-      win.style.top  = top + 'px';
-    });
-
-    // wire up minimize button(s) inside header
-    const minBtn = win.querySelector('.minBtn');
-    if(minBtn){
-      minBtn.addEventListener('click', ()=>{
-        win.style.display = 'none';
-      });
-    }
-  });
-}
-
-// spawn a genuine XP-looking error dialog (draggable + minimizable)
-function spawnCorruptedDialog(title, message){
-  // create unique ID
-  const id = 'err_' + Math.random().toString(36).slice(2,9);
-  const dialog = document.createElement('div');
-  dialog.className = 'window';
-  dialog.id = id;
-  dialog.style.width = '380px';
-  dialog.innerHTML = `
-    <div class="windowHeader"><span>${escapeHtml(title)}</span><div style="display:flex;gap:6px;"><div class="minBtn" data-min="${id}">_</div></div></div>
-    <div class="windowContent" style="font-size:14px;">
-      <div style="display:flex;align-items:flex-start;gap:10px;">
-        <img src="https://icons.iconarchive.com/icons/oxygen-icons.org/oxygen/256/Status-dialog-error-icon.png" alt="error" style="width:40px;height:40px;">
-        <div>${escapeHtml(message)}</div>
-      </div>
-      <div style="text-align:right">
-        <button class="okBtn" style="margin-top:12px;">OK</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(dialog);
-
-  // position and show
-  dialog.style.display = 'flex';
-  dialog.style.top = (120 + Math.random()*120) + 'px';
-  dialog.style.left = (120 + Math.random()*220) + 'px';
-  bringToFront(dialog);
-
-  // wire up Ok button to remove (closer to XP: closes dialog)
-  const ok = dialog.querySelector('.okBtn');
-  ok.addEventListener('click', ()=> { dialog.remove(); });
-
-  // enable drag + minimize behaviour for this new window
-  enableDragAndMinFor([dialog]);
-}
-
-// simple html escape to be safe
-function escapeHtml(str){
-  return str.replace(/[&<>"']/g, s=>{
-    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]);
-  });
-}
-
-// ensure pre-existing placeholder windows are draggable/minimizable too
-// (these were created in the DOM above)
-enableDragAndMinFor(document.querySelectorAll('.window'));
-
-// keep original 'Enter to continue' behaviour for boot (function exported earlier)
-// BUT we need a way to start the earlier boot flow — original code calls startBoot()
-// already wired to showPressEnter() earlier; preserve that.
-
-// === end of script ===
 </script>
 </body>
 </html>
