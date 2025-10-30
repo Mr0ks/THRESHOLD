@@ -166,11 +166,6 @@
       margin-bottom: 2px;
     }
 
-    .progressLine {
-      white-space: pre;
-      font-size: 14px;
-    }
-
     .app {
       display: none;
       place-items: center;
@@ -179,6 +174,49 @@
       font-size: 24px;
       font-weight: 600;
       color: #111;
+    }
+
+    /* ---- XP Boot Styles ---- */
+    #xpBoot {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 999;
+      opacity: 1;
+      transition: opacity 1.5s ease;
+    }
+
+    .xpImage {
+      width: 320px;
+      margin-bottom: 40px;
+    }
+
+    .xpProgress {
+      width: 220px;
+      height: 8px;
+      background: #111;
+      border: 1px solid #333;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .xpBar {
+      position: absolute;
+      top: 0;
+      left: -60px;
+      width: 60px;
+      height: 8px;
+      background: linear-gradient(90deg, #0044ff, #00aaff);
+      animation: slide 1s infinite linear;
+    }
+
+    @keyframes slide {
+      0% { left: -60px; }
+      100% { left: 220px; }
     }
   </style>
 </head>
@@ -202,12 +240,6 @@
   <div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
 
   <div id="boot" class="boot"></div>
-
-  <div id="progressStage" class="progressStage">
-    <div class="bootLine">:: Starting THRESHOLD environment</div>
-    <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
-    <div id="pLine" class="progressLine">[                    ] 0%</div>
-  </div>
 
   <div id="app" class="app">[ Mail UI Loaded ]</div>
 
@@ -234,11 +266,8 @@
     const dialogueText = document.getElementById('dialogueText');
     const pressEnter = document.getElementById('pressEnter');
     const bootEl = document.getElementById('boot');
-    const progressStage = document.getElementById('progressStage');
     const app = document.getElementById('app');
-    const pLine = document.getElementById('pLine');
 
-    // ---------- STATE ----------
     let introSkipped = false;
     let dialogueActive = false;
     let dialogueSkipped = false;
@@ -257,7 +286,6 @@
     function startIntro() {
       intro.style.display = 'flex';
       skipIntroBtn.style.display = 'block';
-
       introAudio.currentTime = 0;
       introAudio.volume = 1;
       introAudio.play().catch(() => {});
@@ -379,7 +407,7 @@ Your task: uncover what really happened to Clara`;
       });
     }
 
-    // ---------- BOOT / PROGRESS ----------
+    // ---------- BOOT / XP TRANSITION ----------
     const bootLines = [
       "[    0.000000] Linux version 6.8.1-arch",
       "[    0.002314] Booting system modules...",
@@ -406,26 +434,29 @@ Your task: uncover what really happened to Clara`;
         if (e.key === 'Enter' && bootEl.style.display === 'block') {
           document.removeEventListener('keydown', handler);
           bootEl.style.display = 'none';
-          progressStage.style.display = 'block';
-          startProgress();
+          showXPBoot();
         }
       });
     }
 
-    function startProgress() {
-      let pct = 0, total = 20;
-      const t = setInterval(() => {
-        pct = Math.min(100, pct + Math.floor(Math.random() * 8) + 5);
-        const filled = Math.round((pct / 100) * total);
-        pLine.textContent = "[" + "#".repeat(filled).padEnd(total, " ") + "] " + String(pct).padStart(2, " ") + "%";
-        if (pct >= 100) {
-          clearInterval(t);
-          setTimeout(() => {
-            progressStage.style.display = 'none';
-            app.style.display = 'grid';
-          }, 300);
-        }
-      }, 120);
+    // ---------- WINDOWS XP BOOT ----------
+    function showXPBoot() {
+      const xpBoot = document.createElement('div');
+      xpBoot.id = 'xpBoot';
+      xpBoot.innerHTML = `
+        <img src="618a15f3-bd0b-4bd6-a421-a29f9f53a7ba.png" alt="Windows XP Boot" class="xpImage">
+        <div class="xpProgress"><div class="xpBar"></div></div>
+      `;
+      document.body.appendChild(xpBoot);
+
+      // Show for 9 seconds, then fade to app
+      setTimeout(() => {
+        xpBoot.style.opacity = '0';
+        setTimeout(() => {
+          xpBoot.remove();
+          app.style.display = 'grid';
+        }, 1500);
+      }, 9000);
     }
   </script>
 </body>
