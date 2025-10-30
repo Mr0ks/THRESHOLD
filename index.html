@@ -1,326 +1,177 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>THRESHOLD</title>
-  <link rel="icon" type="image/png" href="door.png" />
-  <style>
-    :root {
-      --boot-bg: #000;
-      --boot-fg: #fff;
-      --intro-red: #d20000;
-    }
+<meta charset="utf-8">
+<title>XP Simulation</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:sans-serif;background:#000;}
+#intro,#dialogue,#boot,#progressStage,#bootVid,#desktop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;color:#0f0;font-size:20px;text-align:center;}
+#intro{display:flex;flex-direction:column;}
+#progressStage{background:#000;color:#0f0;}
+#bootVid,#desktop{inset:0;}
+#bootVid{object-fit:cover;width:100%;height:100%;}
+#desktop{background:url("bliss.png") center/cover no-repeat;cursor:url("cursor.cur"),auto;}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      height: 100%;
-      background: #000;
-      overflow: hidden;
-      color: #fff;
-      font-family: ui-monospace, monospace;
-    }
-
-    .startScreen {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: #000; color: #fff; cursor: pointer; font-size: clamp(20px, 3vw, 28px);
-      user-select: none; opacity: 1; transition: opacity 1.5s ease; z-index: 20;
-    }
-    .fadeOut { opacity: 0 !important; }
-
-    .intro {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: #000; text-align: center; flex-direction: column; z-index: 10;
-    }
-
-    .introText, .presenting, .title {
-      position: absolute; left: 50%; transform: translateX(-50%);
-      text-transform: uppercase; opacity: 0; transition: opacity 2s ease-in-out;
-    }
-    .introText { top: 50%; color: #fff; font-weight: 600; font-size: clamp(18px, 3vw, 26px); }
-    .presenting {
-      top: 50%; color: #fff; font-weight: 600; font-family: ui-monospace, monospace;
-      font-size: clamp(20px, 3vw, 28px); letter-spacing: 2px; transition: opacity 2s, top 2s;
-    }
-    .title {
-      top: 52%; color: var(--intro-red); font-weight: 900; white-space: nowrap;
-      font-size: clamp(56px, 16vw, 220px); text-shadow: 0 0 0 #f00; transition: opacity 2s, text-shadow 1.2s;
-    }
-
-    .skipButton {
-      position: fixed; bottom: 30px; right: 30px; background: rgba(255,255,255,0.1);
-      border: 1px solid #fff; padding: 10px 18px; font-size: 16px; cursor: pointer; color: #fff;
-      border-radius: 6px; transition: background .3s, opacity .5s; z-index: 9999;
-    }
-    .skipButton:hover { background: rgba(255,255,255,0.3); }
-
-    .dialogue {
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      background: #000; padding: 60px; text-align: center; flex-direction: column; z-index: 8;
-    }
-    .dialogueText {
-      max-width: 900px; font-size: clamp(18px, 2.5vw, 22px); color: #fff; line-height: 1.5;
-      white-space: pre-line; opacity: 1; transition: opacity 2s ease-in-out;
-    }
-
-    .pressEnter {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      font-size: clamp(20px, 3vw, 30px); color: #fff; background: #000; opacity: 0;
-      transition: opacity 2s ease-in-out; text-align: center;
-    }
-
-    .boot, .progressStage {
-      position: fixed; inset: 0; background: var(--boot-bg); color: var(--boot-fg);
-      font-family: ui-monospace, Menlo, Consolas, monospace; padding: 14px; overflow: auto;
-      line-height: 1.2; display: none;
-    }
-    .bootLine { white-space: pre; font-size: 14px; margin-bottom: 2px; }
-    .progressLine { white-space: pre; font-size: 14px; }
-
-    .app {
-      display: none; place-items: center; height: 100%; background: #fff;
-      font-size: 24px; font-weight: 600; color: #111;
-    }
-
-    /* ---- XP Boot Video Overlay ---- */
-    #xpBootOverlay {
-      position: fixed; inset: 0; background: #000; display: none;
-      align-items: center; justify-content: center; z-index: 1000; opacity: 1;
-      transition: opacity 1.2s ease;
-    }
-    #xpBootOverlay video {
-      max-width: 100vw; max-height: 100vh; width: 100%; height: 100%;
-      object-fit: contain; /* letterbox if aspect ratio differs */
-      background: #000;
-    }
-  </style>
+/* taskbar */
+.taskbar{
+  position:absolute;bottom:0;left:0;width:100%;height:40px;
+  background:linear-gradient(#3d7ade,#1b47a6);
+  display:flex;align-items:center;justify-content:space-between;
+  color:#fff;padding:0 10px;box-shadow:0 -2px 6px rgba(0,0,0,.5);
+}
+.start{background:linear-gradient(#50a050,#2d7c2d);
+  border:1px solid #164d16;border-radius:4px;padding:4px 12px;
+  font-weight:bold;color:#fff;text-shadow:0 1px 0 #000;cursor:pointer;
+  transition:filter .15s;
+}
+.start:hover{filter:brightness(1.2);}
+.clock{font-size:14px;}
+.icon{position:absolute;width:80px;text-align:center;color:#fff;font-size:12px;user-select:none;text-shadow:1px 1px 2px #000;}
+.icon img{width:48px;height:48px;display:block;margin:0 auto 4px;}
+.balloon{
+  position:absolute;bottom:60px;right:20px;width:220px;
+  background:#fff;border:1px solid #555;border-radius:5px;
+  font-size:13px;padding:8px;display:none;box-shadow:0 0 6px rgba(0,0,0,.4);
+}
+.window{
+  position:absolute;top:120px;left:120px;width:320px;
+  background:#e0e0e0;border:2px solid #0a246a;display:none;
+  box-shadow:3px 3px 6px rgba(0,0,0,.5);
+}
+.titlebar{
+  background:linear-gradient(#4c7cd2,#2453a6);
+  color:#fff;padding:4px;font-size:14px;cursor:move;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.btns span{display:inline-block;width:16px;height:16px;text-align:center;
+  margin-left:3px;font-weight:bold;cursor:pointer;
+}
+.min{background:#eee;color:#000;}
+.close{background:#c33;color:#fff;}
+.content{padding:10px;font-size:14px;color:#000;}
+</style>
 </head>
-
 <body>
-  <div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 
-  <div id="intro" class="intro" style="display:none;">
-    <div id="introText" class="introText"></div>
-    <div id="presenting" class="presenting">PRESENTING...</div>
-    <div id="doorTitle" class="title">THRESHOLD</div>
+<!-- intro -->
+<div id="intro">
+  <p>Initializing system...</p>
+  <p>Loading modules...</p>
+  <p>Press ENTER to continue</p>
+</div>
+
+<!-- dialogue -->
+<div id="dialogue">Running boot diagnostics...</div>
+
+<!-- Linux boot simulation -->
+<div id="boot">Booting Linux kernel...<br>System check complete.<br>Press ENTER to continue</div>
+
+<!-- progress stage -->
+<div id="progressStage">Loading... please wait</div>
+
+<!-- XP boot video -->
+<video id="bootVid" src="lol.mp4"></video>
+
+<!-- XP desktop -->
+<div id="desktop">
+  <div class="icon" style="top:40px;left:40px;"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f5a5.svg"><div>My Computer</div></div>
+  <div class="icon" style="top:140px;left:40px;"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f5c4.svg"><div>My Documents</div></div>
+  <div class="icon" style="top:240px;left:40px;"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/267b.svg"><div>Recycle Bin</div></div>
+  <div class="icon" style="top:340px;left:40px;"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f310.svg"><div>Internet</div></div>
+
+  <div class="balloon" id="balloon">New hardware found.</div>
+
+  <div class="window" id="errWin">
+    <div class="titlebar">
+      <span>Error</span>
+      <div class="btns"><span class="min">_</span><span class="close">X</span></div>
+    </div>
+    <div class="content">
+      A problem has been detected.<br><br>
+      <button onclick="closeErr()">OK</button>
+    </div>
   </div>
 
-  <button id="skipIntro" class="skipButton" style="display:none;">Skip Intro</button>
-  <button id="skipDialogue" class="skipButton" style="display:none;">Skip Dialogue</button>
-
-  <div id="dialogue" class="dialogue">
-    <div id="dialogueText" class="dialogueText"></div>
+  <div class="taskbar">
+    <div class="start">Start</div>
+    <div class="clock" id="clock"></div>
   </div>
+</div>
 
-  <div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
+<audio id="sndStart" src="start.mp3" preload="auto"></audio>
+<audio id="sndErr" src="error.mp3" preload="auto"></audio>
 
-  <div id="boot" class="boot"></div>
+<script>
+const intro=document.getElementById("intro");
+const dialogue=document.getElementById("dialogue");
+const boot=document.getElementById("boot");
+const progressStage=document.getElementById("progressStage");
+const bootVid=document.getElementById("bootVid");
+const desktop=document.getElementById("desktop");
 
-  <!-- Keep your progressStage DOM (unused now, but left intact) -->
-  <div id="progressStage" class="progressStage" style="display:none;">
-    <div class="bootLine">:: Starting THRESHOLD environment</div>
-    <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
-    <div id="pLine" class="progressLine">[                    ] 0%</div>
-  </div>
+function showDialogue(){
+  intro.style.display="none";
+  dialogue.style.display="flex";
+  setTimeout(()=>{dialogue.style.display="none";boot.style.display="flex";},3000);
+}
+document.addEventListener("keydown",function handler(e){
+  if(e.key==="Enter" && intro.style.display==="flex"){showDialogue();}
+  else if(e.key==="Enter" && boot.style.display==="flex"){
+    document.removeEventListener("keydown",handler);
+    boot.style.display="none";
+    showXPBoot();
+  }
+});
 
-  <!-- XP boot video overlay (appears only after Linux boot enter) -->
-  <div id="xpBootOverlay">
-    <video id="xpVideo" src="lol.mp4" preload="auto" playsinline></video>
-  </div>
-
-  <div id="app" class="app">[ Mail UI Loaded ]</div>
-
-  <script>
-    // ---------- AUDIO ----------
-    const introAudio = new Audio('sounds/intro.mp3');
-    const talkAudio = new Audio('sounds/introtalk.mp3');
-    [introAudio, talkAudio].forEach(a => { a.preload='auto'; a.load(); a.loop=false; a.autoplay=false; });
-
-    // ---------- ELEMENTS ----------
-    const startScreen = document.getElementById('startScreen');
-    const intro = document.getElementById('intro');
-    const introText = document.getElementById('introText');
-    const presenting = document.getElementById('presenting');
-    const door = document.getElementById('doorTitle');
-    const skipIntroBtn = document.getElementById('skipIntro');
-    const skipDlgBtn = document.getElementById('skipDialogue');
-    const dialogue = document.getElementById('dialogue');
-    const dialogueText = document.getElementById('dialogueText');
-    const pressEnter = document.getElementById('pressEnter');
-    const bootEl = document.getElementById('boot');
-    const progressStage = document.getElementById('progressStage'); // kept, not used
-    const app = document.getElementById('app');
-
-    // XP overlay elements
-    const xpOverlay = document.getElementById('xpBootOverlay');
-    const xpVideo = document.getElementById('xpVideo');
-
-    // ---------- STATE ----------
-    let introSkipped = false;
-    let dialogueActive = false;
-    let dialogueSkipped = false;
-    let typerId = null;
-
-    // ---------- START ----------
-    startScreen.addEventListener('click', () => {
-      startScreen.classList.add('fadeOut');
-      setTimeout(() => { startScreen.style.display = 'none'; startIntro(); }, 1500);
-    });
-
-    // ---------- INTRO ----------
-    function startIntro() {
-      intro.style.display = 'flex';
-      skipIntroBtn.style.display = 'block';
-
-      introAudio.currentTime = 0; introAudio.volume = 1;
-      introAudio.play().catch(() => {});
-
-      const lines = [
-        "This game is protected by an MIT license.",
-        "This game is based on Wayward and other movies.",
-        "Contains flashing lights, loud sounds, and psychological horror."
-      ];
-
-      lines.forEach((text, i) => {
-        const t = i * 9000;
-        setTimeout(() => {
-          if (introSkipped) return;
-          introText.textContent = text;
-          introText.style.opacity = 1;
-          setTimeout(() => { introText.style.opacity = 0; }, 5000);
-        }, t + (i === 0 ? 500 : 0));
-      });
-
-      setTimeout(() => { if (!introSkipped) presenting.style.opacity = 1; }, 27000);
-      setTimeout(() => { if (!introSkipped) presenting.style.top = "38%"; }, 27050);
-      setTimeout(() => { if (!introSkipped) { door.style.opacity = 1; door.style.textShadow = '0 0 25px #f00'; } }, 29000);
-      setTimeout(() => { if (!introSkipped) fadeOutIntroAndStartDialogue(); }, 36000);
-    }
-
-    function fadeOutIntroAndStartDialogue() {
-      skipIntroBtn.style.display = 'none';
-      presenting.style.opacity = 0; door.style.opacity = 0;
-
-      const fade = setInterval(() => {
-        introAudio.volume = Math.max(0, introAudio.volume - 0.06);
-        if (introAudio.volume <= 0) { introAudio.pause(); clearInterval(fade); }
-      }, 30);
-
-      setTimeout(() => { intro.style.display = 'none'; startDialogue(); }, 300);
-    }
-
-    skipIntroBtn.addEventListener('click', () => {
-      if (introSkipped) return;
-      introSkipped = true; fadeOutIntroAndStartDialogue();
-    });
-
-    // ---------- DIALOGUE ----------
-    function startDialogue() {
-      dialogue.style.display = 'flex';
-      skipDlgBtn.style.display = 'block';
-      dialogueActive = true; dialogueSkipped = false;
-
-      talkAudio.currentTime = 0; talkAudio.volume = 1; talkAudio.play().catch(()=>{});
-
-      const storyText = `This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
-You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
-
-Inside the dimly lit apartment, you find Clara, a devoted member of Higher Heaven — a healing cult that once promised salvation, now steeped in blood and mystery. She lies lifeless on the floor. Her laptop glows faintly beside her, the screen still open… as if she was in the middle of something she shouldn’t have seen.
-
-Your task: uncover what really happened to Clara`;
-
-      dialogueText.textContent = "";
-      let idx = 0;
-      clearInterval(typerId);
-      typerId = setInterval(() => {
-        if (!dialogueActive) { clearInterval(typerId); return; }
-        if (idx < storyText.length) dialogueText.textContent += storyText[idx++];
-        else clearInterval(typerId);
-      }, 40);
-
-      setTimeout(() => finishDialogue(), 43000);
-    }
-
-    skipDlgBtn.addEventListener('click', () => finishDialogue(true));
-
-    function finishDialogue(force = false) {
-      if (!dialogueActive) return;
-      dialogueActive = false;
-      if (typerId) { clearInterval(typerId); typerId = null; }
-      if (!dialogueSkipped || force) {
-        dialogueSkipped = true; skipDlgBtn.style.display = 'none';
-        dialogueText.style.opacity = 0; talkAudio.pause();
-        setTimeout(() => { dialogue.style.display = 'none'; showPressEnter(); }, 600);
-      }
-    }
-
-    // ---------- PRESS ENTER ----------
-    function showPressEnter() {
-      pressEnter.style.display = 'flex'; pressEnter.style.opacity = 1;
-      document.addEventListener('keydown', function handler(e) {
-        if (e.key === 'Enter') {
-          document.removeEventListener('keydown', handler);
-          pressEnter.style.opacity = 0;
-          setTimeout(() => { pressEnter.style.display = 'none'; startBoot(); }, 500);
-        }
-      });
-    }
-
-    // ---------- LINUX BOOT (unchanged) ----------
-    const bootLines = [
-      "[    0.000000] Linux version 6.8.1-arch",
-      "[    0.002314] Booting system modules...",
-      ":: Mounting /dev/sda1 to /mnt/root",
-      ":: Starting udevd...",
-      ":: Network manager started",
-      ":: Boot complete — Press ENTER to continue"
-    ];
-
-    function startBoot() {
-      bootEl.style.display = 'block';
-      let i = 0;
-      (function append() {
-        if (i >= bootLines.length) return;
-        const l = document.createElement('div');
-        l.className = 'bootLine'; l.textContent = bootLines[i++];
-        bootEl.appendChild(l); bootEl.scrollTop = bootEl.scrollHeight;
-        if (i < bootLines.length) setTimeout(append, 100);
-      })();
-
-      // After Linux boot, press Enter -> show XP video
-      document.addEventListener('keydown', function handler(e) {
-        if (e.key === 'Enter' && bootEl.style.display === 'block') {
-          document.removeEventListener('keydown', handler);
-          bootEl.style.display = 'none';
-          showXPBootVideo();
-        }
-      });
-    }
-
-    // ---------- WINDOWS XP BOOT (video) ----------
-    function showXPBootVideo() {
-      xpOverlay.style.display = 'flex';
-
-      // try to play with audio (keypress counts as user gesture)
-      const playPromise = xpVideo.play();
-      if (playPromise && typeof playPromise.then === 'function') {
-        playPromise.catch(() => {
-          // fallback: if browser blocks audio, play muted
-          xpVideo.muted = true;
-          xpVideo.play().catch(()=>{ /* ignore */ });
-        });
-      }
-
-      // When video ends, fade out and show app
-      xpVideo.onended = () => {
-        xpOverlay.style.opacity = '0';
-        setTimeout(() => {
-          xpOverlay.style.display = 'none';
-          app.style.display = 'grid';
-        }, 1200);
-      };
-    }
-  </script>
+function showXPBoot(){
+  bootVid.style.display="block";
+  bootVid.play();
+}
+bootVid.addEventListener("ended",()=>{
+  bootVid.style.display="none";
+  document.getElementById("sndStart").play();
+  desktop.style.display="block";
+  updateClock();
+  showBalloon();
+});
+/* clock */
+function updateClock(){
+  const c=document.getElementById("clock");
+  const d=new Date();
+  let h=d.getHours(),m=d.getMinutes();
+  const ampm=h>=12?"PM":"AM";h=h%12||12;
+  c.textContent=`${h}:${m.toString().padStart(2,"0")} ${ampm}`;
+  setTimeout(updateClock,1000);
+}
+/* balloon */
+function showBalloon(){
+  const b=document.getElementById("balloon");
+  b.style.display="block";
+  setTimeout(()=>b.style.display="none",6000);
+  b.onclick=()=>{b.style.display="none";openErr();}
+}
+/* error window */
+function openErr(){
+  const w=document.getElementById("errWin");
+  w.style.display="block";
+  document.getElementById("sndErr").play();
+}
+function closeErr(){
+  document.getElementById("errWin").style.display="none";
+}
+/* drag window */
+const win=document.getElementById("errWin");
+const bar=win.querySelector(".titlebar");
+let drag=false,dx=0,dy=0;
+bar.addEventListener("mousedown",e=>{drag=true;dx=e.offsetX;dy=e.offsetY;});
+window.addEventListener("mouseup",()=>drag=false);
+window.addEventListener("mousemove",e=>{
+  if(!drag)return;
+  win.style.left=(e.pageX-dx)+"px";
+  win.style.top=(e.pageY-dy)+"px";
+});
+win.querySelector(".close").onclick=()=>win.style.display="none";
+win.querySelector(".min").onclick=()=>win.style.display="none";
+</script>
 </body>
 </html>
