@@ -28,15 +28,67 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 /* XP Desktop */
 #xpVideo{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:200;background:#000;}
 #xpDesktop{display:none;position:fixed;inset:0;background:url('bliss.png') center/cover no-repeat;cursor:url('cursor.cur'),auto;z-index:100;}
-.taskbar{position:absolute;bottom:0;left:0;width:100%;height:40px;background:linear-gradient(#3d7ade,#1b47a6);display:flex;align-items:center;justify-content:space-between;color:#fff;padding:0 10px;font-family:Tahoma,Arial;font-size:14px;}
-.startbtn{background:linear-gradient(#50a050,#2d7c2d);border:1px solid #164d16;border-radius:4px;padding:4px 12px;font-weight:bold;}
-.icon{position:absolute;width:80px;text-align:center;color:#fff;font-family:Tahoma;font-size:13px;text-shadow:1px 1px 2px #000;}
+.taskbar{
+  position:absolute;bottom:0;left:0;width:100%;height:40px;
+  background:linear-gradient(#245edb,#1b47a6);
+  border-top:1px solid #0a2d91;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 10px;font-family:Tahoma,Arial;font-size:13px;color:#fff;
+  box-shadow:inset 0 1px #3c7af3;
+}
+.startbtn{
+  display:flex;align-items:center;gap:6px;
+  background:linear-gradient(#6dd46d,#3aa83a);
+  border:1px solid #0f490f;border-radius:4px;
+  padding:3px 12px;font-weight:bold;color:#fff;
+  font-family:Tahoma;
+  box-shadow:inset 0 1px #a7fca7;
+  cursor:pointer;
+}
+.startbtn:hover{background:linear-gradient(#7fe87f,#46b946);}
+.startbtn::before{
+  content:"";
+  display:inline-block;
+  width:16px;height:16px;
+  background:url('https://win98icons.alexmeub.com/icons/png/windows-0.png') center/cover no-repeat;
+}
+#clock{font-family:Tahoma;font-size:13px;text-shadow:1px 1px 1px #000;}
+
+/* Desktop icons */
+.icon{position:absolute;width:80px;text-align:center;color:#fff;font-family:Tahoma;font-size:13px;text-shadow:1px 1px 2px #000;cursor:default;}
 .icon img{width:48px;height:48px;display:block;margin:0 auto;}
-#balloon{display:none;position:absolute;bottom:60px;right:20px;width:240px;background:#fff;border:1px solid #555;border-radius:6px;padding:8px;color:#000;font-family:Tahoma;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,.5);cursor:pointer;}
-.window{position:absolute;background:#ece9d8;border:2px solid #0a246a;width:300px;display:none;z-index:150;}
-.window .titlebar{background:linear-gradient(#4c7cd2,#2453a6);color:#fff;padding:4px;font-family:Tahoma;font-size:13px;cursor:move;}
+
+/* Notification balloon */
+#balloon{
+  display:none;
+  position:absolute;
+  bottom:60px;right:20px;
+  width:240px;background:#fff;border:1px solid #555;border-radius:6px;
+  padding:8px;color:#000;font-family:Tahoma;font-size:13px;
+  box-shadow:0 2px 4px rgba(0,0,0,.5);cursor:pointer;
+}
+
+/* Windows / Popups */
+.window{
+  position:absolute;
+  background:#ece9d8;
+  border:2px solid #0a246a;
+  width:300px;
+  display:none;
+  z-index:150;
+  box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+.window .titlebar{
+  background:linear-gradient(#4c7cd2,#2453a6);
+  color:#fff;
+  padding:4px 6px;
+  font-family:Tahoma;
+  font-size:13px;
+  cursor:move;
+  user-select:none;
+}
 .window .content{padding:10px;color:#000;font-family:Tahoma;font-size:13px;}
-.window .close{float:right;cursor:pointer;font-weight:bold;}
+.window .close{float:right;cursor:pointer;font-weight:bold;color:#fff;}
 </style>
 </head>
 
@@ -108,7 +160,6 @@ const dialogue=document.getElementById('dialogue');
 const dialogueText=document.getElementById('dialogueText');
 const pressEnter=document.getElementById('pressEnter');
 const bootEl=document.getElementById('boot');
-const progressStage=document.getElementById('progressStage');
 const pLine=document.getElementById('pLine');
 
 // ---------- STATE ----------
@@ -213,24 +264,47 @@ function showXPBoot(){
 }
 function showBalloon(){
   balloon.style.display='block';
-  // only triggers error on click
   balloon.addEventListener('click', ()=>{
     balloon.style.display='none';
     openErr();
   });
 }
 function openErr(){
+  centerWindow(errWin);
   errWin.style.display='block';
   xpErr.play();
+  makeDraggable(errWin);
 }
-function closeErr(){
-  errWin.style.display='none';
-}
+function closeErr(){errWin.style.display='none';}
 function startClock(){
   setInterval(()=>{
     const d=new Date();
     clock.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   },1000);
+}
+
+// ---------- HELPERS ----------
+function centerWindow(win){
+  const ww=window.innerWidth, wh=window.innerHeight;
+  const rect=win.getBoundingClientRect();
+  win.style.left=(ww/2-rect.width/2)+'px';
+  win.style.top=(wh/2-rect.height/2-40)+'px';
+}
+function makeDraggable(win){
+  const bar=win.querySelector('.titlebar');
+  let offsetX=0,offsetY=0,isDown=false;
+  bar.addEventListener('mousedown',e=>{
+    isDown=true;
+    offsetX=e.clientX - win.offsetLeft;
+    offsetY=e.clientY - win.offsetTop;
+    document.body.style.userSelect='none';
+  });
+  document.addEventListener('mouseup',()=>{isDown=false;document.body.style.userSelect='';});
+  document.addEventListener('mousemove',e=>{
+    if(!isDown)return;
+    win.style.left=(e.clientX - offsetX)+'px';
+    win.style.top=(e.clientY - offsetY)+'px';
+  });
 }
 </script>
 </body>
