@@ -1,310 +1,176 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>THRESHOLD</title>
-<link rel="icon" type="image/png" href="door.png" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threshold - Investigation Simulation</title>
 <style>
-:root { --boot-bg:#000; --boot-fg:#fff; --intro-red:#d20000; }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-monospace,monospace;}
-.startScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;cursor:pointer;font-size:clamp(20px,3vw,28px);user-select:none;opacity:1;transition:opacity 1.5s ease;z-index:20}
-.fadeOut{opacity:0!important}
-.intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;text-align:center;flex-direction:column;z-index:10}
-.introText,.presenting,.title{position:absolute;left:50%;transform:translateX(-50%);text-transform:uppercase;opacity:0;transition:opacity 2s ease-in-out}
-.introText{top:50%;color:#fff;font-weight:600;font-size:clamp(18px,3vw,26px)}
-.presenting{top:50%;color:#fff;font-weight:600;font-family:ui-monospace,monospace;font-size:clamp(20px,3vw,28px);letter-spacing:2px;transition:opacity 2s ease-in-out,top 2s ease-in-out}
-.title{top:52%;color:var(--intro-red);font-weight:900;white-space:nowrap;font-size:clamp(56px,16vw,220px);text-shadow:0 0 0 #f00;transition:opacity 2s ease-in-out,text-shadow 1.2s ease-in-out}
-.skipButton{position:fixed;bottom:30px;right:30px;background:rgba(255,255,255,0.1);border:1px solid #fff;padding:10px 18px;font-size:16px;cursor:pointer;color:#fff;border-radius:6px;transition:background .3s,opacity .5s;z-index:9999}
-.skipButton:hover{background:rgba(255,255,255,0.3)}
-.dialogue{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000;padding:60px;text-align:center;flex-direction:column;z-index:8}
-.dialogueText{max-width:900px;font-size:clamp(18px,2.5vw,22px);color:#fff;line-height:1.5;white-space:pre-line;opacity:1;transition:opacity 2s ease-in-out}
-.pressEnter{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,3vw,30px);color:#fff;background:#000;opacity:0;transition:opacity 2s ease-in-out;text-align:center}
-.boot,.progressStage{position:fixed;inset:0;background:var(--boot-bg);color:var(--boot-fg);font-family:ui-monospace,Menlo,Consolas,monospace;padding:14px;overflow:auto;line-height:1.2;display:none}
-.bootLine{white-space:pre;font-size:14px;margin-bottom:2px}
-.progressLine{white-space:pre;font-size:14px}
-
-/* XP Desktop */
-#xpVideo{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:200;background:#000;}
-#xpDesktop{display:none;position:fixed;inset:0;background:url('bliss.png') center/cover no-repeat;cursor:url('cursor.cur'),auto;z-index:100;}
-.taskbar{
-  position:absolute;bottom:0;left:0;width:100%;height:40px;
-  background:linear-gradient(#245edb,#1b47a6);
-  border-top:1px solid #0a2d91;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 10px;font-family:Tahoma,Arial;font-size:13px;color:#fff;
-  box-shadow:inset 0 1px #3c7af3;
-}
-.startbtn{
-  display:flex;align-items:center;gap:6px;
-  background:linear-gradient(#6dd46d,#3aa83a);
-  border:1px solid #0f490f;border-radius:4px;
-  padding:3px 12px;font-weight:bold;color:#fff;
-  font-family:Tahoma;
-  box-shadow:inset 0 1px #a7fca7;
-  cursor:pointer;
-}
-.startbtn:hover{background:linear-gradient(#7fe87f,#46b946);}
-.startbtn::before{
-  content:"";
-  display:inline-block;
-  width:16px;height:16px;
-  background:url('https://win98icons.alexmeub.com/icons/png/windows-0.png') center/cover no-repeat;
-}
-#clock{font-family:Tahoma;font-size:13px;text-shadow:1px 1px 1px #000;}
-
-/* Desktop icons */
-.icon{position:absolute;width:80px;text-align:center;color:#fff;font-family:Tahoma;font-size:13px;text-shadow:1px 1px 2px #000;cursor:default;}
-.icon img{width:48px;height:48px;display:block;margin:0 auto;}
-
-/* Notification balloon */
-#balloon{
-  display:none;
-  position:absolute;
-  bottom:60px;right:20px;
-  width:240px;background:#fff;border:1px solid #555;border-radius:6px;
-  padding:8px;color:#000;font-family:Tahoma;font-size:13px;
-  box-shadow:0 2px 4px rgba(0,0,0,.5);cursor:pointer;
-}
-
-/* Windows / Popups */
-.window{
-  position:absolute;
-  background:#ece9d8;
-  border:2px solid #0a246a;
-  width:300px;
-  display:none;
-  z-index:150;
-  box-shadow:0 4px 10px rgba(0,0,0,0.4);
-}
-.window .titlebar{
-  background:linear-gradient(#4c7cd2,#2453a6);
-  color:#fff;
-  padding:4px 6px;
-  font-family:Tahoma;
-  font-size:13px;
-  cursor:move;
-  user-select:none;
-}
-.window .content{padding:10px;color:#000;font-family:Tahoma;font-size:13px;}
-.window .close{float:right;cursor:pointer;font-weight:bold;color:#fff;}
+html,body{margin:0;padding:0;width:100%;height:100%;background:#000;color:#fff;font-family:"Courier New",monospace;overflow:hidden;}
+#boot,#intro,#xpDesktop,#staticOverlay{position:absolute;top:0;left:0;width:100%;height:100%;}
+#boot{background:#000;color:#0f0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+#intro{background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;font-size:18px;padding:30px;text-align:center;}
+#intro p{max-width:700px;}
+#xpDesktop{background:url('https://i.imgur.com/6cJ2NUp.jpeg') center/cover no-repeat;display:none;position:relative;}
+#taskbar{position:absolute;bottom:0;left:0;width:100%;height:40px;background:linear-gradient(#2a66b0,#1d4f94);display:flex;align-items:center;padding:0 10px;box-sizing:border-box;}
+#startBtn{background:#1a5cb8;border:1px solid #0c3e87;color:#fff;padding:5px 15px;font-weight:bold;border-radius:3px;cursor:pointer;}
+#clock{margin-left:auto;font-size:14px;}
+.icon{position:absolute;width:60px;text-align:center;color:#fff;cursor:pointer;text-shadow:1px 1px 3px #000;}
+.icon img{width:48px;height:48px;}
+.window{position:absolute;width:420px;background:#ece9d8;border:2px solid #003399;box-shadow:3px 3px 10px rgba(0,0,0,.6);border-radius:4px;display:none;color:#000;}
+.win-header{background:linear-gradient(#245edc,#1742a0);color:#fff;padding:3px 6px;cursor:move;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.win-content{background:#fff;padding:10px;font-family:Consolas,monospace;color:#111;font-size:13px;max-height:300px;overflow-y:auto;}
+.closeBtn{cursor:pointer;font-weight:bold;}
+#staticOverlay{display:none;background:#000 url('https://i.imgur.com/ayk9B7P.gif') center/cover no-repeat;opacity:0;transition:opacity 2s;}
 </style>
 </head>
-
 <body>
-<div id="startScreen" class="startScreen">Click anywhere to begin...</div>
-<div id="intro" class="intro" style="display:none;">
-  <div id="introText" class="introText"></div>
-  <div id="presenting" class="presenting">PRESENTING...</div>
-  <div id="doorTitle" class="title">THRESHOLD</div>
-</div>
-<button id="skipIntro" class="skipButton" style="display:none;">Skip Intro</button>
-<button id="skipDialogue" class="skipButton" style="display:none;">Skip Dialogue</button>
-<div id="dialogue" class="dialogue"><div id="dialogueText" class="dialogueText"></div></div>
-<div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
-<div id="boot" class="boot"></div>
-<div id="progressStage" class="progressStage">
-  <div class="bootLine">:: Starting THRESHOLD environment</div>
-  <div class="bootLine">:: Checking services: network OK, display OK, input OK</div><br>
-  <div id="pLine" class="progressLine">[                    ] 0%</div>
+
+<!-- BOOT -->
+<div id="boot">Initializing System...<br>Loading Threshold OS 1.3...</div>
+
+<!-- INTRO / INVESTIGATOR LOG -->
+<div id="intro">
+<h2>Investigator’s Log</h2>
+<p><strong>Day 1 — Scene Analysis</strong></p>
+<p>The apartment is too quiet.<br>
+Clara lies on her back, eyes open, arms neatly to her sides. No sign of resistance.<br>
+The only light is the dim glow from her computer monitor.<br>
+A sticky note whispers the same promise repeated in her online messages:<br>
+<em>“Home before dawn.”</em></p>
+<p>The system clock reads <strong>02:13 AM.</strong></p>
+<p>Click below to begin forensic analysis.</p>
+<button id="beginBtn">Access System</button>
 </div>
 
-<!-- XP Boot and Desktop -->
-<video id="xpVideo" src="lol.mp4"></video>
+<!-- XP DESKTOP -->
 <div id="xpDesktop">
-  <div class="icon" style="top:40px;left:40px;">
-    <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" alt="My Computer">
-    <br>My Computer
-  </div>
-  <div class="icon" style="top:140px;left:40px;">
-    <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-5.png" alt="My Documents">
-    <br>My Documents
-  </div>
-  <div class="icon" style="top:240px;left:40px;">
-    <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_full-5.png" alt="Recycle Bin">
-    <br>Recycle Bin
-  </div>
-  <div id="balloon">
-    <strong>New hardware found</strong><br>
-    Click here to install drivers.
-  </div>
-  <div id="errWindow" class="window">
-    <div class="titlebar">Error <span class="close" onclick="closeErr()">X</span></div>
-    <div class="content">A problem has been detected.<br><br><button onclick="closeErr()">OK</button></div>
-  </div>
-  <div class="taskbar">
-    <div class="startbtn">Start</div>
-    <div id="clock"></div>
-  </div>
+<div class="icon" id="recycle" style="top:60px;left:40px;">
+<img src="https://cdn-icons-png.flaticon.com/512/565/565515.png"><div>Recycle Bin</div>
+</div>
+<div class="icon" id="docs" style="top:60px;left:130px;">
+<img src="https://cdn-icons-png.flaticon.com/512/337/337946.png"><div>My Documents</div>
+</div>
+<div class="icon" id="mail" style="top:60px;left:220px;">
+<img src="https://cdn-icons-png.flaticon.com/512/561/561127.png"><div>Mail</div>
+</div>
+<div class="icon" id="usb" style="top:60px;left:310px;">
+<img src="https://cdn-icons-png.flaticon.com/512/179/179598.png"><div>USB</div>
 </div>
 
-<audio id="xpStart" src="start.mp3"></audio>
-<audio id="xpErr" src="error.mp3"></audio>
+<div id="taskbar"><div id="startBtn">Start</div><div id="clock"></div></div>
+</div>
+
+<div id="staticOverlay"></div>
+
+<audio id="ambient" src="ambient.mp3" loop></audio>
+<audio id="bell" src="bell.mp3"></audio>
+<audio id="staticS" src="static.mp3"></audio>
 
 <script>
-// ---------- AUDIO ----------
-const introAudio=new Audio('sounds/intro.mp3');
-const talkAudio=new Audio('sounds/introtalk.mp3');
-[introAudio,talkAudio].forEach(a=>{a.preload='auto';a.load();a.loop=false;a.autoplay=false;});
-
-// ---------- ELEMENTS ----------
-const startScreen=document.getElementById('startScreen');
+// ---------- BOOT + INTRO ----------
+const boot=document.getElementById('boot');
 const intro=document.getElementById('intro');
-const introText=document.getElementById('introText');
-const presenting=document.getElementById('presenting');
-const door=document.getElementById('doorTitle');
-const skipIntroBtn=document.getElementById('skipIntro');
-const skipDlgBtn=document.getElementById('skipDialogue');
-const dialogue=document.getElementById('dialogue');
-const dialogueText=document.getElementById('dialogueText');
-const pressEnter=document.getElementById('pressEnter');
-const bootEl=document.getElementById('boot');
-const pLine=document.getElementById('pLine');
-
-// ---------- STATE ----------
-let introSkipped=false,dialogueActive=false,dialogueSkipped=false,typerId=null;
-
-// ---------- START ----------
-startScreen.addEventListener('click',()=>{startScreen.classList.add('fadeOut');setTimeout(()=>{startScreen.style.display='none';startIntro();},1500);});
-
-// ---------- INTRO ----------
-function startIntro(){
-  intro.style.display='flex';
-  skipIntroBtn.style.display='block';
-  introAudio.currentTime=0;introAudio.volume=1;introAudio.play().catch(()=>{});
-  const lines=[
-    "This game is protected by an MIT license.",
-    "This game is based on Wayward and other movies.",
-    "Contains flashing lights, loud sounds, and psychological horror."
-  ];
-  lines.forEach((text,i)=>{
-    const t=i*9000;
-    setTimeout(()=>{if(introSkipped)return;introText.textContent=text;introText.style.opacity=1;setTimeout(()=>{introText.style.opacity=0;},5000);},t+(i===0?500:0));
-  });
-  setTimeout(()=>{if(!introSkipped)presenting.style.opacity=1;},27000);
-  setTimeout(()=>{if(!introSkipped)presenting.style.top="38%";},27050);
-  setTimeout(()=>{if(!introSkipped){door.style.opacity=1;door.style.textShadow='0 0 25px #f00';}},29000);
-  setTimeout(()=>{if(!introSkipped)fadeOutIntroAndStartDialogue();},36000);
-}
-function fadeOutIntroAndStartDialogue(){
-  skipIntroBtn.style.display='none';presenting.style.opacity=0;door.style.opacity=0;
-  const fade=setInterval(()=>{introAudio.volume=Math.max(0,introAudio.volume-0.06);if(introAudio.volume<=0){introAudio.pause();clearInterval(fade);}},30);
-  setTimeout(()=>{intro.style.display='none';startDialogue();},300);
-}
-skipIntroBtn.addEventListener('click',()=>{if(introSkipped)return;introSkipped=true;fadeOutIntroAndStartDialogue();});
-
-// ---------- DIALOGUE ----------
-function startDialogue(){
-  dialogue.style.display='flex';skipDlgBtn.style.display='block';dialogueActive=true;dialogueSkipped=false;
-  talkAudio.currentTime=0;talkAudio.volume=1;talkAudio.play().catch(()=>{});
-  const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
-You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
-
-Inside the dimly lit apartment, you find Clara, a devoted member of Higher Heaven — a healing cult that once promised salvation, now steeped in blood and mystery. She lies lifeless on the floor. Her laptop glows faintly beside her, the screen still open… as if she was in the middle of something she shouldn’t have seen.
-
-Your task: uncover what really happened to Clara`;
-  dialogueText.textContent="";let idx=0;clearInterval(typerId);
-  typerId=setInterval(()=>{if(!dialogueActive){clearInterval(typerId);return;}
-  if(idx<storyText.length){dialogueText.textContent+=storyText[idx++];}else{clearInterval(typerId);}},40);
-  setTimeout(()=>finishDialogue(),43000);
-}
-skipDlgBtn.addEventListener('click',()=>finishDialogue(true));
-function finishDialogue(force=false){
-  if(!dialogueActive)return;dialogueActive=false;if(typerId){clearInterval(typerId);typerId=null;}
-  if(!dialogueSkipped||force){dialogueSkipped=true;skipDlgBtn.style.display='none';dialogueText.style.opacity=0;talkAudio.pause();
-  setTimeout(()=>{dialogue.style.display='none';showPressEnter();},600);}
-}
-
-// ---------- PRESS ENTER ----------
-function showPressEnter(){
-  pressEnter.style.display='flex';pressEnter.style.opacity=1;
-  document.addEventListener('keydown',function handler(e){
-    if(e.key==='Enter'){document.removeEventListener('keydown',handler);
-      pressEnter.style.opacity=0;setTimeout(()=>{pressEnter.style.display='none';startBoot();},500);}
-  });
-}
-
-// ---------- BOOT ----------
-const bootLines=[
-  "[    0.000000] Linux version 6.8.1-arch",
-  "[    0.002314] Booting system modules...",
-  ":: Mounting /dev/sda1 to /mnt/root",
-  ":: Starting udevd...",
-  ":: Network manager started",
-  ":: Boot complete — Press ENTER to continue"
-];
-function startBoot(){
-  bootEl.style.display='block';let i=0;(function append(){if(i>=bootLines.length)return;
-  const l=document.createElement('div');l.className='bootLine';l.textContent=bootLines[i++];bootEl.appendChild(l);bootEl.scrollTop=bootEl.scrollHeight;
-  if(i<bootLines.length)setTimeout(append,100);})();
-  document.addEventListener('keydown',function handler(e){
-    if(e.key==='Enter'&&bootEl.style.display==='block'){document.removeEventListener('keydown',handler);bootEl.style.display='none';showXPBoot();}});
-}
-
-// ---------- XP SEQUENCE ----------
-const xpVideo=document.getElementById('xpVideo');
 const xpDesktop=document.getElementById('xpDesktop');
-const xpStart=document.getElementById('xpStart');
-const xpErr=document.getElementById('xpErr');
-const balloon=document.getElementById('balloon');
-const errWin=document.getElementById('errWindow');
+setTimeout(()=>{boot.style.display='none';intro.style.display='flex';},3000);
+document.getElementById('beginBtn').onclick=()=>{
+intro.style.display='none';
+xpDesktop.style.display='block';
+ambient.volume=0.2;ambient.play();
+};
+
+// ---------- CLOCK ----------
 const clock=document.getElementById('clock');
+function tick(){
+const d=new Date();
+clock.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tick,1000);tick();
 
-function showXPBoot(){
-  xpVideo.style.display='block';
-  xpVideo.play();
-  xpVideo.onended=()=>{
-    xpVideo.style.display='none';
-    xpDesktop.style.display='block';
-    xpStart.play();
-    setTimeout(showBalloon,4000);
-    startClock();
-  };
+// ---------- GENERIC WINDOW ----------
+function openWindow(id,title,content){
+let win=document.getElementById('win-'+id);
+if(!win){
+win=document.createElement('div');win.className='window';win.id='win-'+id;
+win.innerHTML=`<div class="win-header">${title}<span class="closeBtn">×</span></div><div class="win-content">${content}</div>`;
+xpDesktop.appendChild(win);
+const header=win.querySelector('.win-header');const close=win.querySelector('.closeBtn');
+makeDraggable(header,win);
+close.onclick=()=>win.style.display='none';
+centerWindow(win);
 }
-function showBalloon(){
-  balloon.style.display='block';
-  balloon.addEventListener('click', ()=>{
-    balloon.style.display='none';
-    openErr();
-  });
+win.style.display='block';win.style.zIndex=++zTop;
 }
-function openErr(){
-  centerWindow(errWin);
-  errWin.style.display='block';
-  xpErr.play();
-  makeDraggable(errWin);
+function centerWindow(win){win.style.left=(window.innerWidth/2-210)+'px';win.style.top=(window.innerHeight/2-150)+'px';}
+
+// ---------- ICONS ----------
+document.getElementById('recycle').onclick=()=>openWindow('truth','_truth.docx',
+`<p><em>Mother faces the wall.</em></p>
+<p style="color:#fff;background:#000;">25 15 21 18 12 25 9 14 7 …</p>
+<p><strong>You’re lying…</strong></p>`);
+
+document.getElementById('docs').onclick=()=>{
+openWindow('doors','C:\\Users\\Clara\\Documents\\HigherHeaven',
+`<p>Door<br>↳ Door<br>↳ Door<br>↳ Door<br>↳ Bell.mp3</p>
+<p><em>Play Bell.mp3 → “She has her back to you.”</em></p>`);
+bell.play();flicker();
+};
+
+document.getElementById('startBtn').onclick=()=>openWindow('log','session0213.log',
+`[02:09:00] Prepare<br>[02:10:00] Face the wall<br>[02:11:00] Lie down<br>[02:12:00] Cry for her<br>[02:13:00] Door opens<br><br><span>lying… mother… bell…</span>`);
+
+document.getElementById('mail').onclick=()=>openWindow('mail','Draft: Permission to Open',
+`Subject: Permission to Open<br>Body:<br>Passphrase: sevenfold noon.<br>Wayward waits. The door listens.<br><br><em>Attachment decoded → “A bell rings.”</em>`);
+
+document.getElementById('usb').onclick=()=>{
+openWindow('usb','USB:_Rehearsal',
+`<p>02:06 — “You’re lying.”<br>
+02:07 — “On your back.”<br>
+02:08 — “Crying out.”<br>
+02:09 — “For your mother.”<br>
+02:10 — “She is standing.”<br>
+02:11 — “Facing the wall.”<br>
+02:12 — “She has her back to you.”</p>
+<div id="finalClue" style="display:none;margin-top:10px;border-top:1px solid #ccc;padding-top:10px;">
+0213.txt:<br>“A bell rings.<br>Your mother turns to face you.<br>
+She is silent, but her mouth is open wide.<br>In her mouth is a door.”</div>`);
+setTimeout(()=>{
+const clue=document.getElementById('finalClue');
+if(!clue)return;
+clue.style.display='block';
+staticOverlay.style.display='block';
+staticOverlay.style.opacity='0.2';
+staticS.volume=0.4;staticS.play();
+setTimeout(()=>fadeToStaticEnd(),8000);
+},10000);
+};
+
+// ---------- EFFECTS ----------
+function flicker(){
+xpDesktop.style.filter='brightness(0.6)';
+setTimeout(()=>xpDesktop.style.filter='brightness(1)',300);
 }
-function closeErr(){errWin.style.display='none';}
-function startClock(){
-  setInterval(()=>{
-    const d=new Date();
-    clock.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  },1000);
+function fadeToStaticEnd(){
+let op=0.2;
+const fade=setInterval(()=>{
+op+=0.05;
+staticOverlay.style.opacity=op;
+if(op>=1){clearInterval(fade);ambient.pause();bell.pause();staticS.pause();showFinalLog();}
+},400);
+}
+function showFinalLog(){
+staticOverlay.style.display='none';
+xpDesktop.innerHTML='';
+openWindow('doorlog','door_open_0213.log','She is silent, but her mouth is open wide.');
+const win=document.getElementById('win-doorlog');centerWindow(win);win.style.zIndex='9999';
 }
 
-// ---------- HELPERS ----------
-function centerWindow(win){
-  const ww=window.innerWidth, wh=window.innerHeight;
-  const rect=win.getBoundingClientRect();
-  win.style.left=(ww/2-rect.width/2)+'px';
-  win.style.top=(wh/2-rect.height/2-40)+'px';
-}
-function makeDraggable(win){
-  const bar=win.querySelector('.titlebar');
-  let offsetX=0,offsetY=0,isDown=false;
-  bar.addEventListener('mousedown',e=>{
-    isDown=true;
-    offsetX=e.clientX - win.offsetLeft;
-    offsetY=e.clientY - win.offsetTop;
-    document.body.style.userSelect='none';
-  });
-  document.addEventListener('mouseup',()=>{isDown=false;document.body.style.userSelect='';});
-  document.addEventListener('mousemove',e=>{
-    if(!isDown)return;
-    win.style.left=(e.clientX - offsetX)+'px';
-    win.style.top=(e.clientY - offsetY)+'px';
-  });
+// ---------- DRAG ----------
+let zTop=500;
+function makeDraggable(header,win){
+let offX,offY,down=false;
+header.onmousedown=e=>{down=true;offX=e.clientX-win.offsetLeft;offY=e.clientY-win.offsetTop;win.style.zIndex=++zTop;};
+document.onmouseup=()=>down=false;
+document.onmousemove=e=>{if(!down)return;win.style.left=(e.clientX-offX)+'px';win.style.top=(e.clientY-offY)+'px';};
 }
 </script>
 </body>
