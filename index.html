@@ -57,15 +57,42 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 /* Desktop icons */
 .icon{position:absolute;width:80px;text-align:center;color:#fff;font-family:Tahoma;font-size:13px;text-shadow:1px 1px 2px #000;cursor:default;}
 .icon img{width:48px;height:48px;display:block;margin:0 auto;}
-.window{position:absolute;background:#ece9d8;border:2px solid #0a246a;width:400px;display:none;z-index:150;box-shadow:0 4px 10px rgba(0,0,0,0.4);}
-.window .titlebar{background:linear-gradient(#4c7cd2,#2453a6);color:#fff;padding:4px 6px;font-family:Tahoma;font-size:13px;cursor:move;user-select:none;}
+
+/* Notification balloon */
+#balloon{
+  display:none;
+  position:absolute;
+  bottom:60px;right:20px;
+  width:240px;background:#fff;border:1px solid #555;border-radius:6px;
+  padding:8px;color:#000;font-family:Tahoma;font-size:13px;
+  box-shadow:0 2px 4px rgba(0,0,0,.5);cursor:pointer;
+}
+
+/* Windows / Popups */
+.window{
+  position:absolute;
+  background:#ece9d8;
+  border:2px solid #0a246a;
+  width:300px;
+  display:none;
+  z-index:150;
+  box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+.window .titlebar{
+  background:linear-gradient(#4c7cd2,#2453a6);
+  color:#fff;
+  padding:4px 6px;
+  font-family:Tahoma;
+  font-size:13px;
+  cursor:move;
+  user-select:none;
+}
+.window .content{padding:10px;color:#000;font-family:Tahoma;font-size:13px;}
 .window .close{float:right;cursor:pointer;font-weight:bold;color:#fff;}
-.window .content{padding:10px;color:#000;font-family:Tahoma;font-size:13px;white-space:pre-line;}
 </style>
 </head>
 
 <body>
-<!-- ORIGINAL INTRO SEQUENCE -->
 <div id="startScreen" class="startScreen">Click anywhere to begin...</div>
 <div id="intro" class="intro" style="display:none;">
   <div id="introText" class="introText"></div>
@@ -87,16 +114,28 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 <video id="xpVideo" src="lol.mp4"></video>
 <div id="xpDesktop">
   <div class="icon" style="top:40px;left:40px;">
-    <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" alt="My Computer"><br>My Computer
+    <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" alt="My Computer">
+    <br>My Computer
   </div>
   <div class="icon" style="top:140px;left:40px;">
-    <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-5.png" alt="My Documents"><br>My Documents
+    <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-5.png" alt="My Documents">
+    <br>My Documents
   </div>
   <div class="icon" style="top:240px;left:40px;">
-    <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_full-5.png" alt="Recycle Bin"><br>Recycle Bin
+    <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_full-5.png" alt="Recycle Bin">
+    <br>Recycle Bin
+  </div>
+  <div id="balloon">
+    <strong>New hardware found</strong><br>
+    Click here to install drivers.
+  </div>
+  <div id="errWindow" class="window">
+    <div class="titlebar">Error <span class="close" onclick="closeErr()">X</span></div>
+    <div class="content">A problem has been detected.<br><br><button onclick="closeErr()">OK</button></div>
   </div>
   <div class="taskbar">
-    <div class="startbtn">Start</div><div id="clock"></div>
+    <div class="startbtn">Start</div>
+    <div id="clock"></div>
   </div>
 </div>
 
@@ -133,7 +172,7 @@ startScreen.addEventListener('click',()=>{startScreen.classList.add('fadeOut');s
 function startIntro(){
   intro.style.display='flex';
   skipIntroBtn.style.display='block';
-  introAudio.play().catch(()=>{});
+  introAudio.currentTime=0;introAudio.volume=1;introAudio.play().catch(()=>{});
   const lines=[
     "This game is protected by an MIT license.",
     "This game is based on Wayward and other movies.",
@@ -144,7 +183,8 @@ function startIntro(){
     setTimeout(()=>{if(introSkipped)return;introText.textContent=text;introText.style.opacity=1;setTimeout(()=>{introText.style.opacity=0;},5000);},t+(i===0?500:0));
   });
   setTimeout(()=>{if(!introSkipped)presenting.style.opacity=1;},27000);
-  setTimeout(()=>{if(!introSkipped)door.style.opacity=1;door.style.textShadow='0 0 25px #f00';},29000);
+  setTimeout(()=>{if(!introSkipped)presenting.style.top="38%";},27050);
+  setTimeout(()=>{if(!introSkipped){door.style.opacity=1;door.style.textShadow='0 0 25px #f00';}},29000);
   setTimeout(()=>{if(!introSkipped)fadeOutIntroAndStartDialogue();},36000);
 }
 function fadeOutIntroAndStartDialogue(){
@@ -157,7 +197,7 @@ skipIntroBtn.addEventListener('click',()=>{if(introSkipped)return;introSkipped=t
 // ---------- DIALOGUE ----------
 function startDialogue(){
   dialogue.style.display='flex';skipDlgBtn.style.display='block';dialogueActive=true;dialogueSkipped=false;
-  talkAudio.play().catch(()=>{});
+  talkAudio.currentTime=0;talkAudio.volume=1;talkAudio.play().catch(()=>{});
   const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
 
@@ -207,6 +247,8 @@ const xpVideo=document.getElementById('xpVideo');
 const xpDesktop=document.getElementById('xpDesktop');
 const xpStart=document.getElementById('xpStart');
 const xpErr=document.getElementById('xpErr');
+const balloon=document.getElementById('balloon');
+const errWin=document.getElementById('errWindow');
 const clock=document.getElementById('clock');
 
 function showXPBoot(){
@@ -216,12 +258,24 @@ function showXPBoot(){
     xpVideo.style.display='none';
     xpDesktop.style.display='block';
     xpStart.play();
+    setTimeout(showBalloon,4000);
     startClock();
-    // ---------- NEW HORROR INVESTIGATION BEGINS HERE ----------
-    setTimeout(()=>investigationSequence(),4000);
   };
 }
-
+function showBalloon(){
+  balloon.style.display='block';
+  balloon.addEventListener('click', ()=>{
+    balloon.style.display='none';
+    openErr();
+  });
+}
+function openErr(){
+  centerWindow(errWin);
+  errWin.style.display='block';
+  xpErr.play();
+  makeDraggable(errWin);
+}
+function closeErr(){errWin.style.display='none';}
 function startClock(){
   setInterval(()=>{
     const d=new Date();
@@ -229,53 +283,28 @@ function startClock(){
   },1000);
 }
 
-// ---------- INVESTIGATION SEQUENCE ----------
-function investigationSequence(){
-  const sequence=[
-`Investigator’s Log
-Day 1 — Scene Analysis
-The apartment is too quiet. Clara lies on her back, eyes open. No sign of resistance.
-The only light is the dim glow from her monitor. A sticky note reads:
-“Home before dawn.”`,
-`Clue 1 — The Recycle Bin
-_truth.docx
-last_sermon.wav
-hymn_notes.txt
-0213.ini
-Inside _truth.docx — hidden text: “Mother faces the wall.”
-Decoded: “You’re lying…”`,
-`Clue 2 — Bell.mp3
-A faint bell chimes seven times.
-At the end, a woman whispers: “Turn around.”
-Spectrogram text: “She has her back to you.”`,
-`Clue 3 — session0213.log
-[02:09:00] Prepare
-[02:10:00] Face the wall
-[02:11:00] Lie down
-[02:12:00] Cry for her
-[02:13:00] Door opens`,
-`Clue 4 — Unsent Mail
-Passphrase: sevenfold noon.
-Attachment reads: “A bell rings.”`,
-`Clue 5 — USB: _Rehearsal
-Each file: “You’re lying.” … “She has her back to you.”
-A new one appears: 0213.txt — “In her mouth is a door.”`,
-`The monitor flickers.
-A bell tolls once behind you…
-You turn, but your shadow doesn’t.
-Then it turns to face you.`];
-  let i=0;
-  const popup=document.createElement('div');
-  popup.className='window';
-  popup.style.left='50%';popup.style.top='50%';popup.style.transform='translate(-50%,-50%)';
-  popup.innerHTML='<div class="titlebar">Investigator Log<span class="close" onclick="this.parentNode.parentNode.remove()">X</span></div><div class="content" id="logText"></div>';
-  document.body.appendChild(popup);
-  const content=popup.querySelector('#logText');
-  function next(){
-    if(i<sequence.length){content.textContent=sequence[i++];setTimeout(next,6000);}
-    else setTimeout(()=>popup.remove(),8000);
-  }
-  next();
+// ---------- HELPERS ----------
+function centerWindow(win){
+  const ww=window.innerWidth, wh=window.innerHeight;
+  const rect=win.getBoundingClientRect();
+  win.style.left=(ww/2-rect.width/2)+'px';
+  win.style.top=(wh/2-rect.height/2-40)+'px';
+}
+function makeDraggable(win){
+  const bar=win.querySelector('.titlebar');
+  let offsetX=0,offsetY=0,isDown=false;
+  bar.addEventListener('mousedown',e=>{
+    isDown=true;
+    offsetX=e.clientX - win.offsetLeft;
+    offsetY=e.clientY - win.offsetTop;
+    document.body.style.userSelect='none';
+  });
+  document.addEventListener('mouseup',()=>{isDown=false;document.body.style.userSelect='';});
+  document.addEventListener('mousemove',e=>{
+    if(!isDown)return;
+    win.style.left=(e.clientX - offsetX)+'px';
+    win.style.top=(e.clientY - offsetY)+'px';
+  });
 }
 </script>
 </body>
