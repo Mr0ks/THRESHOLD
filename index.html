@@ -1,176 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Threshold - Investigation Simulation</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>THRESHOLD</title>
 <style>
-html,body{margin:0;padding:0;width:100%;height:100%;background:#000;color:#fff;font-family:"Courier New",monospace;overflow:hidden;}
-#boot,#intro,#xpDesktop,#staticOverlay{position:absolute;top:0;left:0;width:100%;height:100%;}
-#boot{background:#000;color:#0f0;display:flex;align-items:center;justify-content:center;font-size:20px;}
-#intro{background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;font-size:18px;padding:30px;text-align:center;}
-#intro p{max-width:700px;}
-#xpDesktop{background:url('https://i.imgur.com/6cJ2NUp.jpeg') center/cover no-repeat;display:none;position:relative;}
-#taskbar{position:absolute;bottom:0;left:0;width:100%;height:40px;background:linear-gradient(#2a66b0,#1d4f94);display:flex;align-items:center;padding:0 10px;box-sizing:border-box;}
-#startBtn{background:#1a5cb8;border:1px solid #0c3e87;color:#fff;padding:5px 15px;font-weight:bold;border-radius:3px;cursor:pointer;}
-#clock{margin-left:auto;font-size:14px;}
-.icon{position:absolute;width:60px;text-align:center;color:#fff;cursor:pointer;text-shadow:1px 1px 3px #000;}
+html,body{margin:0;padding:0;height:100%;background:#000;color:#fff;font-family:ui-monospace,monospace;overflow:hidden;}
+/* --- Intro --- */
+.startScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;cursor:pointer;font-size:2vw;transition:opacity 1.5s;z-index:20;}
+.fadeOut{opacity:0;}
+.intro,.dialogue,.pressEnter{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000;flex-direction:column;text-align:center;z-index:10;}
+.introText,.presenting,.title{opacity:0;transition:opacity 2s;}
+.title{color:#d20000;font-weight:900;font-size:6vw;text-shadow:0 0 25px #f00;}
+.skipButton{position:fixed;bottom:20px;right:20px;background:rgba(255,255,255,.1);color:#fff;border:1px solid #fff;padding:8px 14px;border-radius:6px;cursor:pointer;z-index:99;}
+.boot,.progressStage{position:fixed;inset:0;background:#000;color:#0f0;padding:10px;font-size:14px;overflow:auto;display:none;}
+/* --- XP Desktop --- */
+#xpVideo{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;background:#000;z-index:200;}
+#xpDesktop{display:none;position:fixed;inset:0;background:url('https://i.imgur.com/S9MZw7j.jpeg') center/cover no-repeat;z-index:100;cursor:default;}
+.taskbar{position:absolute;bottom:0;width:100%;height:38px;background:linear-gradient(#245edb,#1b47a6);display:flex;justify-content:space-between;align-items:center;padding:0 10px;color:#fff;font-family:Tahoma;}
+.startbtn{background:linear-gradient(#6dd46d,#3aa83a);border:1px solid #0f490f;padding:3px 12px;border-radius:4px;cursor:pointer;font-weight:bold;}
+.icon{position:absolute;width:80px;text-align:center;font-family:Tahoma;font-size:13px;color:#fff;text-shadow:1px 1px 2px #000;}
 .icon img{width:48px;height:48px;}
-.window{position:absolute;width:420px;background:#ece9d8;border:2px solid #003399;box-shadow:3px 3px 10px rgba(0,0,0,.6);border-radius:4px;display:none;color:#000;}
-.win-header{background:linear-gradient(#245edc,#1742a0);color:#fff;padding:3px 6px;cursor:move;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
-.win-content{background:#fff;padding:10px;font-family:Consolas,monospace;color:#111;font-size:13px;max-height:300px;overflow-y:auto;}
-.closeBtn{cursor:pointer;font-weight:bold;}
-#staticOverlay{display:none;background:#000 url('https://i.imgur.com/ayk9B7P.gif') center/cover no-repeat;opacity:0;transition:opacity 2s;}
+.window{position:absolute;background:#ece9d8;border:2px solid #0a246a;display:none;z-index:150;box-shadow:0 4px 10px rgba(0,0,0,.5);}
+.window .titlebar{background:linear-gradient(#4c7cd2,#2453a6);color:#fff;padding:4px 6px;font-family:Tahoma;cursor:move;}
+.window .close{float:right;cursor:pointer;}
+.window .content{padding:10px;font-family:Tahoma;color:#000;}
+#balloon{display:none;position:absolute;bottom:60px;right:20px;width:220px;background:#fff;color:#000;border-radius:6px;padding:8px;border:1px solid #444;font-family:Tahoma;box-shadow:0 2px 6px rgba(0,0,0,.5);}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.6}}
+.static{animation:flicker .15s infinite;}
 </style>
 </head>
 <body>
-
-<!-- BOOT -->
-<div id="boot">Initializing System...<br>Loading Threshold OS 1.3...</div>
-
-<!-- INTRO / INVESTIGATOR LOG -->
-<div id="intro">
-<h2>Investigator’s Log</h2>
-<p><strong>Day 1 — Scene Analysis</strong></p>
-<p>The apartment is too quiet.<br>
-Clara lies on her back, eyes open, arms neatly to her sides. No sign of resistance.<br>
-The only light is the dim glow from her computer monitor.<br>
-A sticky note whispers the same promise repeated in her online messages:<br>
-<em>“Home before dawn.”</em></p>
-<p>The system clock reads <strong>02:13 AM.</strong></p>
-<p>Click below to begin forensic analysis.</p>
-<button id="beginBtn">Access System</button>
+<div id="startScreen" class="startScreen">Click anywhere to begin…</div>
+<div id="intro" class="intro">
+  <div id="introText" class="introText"></div>
+  <div id="presenting" class="presenting">PRESENTING…</div>
+  <div id="doorTitle" class="title">THRESHOLD</div>
 </div>
+<button id="skipIntro" class="skipButton" style="display:none;">Skip Intro</button>
+<button id="skipDialogue" class="skipButton" style="display:none;">Skip Dialogue</button>
+<div id="dialogue" class="dialogue"><div id="dialogueText"></div></div>
+<div id="pressEnter" class="pressEnter">Press ENTER — Clara's Laptop</div>
+<div id="boot" class="boot"></div>
+<div id="progressStage" class="progressStage"><div>:: Starting THRESHOLD environment</div><div id="pLine">[                    ] 0%</div></div>
 
-<!-- XP DESKTOP -->
+<video id="xpVideo" src="xpboot.mp4"></video>
 <div id="xpDesktop">
-<div class="icon" id="recycle" style="top:60px;left:40px;">
-<img src="https://cdn-icons-png.flaticon.com/512/565/565515.png"><div>Recycle Bin</div>
-</div>
-<div class="icon" id="docs" style="top:60px;left:130px;">
-<img src="https://cdn-icons-png.flaticon.com/512/337/337946.png"><div>My Documents</div>
-</div>
-<div class="icon" id="mail" style="top:60px;left:220px;">
-<img src="https://cdn-icons-png.flaticon.com/512/561/561127.png"><div>Mail</div>
-</div>
-<div class="icon" id="usb" style="top:60px;left:310px;">
-<img src="https://cdn-icons-png.flaticon.com/512/179/179598.png"><div>USB</div>
+  <div class="icon" style="top:40px;left:40px;"><img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"><br>My Computer</div>
+  <div class="icon" style="top:140px;left:40px;"><img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-5.png"><br>My Documents</div>
+  <div class="icon" style="top:240px;left:40px;"><img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_full-5.png"><br>Recycle Bin</div>
+  <div id="balloon"><strong>New hardware found</strong><br>Click here to install drivers.</div>
+
+  <div id="errWindow" class="window">
+    <div class="titlebar">Error <span class="close" onclick="closeWin('errWindow')">X</span></div>
+    <div class="content">A problem has been detected.<br><br><button onclick="closeWin('errWindow')">OK</button></div>
+  </div>
+  <div id="docWindow" class="window">
+    <div class="titlebar">Investigation Notes <span class="close" onclick="closeWin('docWindow')">X</span></div>
+    <div class="content">Case File 0213<br>Clara’s final login shows an encrypted message. The key seems embedded in her music folder.</div>
+  </div>
+  <div id="recycleWindow" class="window">
+    <div class="titlebar">Recycle Bin <span class="close" onclick="closeWin('recycleWindow')">X</span></div>
+    <div class="content">door_open_0213.log<br><br>Access denied.<br><button onclick="endStatic()">Attempt recovery</button></div>
+  </div>
+
+  <div class="taskbar"><div class="startbtn">Start</div><div id="clock"></div></div>
 </div>
 
-<div id="taskbar"><div id="startBtn">Start</div><div id="clock"></div></div>
-</div>
-
-<div id="staticOverlay"></div>
-
-<audio id="ambient" src="ambient.mp3" loop></audio>
-<audio id="bell" src="bell.mp3"></audio>
-<audio id="staticS" src="static.mp3"></audio>
+<audio id="xpStart" src="start.mp3"></audio>
+<audio id="xpErr" src="error.mp3"></audio>
+<audio id="amb" src="ambient.mp3" loop></audio>
 
 <script>
-// ---------- BOOT + INTRO ----------
-const boot=document.getElementById('boot');
-const intro=document.getElementById('intro');
-const xpDesktop=document.getElementById('xpDesktop');
-setTimeout(()=>{boot.style.display='none';intro.style.display='flex';},3000);
-document.getElementById('beginBtn').onclick=()=>{
-intro.style.display='none';
-xpDesktop.style.display='block';
-ambient.volume=0.2;ambient.play();
-};
-
-// ---------- CLOCK ----------
+const startScreen=document.getElementById('startScreen');
+const intro=document.getElementById('intro'),introText=document.getElementById('introText'),presenting=document.getElementById('presenting'),door=document.getElementById('doorTitle');
+const skipIntroBtn=document.getElementById('skipIntro'),skipDlg=document.getElementById('skipDialogue');
+const dialogue=document.getElementById('dialogue'),dialogueText=document.getElementById('dialogueText'),pressEnter=document.getElementById('pressEnter');
+const bootEl=document.getElementById('boot'),pLine=document.getElementById('pLine');
+startScreen.onclick=()=>{startScreen.classList.add('fadeOut');setTimeout(()=>{startScreen.style.display='none';startIntro();},1500);};
+function startIntro(){
+ intro.style.display='flex';skipIntroBtn.style.display='block';
+ const lines=["This game is protected by an MIT license.","Based on real archival materials.","Contains flashing lights and tension."];
+ lines.forEach((t,i)=>setTimeout(()=>{introText.textContent=t;introText.style.opacity=1;setTimeout(()=>introText.style.opacity=0,4000);},i*6000));
+ setTimeout(()=>presenting.style.opacity=1,19000);
+ setTimeout(()=>door.style.opacity=1,22000);
+ setTimeout(()=>fadeOutIntro(),28000);
+}
+skipIntroBtn.onclick=fadeOutIntro;
+function fadeOutIntro(){skipIntroBtn.style.display='none';intro.style.display='none';startDialogue();}
+function startDialogue(){
+ dialogue.style.display='flex';skipDlg.style.display='block';
+ const txt=`This story begins in the City of Pines — a quiet place where mist clings to the streets.
+You are an investigator called to examine Clara’s death.
+Her laptop remains on, humming softly.
+Everything begins there.`;
+ let i=0;dialogueText.textContent='';
+ const t=setInterval(()=>{dialogueText.textContent+=txt[i++]||'';if(i>=txt.length)clearInterval(t);},40);
+ setTimeout(()=>finishDialogue(),15000);
+}
+skipDlg.onclick=()=>finishDialogue(true);
+function finishDialogue(){dialogue.style.display='none';skipDlg.style.display='none';pressEnter.style.display='flex';pressEnter.style.opacity=1;}
+document.addEventListener('keydown',e=>{
+ if(e.key==='Enter'&&pressEnter.style.display==='flex'){pressEnter.style.display='none';boot();}
+});
+function boot(){
+ bootEl.style.display='block';
+ const lines=["[0.000] Booting...",":: mounting filesystems",":: starting network",":: ready"];
+ let i=0;const t=setInterval(()=>{if(i<lines.length){const l=document.createElement('div');l.textContent=lines[i++];bootEl.appendChild(l);}else{clearInterval(t);pressEnterBoot();}},500);
+}
+function pressEnterBoot(){
+ document.addEventListener('keydown',function go(e){if(e.key==='Enter'){document.removeEventListener('keydown',go);bootEl.style.display='none';xpBoot();}});
+}
+const xpVideo=document.getElementById('xpVideo'),xpDesktop=document.getElementById('xpDesktop'),xpStart=document.getElementById('xpStart'),xpErr=document.getElementById('xpErr');
+function xpBoot(){xpVideo.style.display='block';xpVideo.play();xpVideo.onended=()=>{xpVideo.style.display='none';xpDesktop.style.display='block';xpStart.play();startClock();setTimeout(showBalloon,3000);document.getElementById('amb').play();};}
 const clock=document.getElementById('clock');
-function tick(){
-const d=new Date();
-clock.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-}
-setInterval(tick,1000);tick();
-
-// ---------- GENERIC WINDOW ----------
-function openWindow(id,title,content){
-let win=document.getElementById('win-'+id);
-if(!win){
-win=document.createElement('div');win.className='window';win.id='win-'+id;
-win.innerHTML=`<div class="win-header">${title}<span class="closeBtn">×</span></div><div class="win-content">${content}</div>`;
-xpDesktop.appendChild(win);
-const header=win.querySelector('.win-header');const close=win.querySelector('.closeBtn');
-makeDraggable(header,win);
-close.onclick=()=>win.style.display='none';
-centerWindow(win);
-}
-win.style.display='block';win.style.zIndex=++zTop;
-}
-function centerWindow(win){win.style.left=(window.innerWidth/2-210)+'px';win.style.top=(window.innerHeight/2-150)+'px';}
-
-// ---------- ICONS ----------
-document.getElementById('recycle').onclick=()=>openWindow('truth','_truth.docx',
-`<p><em>Mother faces the wall.</em></p>
-<p style="color:#fff;background:#000;">25 15 21 18 12 25 9 14 7 …</p>
-<p><strong>You’re lying…</strong></p>`);
-
-document.getElementById('docs').onclick=()=>{
-openWindow('doors','C:\\Users\\Clara\\Documents\\HigherHeaven',
-`<p>Door<br>↳ Door<br>↳ Door<br>↳ Door<br>↳ Bell.mp3</p>
-<p><em>Play Bell.mp3 → “She has her back to you.”</em></p>`);
-bell.play();flicker();
-};
-
-document.getElementById('startBtn').onclick=()=>openWindow('log','session0213.log',
-`[02:09:00] Prepare<br>[02:10:00] Face the wall<br>[02:11:00] Lie down<br>[02:12:00] Cry for her<br>[02:13:00] Door opens<br><br><span>lying… mother… bell…</span>`);
-
-document.getElementById('mail').onclick=()=>openWindow('mail','Draft: Permission to Open',
-`Subject: Permission to Open<br>Body:<br>Passphrase: sevenfold noon.<br>Wayward waits. The door listens.<br><br><em>Attachment decoded → “A bell rings.”</em>`);
-
-document.getElementById('usb').onclick=()=>{
-openWindow('usb','USB:_Rehearsal',
-`<p>02:06 — “You’re lying.”<br>
-02:07 — “On your back.”<br>
-02:08 — “Crying out.”<br>
-02:09 — “For your mother.”<br>
-02:10 — “She is standing.”<br>
-02:11 — “Facing the wall.”<br>
-02:12 — “She has her back to you.”</p>
-<div id="finalClue" style="display:none;margin-top:10px;border-top:1px solid #ccc;padding-top:10px;">
-0213.txt:<br>“A bell rings.<br>Your mother turns to face you.<br>
-She is silent, but her mouth is open wide.<br>In her mouth is a door.”</div>`);
-setTimeout(()=>{
-const clue=document.getElementById('finalClue');
-if(!clue)return;
-clue.style.display='block';
-staticOverlay.style.display='block';
-staticOverlay.style.opacity='0.2';
-staticS.volume=0.4;staticS.play();
-setTimeout(()=>fadeToStaticEnd(),8000);
-},10000);
-};
-
-// ---------- EFFECTS ----------
-function flicker(){
-xpDesktop.style.filter='brightness(0.6)';
-setTimeout(()=>xpDesktop.style.filter='brightness(1)',300);
-}
-function fadeToStaticEnd(){
-let op=0.2;
-const fade=setInterval(()=>{
-op+=0.05;
-staticOverlay.style.opacity=op;
-if(op>=1){clearInterval(fade);ambient.pause();bell.pause();staticS.pause();showFinalLog();}
-},400);
-}
-function showFinalLog(){
-staticOverlay.style.display='none';
-xpDesktop.innerHTML='';
-openWindow('doorlog','door_open_0213.log','She is silent, but her mouth is open wide.');
-const win=document.getElementById('win-doorlog');centerWindow(win);win.style.zIndex='9999';
-}
-
-// ---------- DRAG ----------
-let zTop=500;
-function makeDraggable(header,win){
-let offX,offY,down=false;
-header.onmousedown=e=>{down=true;offX=e.clientX-win.offsetLeft;offY=e.clientY-win.offsetTop;win.style.zIndex=++zTop;};
-document.onmouseup=()=>down=false;
-document.onmousemove=e=>{if(!down)return;win.style.left=(e.clientX-offX)+'px';win.style.top=(e.clientY-offY)+'px';};
+function startClock(){setInterval(()=>clock.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),1000);}
+const balloon=document.getElementById('balloon');
+balloon.onclick=()=>{balloon.style.display='none';openWin('errWindow');};
+function showBalloon(){balloon.style.display='block';}
+function center(w){const ww=window.innerWidth,wh=window.innerHeight;w.style.left=(ww/2-w.offsetWidth/2)+'px';w.style.top=(wh/2-w.offsetHeight/2)+'px';}
+function makeDrag(w){const bar=w.querySelector('.titlebar');let oX,oY,drag=false;bar.onmousedown=e=>{drag=true;oX=e.clientX-w.offsetLeft;oY=e.clientY-w.offsetTop;};document.onmouseup=()=>drag=false;document.onmousemove=e=>{if(!drag)return;w.style.left=e.clientX-oX+'px';w.style.top=e.clientY-oY+'px';};}
+['errWindow','docWindow','recycleWindow'].forEach(id=>makeDrag(document.getElementById(id)));
+function openWin(id){const w=document.getElementById(id);center(w);w.style.display='block';xpErr.play();}
+function closeWin(id){document.getElementById(id).style.display='none';}
+document.querySelectorAll('.icon').forEach(ic=>{
+ ic.onclick=()=>{
+   if(ic.innerText.includes('Documents'))openWin('docWindow');
+   if(ic.innerText.includes('Recycle'))openWin('recycleWindow');
+ };
+});
+function endStatic(){
+ const body=document.body;body.classList.add('static');
+ setTimeout(()=>{alert("Transmission Complete.");body.classList.remove('static');},4000);
 }
 </script>
 </body>
