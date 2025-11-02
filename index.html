@@ -14,7 +14,17 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 .intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;text-align:center;flex-direction:column;z-index:10}
 .introText,.presenting,.title{position:absolute;left:50%;transform:translateX(-50%);text-transform:uppercase;opacity:0;transition:opacity 2s ease-in-out}
 .introText{top:50%;color:#fff;font-weight:600;font-size:clamp(18px,3vw,26px)}
-.presenting{top:50%;color:#fff;font-weight:600;font-family:ui-monospace,monospace;font-size:clamp(20px,3vw,28px);letter-spacing:2px;transition:opacity 2s ease-in-out,top 2s ease-in-out}
+.presenting{
+  top:52%;
+  color:#fff;
+  font-weight:600;
+  font-family:ui-monospace,monospace;
+  font-size:clamp(20px,3vw,28px);
+  letter-spacing:2px;
+  opacity:0;
+  transition:opacity 2s ease-in-out, top 2s ease-in-out;
+  z-index:2;
+}
 .title{
   position:absolute;
   top:50%;
@@ -26,6 +36,7 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
   font-size:clamp(56px,16vw,220px);
   text-shadow:0 0 0 #f00;
   transition:opacity 2s ease-in-out,text-shadow 1.2s ease-in-out;
+  z-index:1;
 }
 .skipButton{position:fixed;bottom:30px;right:30px;background:rgba(255,255,255,0.1);border:1px solid #fff;padding:10px 18px;font-size:16px;cursor:pointer;color:#fff;border-radius:6px;transition:background .3s,opacity .5s;z-index:9999}
 .skipButton:hover{background:rgba(255,255,255,0.3)}
@@ -193,10 +204,10 @@ function startIntro(){
     const t=i*9000;
     setTimeout(()=>{if(introSkipped)return;introText.textContent=text;introText.style.opacity=1;setTimeout(()=>{introText.style.opacity=0;},5000);},t+(i===0?500:0));
   });
-  setTimeout(()=>{if(!introSkipped)presenting.style.opacity=1;},27000);
-  setTimeout(()=>{if(!introSkipped)presenting.style.top="38%";},27050);
-  setTimeout(()=>{if(!introSkipped){door.style.opacity=1;door.style.textShadow='0 0 25px #f00';}},29000);
-  setTimeout(()=>{if(!introSkipped)fadeOutIntroAndStartDialogue();},36000);
+  setTimeout(()=>{if(!introSkipped){presenting.style.opacity=1;}},27000);
+  setTimeout(()=>{if(!introSkipped){presenting.style.top="38%";}},29000);
+  setTimeout(()=>{if(!introSkipped){door.style.opacity=1;door.style.textShadow='0 0 25px #f00';}},31000);
+  setTimeout(()=>{if(!introSkipped)fadeOutIntroAndStartDialogue();},38000);
 }
 function fadeOutIntroAndStartDialogue(){
   skipIntroBtn.style.display='none';presenting.style.opacity=0;door.style.opacity=0;
