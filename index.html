@@ -30,9 +30,9 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 #xpDesktop{display:none;position:fixed;inset:0;background:url('bliss.png') center/cover no-repeat;cursor:url('cursor.cur'),auto;z-index:100;}
 .taskbar{position:absolute;bottom:0;left:0;width:100%;height:40px;background:linear-gradient(#3d7ade,#1b47a6);display:flex;align-items:center;justify-content:space-between;color:#fff;padding:0 10px;font-family:Tahoma,Arial;font-size:14px;}
 .startbtn{background:linear-gradient(#50a050,#2d7c2d);border:1px solid #164d16;border-radius:4px;padding:4px 12px;font-weight:bold;}
-.icon{position:absolute;width:80px;text-align:center;color:#fff;font-family:Tahoma;font-size:13px;}
+.icon{position:absolute;width:80px;text-align:center;color:#fff;font-family:Tahoma;font-size:13px;text-shadow:1px 1px 2px #000;}
 .icon img{width:48px;height:48px;display:block;margin:0 auto;}
-#balloon{display:none;position:absolute;bottom:60px;right:20px;width:240px;background:#fff;border:1px solid #555;border-radius:6px;padding:8px;color:#000;font-family:Tahoma;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,.5);}
+#balloon{display:none;position:absolute;bottom:60px;right:20px;width:240px;background:#fff;border:1px solid #555;border-radius:6px;padding:8px;color:#000;font-family:Tahoma;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,.5);cursor:pointer;}
 .window{position:absolute;background:#ece9d8;border:2px solid #0a246a;width:300px;display:none;z-index:150;}
 .window .titlebar{background:linear-gradient(#4c7cd2,#2453a6);color:#fff;padding:4px;font-family:Tahoma;font-size:13px;cursor:move;}
 .window .content{padding:10px;color:#000;font-family:Tahoma;font-size:13px;}
@@ -61,10 +61,22 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 <!-- XP Boot and Desktop -->
 <video id="xpVideo" src="lol.mp4"></video>
 <div id="xpDesktop">
-  <div class="icon" style="top:40px;left:40px;"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f5a5.svg"><br>My Computer</div>
-  <div class="icon" style="top:140px;left:40px;"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4c4.svg"><br>My Documents</div>
-  <div class="icon" style="top:240px;left:40px;"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/267b.svg"><br>Recycle Bin</div>
-  <div id="balloon">New hardware found.</div>
+  <div class="icon" style="top:40px;left:40px;">
+    <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" alt="My Computer">
+    <br>My Computer
+  </div>
+  <div class="icon" style="top:140px;left:40px;">
+    <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-5.png" alt="My Documents">
+    <br>My Documents
+  </div>
+  <div class="icon" style="top:240px;left:40px;">
+    <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_full-5.png" alt="Recycle Bin">
+    <br>Recycle Bin
+  </div>
+  <div id="balloon">
+    <strong>New hardware found</strong><br>
+    Click here to install drivers.
+  </div>
   <div id="errWindow" class="window">
     <div class="titlebar">Error <span class="close" onclick="closeErr()">X</span></div>
     <div class="content">A problem has been detected.<br><br><button onclick="closeErr()">OK</button></div>
@@ -97,7 +109,6 @@ const dialogueText=document.getElementById('dialogueText');
 const pressEnter=document.getElementById('pressEnter');
 const bootEl=document.getElementById('boot');
 const progressStage=document.getElementById('progressStage');
-const app=document.getElementById('app');
 const pLine=document.getElementById('pLine');
 
 // ---------- STATE ----------
@@ -108,76 +119,76 @@ startScreen.addEventListener('click',()=>{startScreen.classList.add('fadeOut');s
 
 // ---------- INTRO ----------
 function startIntro(){
-intro.style.display='flex';
-skipIntroBtn.style.display='block';
-introAudio.currentTime=0;introAudio.volume=1;introAudio.play().catch(()=>{});
-const lines=[
-"This game is protected by an MIT license.",
-"This game is based on Wayward and other movies.",
-"Contains flashing lights, loud sounds, and psychological horror."
-];
-lines.forEach((text,i)=>{
-const t=i*9000;
-setTimeout(()=>{if(introSkipped)return;introText.textContent=text;introText.style.opacity=1;setTimeout(()=>{introText.style.opacity=0;},5000);},t+(i===0?500:0));
-});
-setTimeout(()=>{if(!introSkipped)presenting.style.opacity=1;},27000);
-setTimeout(()=>{if(!introSkipped)presenting.style.top="38%";},27050);
-setTimeout(()=>{if(!introSkipped){door.style.opacity=1;door.style.textShadow='0 0 25px #f00';}},29000);
-setTimeout(()=>{if(!introSkipped)fadeOutIntroAndStartDialogue();},36000);
+  intro.style.display='flex';
+  skipIntroBtn.style.display='block';
+  introAudio.currentTime=0;introAudio.volume=1;introAudio.play().catch(()=>{});
+  const lines=[
+    "This game is protected by an MIT license.",
+    "This game is based on Wayward and other movies.",
+    "Contains flashing lights, loud sounds, and psychological horror."
+  ];
+  lines.forEach((text,i)=>{
+    const t=i*9000;
+    setTimeout(()=>{if(introSkipped)return;introText.textContent=text;introText.style.opacity=1;setTimeout(()=>{introText.style.opacity=0;},5000);},t+(i===0?500:0));
+  });
+  setTimeout(()=>{if(!introSkipped)presenting.style.opacity=1;},27000);
+  setTimeout(()=>{if(!introSkipped)presenting.style.top="38%";},27050);
+  setTimeout(()=>{if(!introSkipped){door.style.opacity=1;door.style.textShadow='0 0 25px #f00';}},29000);
+  setTimeout(()=>{if(!introSkipped)fadeOutIntroAndStartDialogue();},36000);
 }
 function fadeOutIntroAndStartDialogue(){
-skipIntroBtn.style.display='none';presenting.style.opacity=0;door.style.opacity=0;
-const fade=setInterval(()=>{introAudio.volume=Math.max(0,introAudio.volume-0.06);if(introAudio.volume<=0){introAudio.pause();clearInterval(fade);}},30);
-setTimeout(()=>{intro.style.display='none';startDialogue();},300);
+  skipIntroBtn.style.display='none';presenting.style.opacity=0;door.style.opacity=0;
+  const fade=setInterval(()=>{introAudio.volume=Math.max(0,introAudio.volume-0.06);if(introAudio.volume<=0){introAudio.pause();clearInterval(fade);}},30);
+  setTimeout(()=>{intro.style.display='none';startDialogue();},300);
 }
 skipIntroBtn.addEventListener('click',()=>{if(introSkipped)return;introSkipped=true;fadeOutIntroAndStartDialogue();});
 
 // ---------- DIALOGUE ----------
 function startDialogue(){
-dialogue.style.display='flex';skipDlgBtn.style.display='block';dialogueActive=true;dialogueSkipped=false;
-talkAudio.currentTime=0;talkAudio.volume=1;talkAudio.play().catch(()=>{});
-const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
+  dialogue.style.display='flex';skipDlgBtn.style.display='block';dialogueActive=true;dialogueSkipped=false;
+  talkAudio.currentTime=0;talkAudio.volume=1;talkAudio.play().catch(()=>{});
+  const storyText=`This story begins in the City of Pines — a quiet place where mist clings to the streets and secrets hide behind every window.
 You are a young investigator, called to examine a murder that defies logic: no signs of struggle, no trace of poison, no clue of how it happened.
 
 Inside the dimly lit apartment, you find Clara, a devoted member of Higher Heaven — a healing cult that once promised salvation, now steeped in blood and mystery. She lies lifeless on the floor. Her laptop glows faintly beside her, the screen still open… as if she was in the middle of something she shouldn’t have seen.
 
 Your task: uncover what really happened to Clara`;
-dialogueText.textContent="";let idx=0;clearInterval(typerId);
-typerId=setInterval(()=>{if(!dialogueActive){clearInterval(typerId);return;}
-if(idx<storyText.length){dialogueText.textContent+=storyText[idx++];}else{clearInterval(typerId);}},40);
-setTimeout(()=>finishDialogue(),43000);
+  dialogueText.textContent="";let idx=0;clearInterval(typerId);
+  typerId=setInterval(()=>{if(!dialogueActive){clearInterval(typerId);return;}
+  if(idx<storyText.length){dialogueText.textContent+=storyText[idx++];}else{clearInterval(typerId);}},40);
+  setTimeout(()=>finishDialogue(),43000);
 }
 skipDlgBtn.addEventListener('click',()=>finishDialogue(true));
 function finishDialogue(force=false){
-if(!dialogueActive)return;dialogueActive=false;if(typerId){clearInterval(typerId);typerId=null;}
-if(!dialogueSkipped||force){dialogueSkipped=true;skipDlgBtn.style.display='none';dialogueText.style.opacity=0;talkAudio.pause();
-setTimeout(()=>{dialogue.style.display='none';showPressEnter();},600);}
+  if(!dialogueActive)return;dialogueActive=false;if(typerId){clearInterval(typerId);typerId=null;}
+  if(!dialogueSkipped||force){dialogueSkipped=true;skipDlgBtn.style.display='none';dialogueText.style.opacity=0;talkAudio.pause();
+  setTimeout(()=>{dialogue.style.display='none';showPressEnter();},600);}
 }
 
 // ---------- PRESS ENTER ----------
 function showPressEnter(){
-pressEnter.style.display='flex';pressEnter.style.opacity=1;
-document.addEventListener('keydown',function handler(e){
-if(e.key==='Enter'){document.removeEventListener('keydown',handler);
-pressEnter.style.opacity=0;setTimeout(()=>{pressEnter.style.display='none';startBoot();},500);}
-});
+  pressEnter.style.display='flex';pressEnter.style.opacity=1;
+  document.addEventListener('keydown',function handler(e){
+    if(e.key==='Enter'){document.removeEventListener('keydown',handler);
+      pressEnter.style.opacity=0;setTimeout(()=>{pressEnter.style.display='none';startBoot();},500);}
+  });
 }
 
 // ---------- BOOT ----------
 const bootLines=[
-"[    0.000000] Linux version 6.8.1-arch",
-"[    0.002314] Booting system modules...",
-":: Mounting /dev/sda1 to /mnt/root",
-":: Starting udevd...",
-":: Network manager started",
-":: Boot complete — Press ENTER to continue"
+  "[    0.000000] Linux version 6.8.1-arch",
+  "[    0.002314] Booting system modules...",
+  ":: Mounting /dev/sda1 to /mnt/root",
+  ":: Starting udevd...",
+  ":: Network manager started",
+  ":: Boot complete — Press ENTER to continue"
 ];
 function startBoot(){
-bootEl.style.display='block';let i=0;(function append(){if(i>=bootLines.length)return;
-const l=document.createElement('div');l.className='bootLine';l.textContent=bootLines[i++];bootEl.appendChild(l);bootEl.scrollTop=bootEl.scrollHeight;
-if(i<bootLines.length)setTimeout(append,100);})();
-document.addEventListener('keydown',function handler(e){
-if(e.key==='Enter'&&bootEl.style.display==='block'){document.removeEventListener('keydown',handler);bootEl.style.display='none';showXPBoot();}});
+  bootEl.style.display='block';let i=0;(function append(){if(i>=bootLines.length)return;
+  const l=document.createElement('div');l.className='bootLine';l.textContent=bootLines[i++];bootEl.appendChild(l);bootEl.scrollTop=bootEl.scrollHeight;
+  if(i<bootLines.length)setTimeout(append,100);})();
+  document.addEventListener('keydown',function handler(e){
+    if(e.key==='Enter'&&bootEl.style.display==='block'){document.removeEventListener('keydown',handler);bootEl.style.display='none';showXPBoot();}});
 }
 
 // ---------- XP SEQUENCE ----------
@@ -190,14 +201,37 @@ const errWin=document.getElementById('errWindow');
 const clock=document.getElementById('clock');
 
 function showXPBoot(){
-xpVideo.style.display='block';
-xpVideo.play();
-xpVideo.onended=()=>{xpVideo.style.display='none';xpDesktop.style.display='block';xpStart.play();setTimeout(showBalloon,5000);startClock();};
+  xpVideo.style.display='block';
+  xpVideo.play();
+  xpVideo.onended=()=>{
+    xpVideo.style.display='none';
+    xpDesktop.style.display='block';
+    xpStart.play();
+    setTimeout(showBalloon,4000);
+    startClock();
+  };
 }
-function showBalloon(){balloon.style.display='block';setTimeout(()=>{balloon.style.display='none';openErr();},4000);}
-function openErr(){errWin.style.display='block';xpErr.play();}
-function closeErr(){errWin.style.display='none';}
-function startClock(){setInterval(()=>{const d=new Date();clock.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});},1000);}
+function showBalloon(){
+  balloon.style.display='block';
+  // only triggers error on click
+  balloon.addEventListener('click', ()=>{
+    balloon.style.display='none';
+    openErr();
+  });
+}
+function openErr(){
+  errWin.style.display='block';
+  xpErr.play();
+}
+function closeErr(){
+  errWin.style.display='none';
+}
+function startClock(){
+  setInterval(()=>{
+    const d=new Date();
+    clock.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  },1000);
+}
 </script>
 </body>
 </html>
