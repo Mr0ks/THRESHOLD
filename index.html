@@ -222,6 +222,9 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
     <div class="startMenuItem" onclick="openWindow('notepad')">Notepad</div>
     <div class="startMenuItem" onclick="openWindow('calculator')">Calculator</div>
     <div class="startMenuItem" onclick="openWindow('internet')">Internet Explorer</div>
+    <div class="startMenuItem" onclick="openWindow('phone')">Phone</div>
+    <div class="startMenuItem" onclick="openWindow('explorer')">Windows Explorer</div>
+    <div class="startMenuItem" id="decryptorMenuItem" onclick="openWindow('decryptor')" style="display:none;">File Decryptor</div>
     <div class="startMenuItem" onclick="openWindow('recycle')">Recycle Bin</div>
     <div class="startMenuItem" id="puzzleMenuItem" onclick="openPuzzleWindow()" style="display:none;">Locked File</div>
   </div>
@@ -256,6 +259,21 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 <div id="recycleWindow" class="window medium">
   <div class="titlebar">Recycle Bin <span class="close" onclick="closeWindow('recycleWindow')">X</span></div>
   <div class="content" id="recycleContent"></div>
+</div>
+
+<div id="phoneWindow" class="window medium">
+  <div class="titlebar">Phone <span class="close" onclick="closeWindow('phoneWindow')">X</span></div>
+  <div class="content" id="phoneContent"></div>
+</div>
+
+<div id="explorerWindow" class="window large">
+  <div class="titlebar">Windows Explorer <span class="close" onclick="closeWindow('explorerWindow')">X</span></div>
+  <div class="content" id="explorerContent"></div>
+</div>
+
+<div id="decryptorWindow" class="window medium">
+  <div class="titlebar">File Decryptor <span class="close" onclick="closeWindow('decryptorWindow')">X</span></div>
+  <div class="content" id="decryptorContent"></div>
 </div>
 
 <div id="puzzleWindow" class="window">
@@ -445,7 +463,7 @@ let puzzlesSolved=0;
 let cluesFound=[];
 let finalPhraseUnlocked=false;
 const totalPuzzles=5;
-const finalPhrase="You're lying on your back, crying out for your mother. She is standing facing the wall. She has her back to you. A bell rings. Your mother turns to face you. She is silent, but her mouth is open wide. In her mouth is a door.";
+const finalPhrase="your lying on your back";
 
 // Start menu
 const startBtn=document.getElementById('startBtn');
@@ -463,12 +481,21 @@ document.addEventListener('click',(e)=>{
 // Initialize game
 function initGame(){
   gameStartTime=Date.now();
+  // Initialize paymentPersonName before loading content
+  if(!paymentPersonName){
+    const firstNames=['Michael','David','James','Robert','John','William','Richard','Joseph'];
+    const lastNames=['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis'];
+    paymentPersonName=`${firstNames[Math.floor(Math.random()*firstNames.length)]} ${lastNames[Math.floor(Math.random()*lastNames.length)]}`;
+  }
   loadEmailContent();
   loadSettingsContent();
   loadNotepadContent();
   loadCalculatorContent();
   loadInternetContent();
   loadRecycleContent();
+  loadPhoneContent();
+  loadExplorerContent();
+  loadDecryptorContent();
   
   // Random easter egg - sometimes show a glitch
   setTimeout(()=>{
@@ -505,7 +532,10 @@ function openWindow(type){
     notepad:'notepadWindow',
     calculator:'calculatorWindow',
     internet:'internetWindow',
-    recycle:'recycleWindow'
+    recycle:'recycleWindow',
+    phone:'phoneWindow',
+    explorer:'explorerWindow',
+    decryptor:'decryptorWindow'
   };
   const winId=windows[type];
   if(winId){
@@ -521,30 +551,85 @@ function closeWindow(winId){
   if(win)win.style.display='none';
 }
 
-// Email content with clues
+// Email content with deleted folder
+let cultPhoneNumber='';
+let paymentPersonName='';
 function loadEmailContent(){
   const content=document.getElementById('emailContent');
-  const emails=[
-    {from:'Higher Heaven',subject:'Meeting Tonight',body:'Clara, the ritual begins at midnight. Bring the key. The door awaits.',unread:true},
-    {from:'Mom',subject:'Re: Your last message',body:'I\'m worried about you. Please come home. The number is 1979.',unread:true},
-    {from:'Clara',subject:'Notes to self',body:'Password hint: My birth year backwards. The door code is in the calculator.',unread:false},
-    {from:'Unknown',subject:'They found me',body:'I saw it. The door in her mouth. It\'s real. 2025 is the year.',unread:true},
-    {from:'System',subject:'Backup reminder',body:'Files backed up to Recycle Bin. Check there for deleted items.',unread:false}
+  const randomEmails=[
+    {from:'Amazon',subject:'Your order has shipped',body:'Your order #12345 has been shipped and will arrive soon.',unread:false},
+    {from:'Newsletter',subject:'Weekly Updates',body:'Check out our latest articles and updates.',unread:false},
+    {from:'Bank',subject:'Account Statement',body:'Your monthly statement is now available online.',unread:true},
+    {from:'Friend',subject:'Coffee this weekend?',body:'Want to grab coffee this Saturday? Let me know!',unread:false}
   ];
+  
+  // Generate random phone number for cult website
+  const area=Math.floor(Math.random()*900)+100;
+  const first=Math.floor(Math.random()*900)+100;
+  const second=Math.floor(Math.random()*9000)+1000;
+  cultPhoneNumber=`${area}-${first}-${second}`;
+  
   content.innerHTML='';
-  emails.forEach((email,i)=>{
+  content.innerHTML+=`<div style="margin-bottom:10px;border-bottom:2px solid #ccc;padding-bottom:5px;">
+    <button onclick="showInbox()" style="padding:5px 10px;margin-right:5px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Inbox</button>
+    <button onclick="showDeleted()" style="padding:5px 10px;background:#ccc;color:#000;border:none;cursor:pointer;">Deleted</button>
+  </div>`;
+  
+  const inboxDiv=document.createElement('div');
+  inboxDiv.id='emailInbox';
+  randomEmails.forEach((email,i)=>{
     const div=document.createElement('div');
     div.className='email'+(email.unread?' unread':'');
     div.innerHTML=`<strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}`;
     div.addEventListener('click',()=>{
       content.innerHTML=`<div style="margin-bottom:10px;"><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div><hr><div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
-      if(!cluesFound.includes('email'+i)){
-        cluesFound.push('email'+i);
-        checkForPuzzleUnlock();
-      }
     });
-    content.appendChild(div);
+    inboxDiv.appendChild(div);
   });
+  content.appendChild(inboxDiv);
+  
+  window.showInbox=function(){
+    const inbox=document.getElementById('emailInbox');
+    if(inbox)inbox.style.display='block';
+    const deleted=document.getElementById('emailDeleted');
+    if(deleted)deleted.style.display='none';
+  };
+  
+  window.showDeleted=function(){
+    const inbox=document.getElementById('emailInbox');
+    if(inbox)inbox.style.display='none';
+    let deleted=document.getElementById('emailDeleted');
+    if(!deleted){
+      deleted=document.createElement('div');
+      deleted.id='emailDeleted';
+      const deletedEmails=[
+        {from:'Spam',subject:'You won a prize!',body:'Congratulations! You have won $1,000,000!',unread:false},
+        {from:'Unknown',subject:'hey clara this is the website we are happy you joined',body:`Hey Clara, this is the website we are happy you joined. Visit us at: <a href="#" onclick="openCultWebsite(); return false;" style="color:#0066cc;text-decoration:underline;">www.higherheaven.org</a>`,unread:false}
+      ];
+      deletedEmails.forEach((email,i)=>{
+        const div=document.createElement('div');
+        div.className='email';
+        div.innerHTML=`<strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}`;
+        div.addEventListener('click',()=>{
+          content.innerHTML=`<div style="margin-bottom:10px;"><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div><hr><div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
+          if(i===1&&!cluesFound.includes('cultEmail')){
+            cluesFound.push('cultEmail');
+            checkForPuzzleUnlock();
+          }
+        });
+        deleted.appendChild(div);
+      });
+      content.appendChild(deleted);
+    }
+    deleted.style.display='block';
+  };
+  
+  window.openCultWebsite=function(){
+    openWindow('internet');
+    setTimeout(()=>{
+      showCultWebsite();
+    },100);
+  };
 }
 
 // Settings with hidden puzzle
@@ -579,28 +664,23 @@ function loadSettingsContent(){
   });
 }
 
-// Notepad with puzzle clue
+// Notepad with random reminders
 function loadNotepadContent(){
   const content=document.getElementById('notepadContent');
-  content.innerHTML=`<div style="font-family:Consolas,monospace;white-space:pre-wrap;background:#fff;padding:10px;border:1px solid #ccc;min-height:300px;">NOTES - Clara's Journal
+  const reminders=[
+    'Buy groceries - milk, bread, eggs',
+    'Call dentist for appointment',
+    'Pick up dry cleaning',
+    'Check emails for important meetings',
+    'Water the plants',
+    'Return library books',
+    'Schedule car maintenance',
+    'Pay electricity bill'
+  ];
+  const randomReminders=reminders.sort(()=>Math.random()-0.5).slice(0,5);
+  content.innerHTML=`<div style="font-family:Consolas,monospace;white-space:pre-wrap;background:#fff;padding:10px;border:1px solid #ccc;min-height:300px;">NOTES - Reminders
 
-Date: 2025-01-14
-
-I found something. The numbers don't add up.
-1979 - my birth year
-2025 - the year it happens
-46 - the difference
-
-The door code might be related to these numbers.
-Check the calculator. Add them together? Multiply?
-
-Something about a mother and a door.
-I keep seeing it in my dreams.
-
-The phrase... I need to remember it.
-"You're lying on your back, crying out for your mother..."
-
-I'm scared. They're watching me.</div>`;
+${randomReminders.join('\n')}</div>`;
   if(!cluesFound.includes('notepad')){
     cluesFound.push('notepad');
     checkForPuzzleUnlock();
@@ -648,99 +728,336 @@ function loadCalculatorContent(){
   };
 }
 
-// Internet Explorer with web search puzzle
+// Internet Explorer with cult website and bank
+let currentWebsite='search';
 function loadInternetContent(){
   const content=document.getElementById('internetContent');
+  
+  // Generate random person name for bank payment if not already set
+  if(!paymentPersonName){
+    const firstNames=['Michael','David','James','Robert','John','William','Richard','Joseph'];
+    const lastNames=['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis'];
+    paymentPersonName=`${firstNames[Math.floor(Math.random()*firstNames.length)]} ${lastNames[Math.floor(Math.random()*lastNames.length)]}`;
+  }
+  
   content.innerHTML=`<div style="background:#fff;padding:10px;">
     <div style="margin-bottom:10px;">
-      <input type="text" id="searchBox" placeholder="Search the web..." style="width:70%;padding:5px;">
-      <button class="puzzleBtn" onclick="webSearch()" style="padding:5px 10px;">Search</button>
+      <input type="text" id="urlBox" placeholder="Enter URL or search..." style="width:70%;padding:5px;" value="www.higherheaven.org">
+      <button class="puzzleBtn" onclick="navigateWeb()" style="padding:5px 10px;">Go</button>
+      <button class="puzzleBtn" onclick="webSearch()" style="padding:5px 10px;margin-left:5px;">Search</button>
     </div>
-    <div id="searchResults" style="margin-top:15px;"></div>
+    <div id="webContent" style="margin-top:15px;"></div>
   </div>`;
   
-  window.webSearch=function(){
-    const query=document.getElementById('searchBox').value.toLowerCase();
-    const results=document.getElementById('searchResults');
+  window.navigateWeb=function(){
+    const url=document.getElementById('urlBox').value.toLowerCase();
+    const content=document.getElementById('webContent');
     
-    if(query.includes('door')||query.includes('mother')||query.includes('bell')){
+    if(url.includes('higherheaven')||url.includes('higher-heaven')){
+      showCultWebsite();
+      currentWebsite='cult';
+    }else if(url.includes('bank')||url.includes('mybank')||url.includes('onlinebanking')){
+      showBankWebsite();
+      currentWebsite='bank';
+    }else if(url.includes('linkedin')||url.includes(paymentPersonName.toLowerCase().split(' ')[0])){
+      showLinkedIn();
+      currentWebsite='linkedin';
+    }else{
+      content.innerHTML=`<div style="padding:10px;"><p>Page not found. Try: www.higherheaven.org, mybank.com, or search for a name.</p></div>`;
+    }
+  };
+  
+  window.webSearch=function(){
+    const query=document.getElementById('urlBox').value.toLowerCase();
+    const results=document.getElementById('webContent');
+    
+    if(query.includes(paymentPersonName.toLowerCase().split(' ')[0])||query.includes(paymentPersonName.toLowerCase().split(' ')[1])){
       results.innerHTML=`<div style="padding:10px;background:#e8f4f8;border:1px solid #0066cc;">
         <h3>Search Results for "${query}"</h3>
-        <p><strong>Urban Legends Archive</strong><br>
-        There are stories of doors that appear in impossible places. Some say they appear in mouths, 
-        in walls, in dreams. The phrase is a warning: "You're lying on your back, crying out for your mother..."</p>
-        <p style="margin-top:10px;color:#666;">The full phrase is hidden in Clara's files. Search the Recycle Bin.</p>
+        <p><strong>LinkedIn Profile</strong><br>
+        <a href="#" onclick="showLinkedIn(); return false;" style="color:#0066cc;">${paymentPersonName} - Professional Profile</a><br>
+        Visit their personal website: <a href="#" onclick="showPersonWebsite(); return false;" style="color:#0066cc;">${paymentPersonName.toLowerCase().replace(' ','')}.com</a></p>
       </div>`;
-      if(!cluesFound.includes('internet')){
-        cluesFound.push('internet');
+      if(!cluesFound.includes('linkedin')){
+        cluesFound.push('linkedin');
         checkForPuzzleUnlock();
       }
-    }else if(query.includes('clara')||query.includes('higher heaven')){
-      results.innerHTML=`<div style="padding:10px;background:#fff3cd;border:1px solid #ffc107;">
-        <h3>Search Results</h3>
-        <p>Clara was a member of Higher Heaven, a healing cult that turned dark. 
-        She was investigating something before her death. Check her emails for clues.</p>
-      </div>`;
     }else{
-      results.innerHTML=`<div style="padding:10px;"><p>No results found. Try searching for: door, mother, bell, clara</p></div>`;
+      results.innerHTML=`<div style="padding:10px;"><p>No results found. Try searching for a name from the bank records.</p></div>`;
+    }
+  };
+  
+  window.showCultWebsite=function(){
+    const content=document.getElementById('webContent');
+    content.innerHTML=`<div style="padding:20px;background:#f5f5f5;font-family:Arial;">
+      <h1 style="color:#2c5f2d;text-align:center;font-size:32px;">HIGHER HEAVEN</h1>
+      <h2 style="color:#4a7c59;text-align:center;font-size:24px;">Animal Farms & Spiritual Community</h2>
+      <div style="margin:30px 0;padding:20px;background:#fff;border:2px solid #2c5f2d;">
+        <p style="font-size:18px;line-height:1.8;text-align:center;">
+          Join us at Higher Heaven, where we combine sustainable animal farming with spiritual enlightenment.<br><br>
+          Our community offers:<br>
+          • Organic farming practices<br>
+          • Spiritual retreats<br>
+          • Community living<br>
+          • Personal transformation<br><br>
+          Experience the harmony of nature and spirit. Find your higher purpose.
+        </p>
+      </div>
+      <div style="text-align:center;margin-top:40px;padding:20px;background:#2c5f2d;color:#fff;">
+        <p style="font-size:20px;font-weight:bold;">Contact Us</p>
+        <p style="font-size:18px;margin-top:10px;">Phone: <a href="#" onclick="openPhoneApp('${cultPhoneNumber}'); return false;" style="color:#fff;text-decoration:underline;cursor:pointer;">${cultPhoneNumber}</a></p>
+      </div>
+    </div>`;
+    if(!cluesFound.includes('cultWebsite')){
+      cluesFound.push('cultWebsite');
+      checkForPuzzleUnlock();
+    }
+  };
+  
+  window.showBankWebsite=function(){
+    const content=document.getElementById('webContent');
+    const randomPayments=[
+      {date:'2025-01-10',description:'Grocery Store',amount:'-$45.23'},
+      {date:'2025-01-11',description:'Gas Station',amount:'-$32.50'},
+      {date:'2025-01-12',description:'Restaurant',amount:'-$78.90'},
+      {date:'2025-01-13',description:'Payment from '+paymentPersonName,amount:'-$1000.00'},
+      {date:'2025-01-14',description:'Coffee Shop',amount:'-$5.75'},
+      {date:'2025-01-15',description:'Online Purchase',amount:'-$129.99'}
+    ];
+    let paymentsHTML='<div style="padding:20px;background:#fff;"><h2 style="color:#0066cc;">Account Transactions</h2><table style="width:100%;border-collapse:collapse;margin-top:20px;"><tr style="background:#0066cc;color:#fff;"><th style="padding:10px;text-align:left;border:1px solid #ccc;">Date</th><th style="padding:10px;text-align:left;border:1px solid #ccc;">Description</th><th style="padding:10px;text-align:right;border:1px solid #ccc;">Amount</th></tr>';
+    randomPayments.forEach(p=>{
+      paymentsHTML+=`<tr><td style="padding:8px;border:1px solid #ccc;">${p.date}</td><td style="padding:8px;border:1px solid #ccc;">${p.description}</td><td style="padding:8px;border:1px solid #ccc;text-align:right;color:${p.amount.startsWith('-')?'#d20000':'#006400'};font-weight:bold;">${p.amount}</td></tr>`;
+    });
+    paymentsHTML+='</table></div>';
+    content.innerHTML=paymentsHTML;
+    if(!cluesFound.includes('bank')){
+      cluesFound.push('bank');
+      checkForPuzzleUnlock();
+    }
+  };
+  
+  window.showLinkedIn=function(){
+    const content=document.getElementById('webContent');
+    content.innerHTML=`<div style="padding:20px;background:#fff;">
+      <h2 style="color:#0077b5;">LinkedIn Profile</h2>
+      <div style="margin-top:20px;padding:15px;background:#f5f5f5;border:1px solid #ccc;">
+        <h3>${paymentPersonName}</h3>
+        <p>Professional Profile</p>
+        <p style="margin-top:15px;">Visit personal website: <a href="#" onclick="showPersonWebsite(); return false;" style="color:#0066cc;">${paymentPersonName.toLowerCase().replace(' ','')}.com</a></p>
+      </div>
+    </div>`;
+  };
+  
+  window.showPersonWebsite=function(){
+    const content=document.getElementById('webContent');
+    content.innerHTML=`<div style="padding:20px;background:#fff;">
+      <h2>${paymentPersonName}'s Personal Website</h2>
+      <p style="margin-top:20px;">This website contains information about ${paymentPersonName}.</p>
+      <p style="margin-top:15px;color:#666;">Search for files related to this person in Windows Explorer.</p>
+    </div>`;
+    if(!cluesFound.includes('personWebsite')){
+      cluesFound.push('personWebsite');
+      checkForPuzzleUnlock();
+    }
+  };
+  
+  window.openPhoneApp=function(phoneNum){
+    openWindow('phone');
+    setTimeout(()=>{
+      showPhoneMessages(phoneNum);
+    },100);
+  };
+}
+
+// Phone app with messages
+let phoneMessages={};
+function loadPhoneContent(){
+  const content=document.getElementById('phoneContent');
+  content.innerHTML=`<div style="padding:10px;">
+    <h3>Phone Messages</h3>
+    <p>Enter phone number to view messages:</p>
+    <input type="text" id="phoneInput" placeholder="XXX-XXX-XXXX" style="padding:6px;width:200px;margin:10px 0;">
+    <button class="puzzleBtn" onclick="checkPhoneNumber()">View Messages</button>
+    <div id="phoneMessages" style="margin-top:15px;"></div>
+  </div>`;
+  
+  window.checkPhoneNumber=function(){
+    const phoneNum=document.getElementById('phoneInput').value.trim();
+    const messagesDiv=document.getElementById('phoneMessages');
+    
+    if(phoneNum===cultPhoneNumber){
+      showPhoneMessages(phoneNum);
+    }else{
+      messagesDiv.innerHTML='<div style="padding:10px;color:#d20000;">No messages found for this number. Try the number from the Higher Heaven website.</div>';
+    }
+  };
+  
+  window.showPhoneMessages=function(phoneNum){
+    const content=document.getElementById('phoneContent');
+    const messagesDiv=document.getElementById('phoneMessages');
+    if(!messagesDiv){
+      content.innerHTML=`<div style="padding:10px;">
+        <h3>Phone Messages - ${phoneNum}</h3>
+        <div id="phoneMessages" style="margin-top:15px;"></div>
+      </div>`;
+    }
+    const finalDiv=document.getElementById('phoneMessages')||content;
+    finalDiv.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;">
+      <h4>Messages with ${phoneNum}</h4>
+      <div style="margin-top:15px;padding:10px;background:#f0f0f0;border-left:3px solid #0066cc;">
+        <strong>Clara:</strong> where is money<br>
+        <small style="color:#666;">2025-01-13 10:23 AM</small>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:#f0f0f0;border-left:3px solid #0066cc;">
+        <strong>Clara:</strong> where is money<br>
+        <small style="color:#666;">2025-01-13 2:15 PM</small>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:#f0f0f0;border-left:3px solid #0066cc;">
+        <strong>Clara:</strong> where is money<br>
+        <small style="color:#666;">2025-01-13 5:47 PM</small>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:#e8f5e9;border-left:3px solid #4caf50;">
+        <strong>${phoneNum}:</strong> it will be there soon check the usb<br>
+        <small style="color:#666;">2025-01-13 6:02 PM</small>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:#f0f0f0;border-left:3px solid #0066cc;">
+        <strong>Clara:</strong> where is money<br>
+        <small style="color:#666;">2025-01-14 9:12 AM</small>
+      </div>
+    </div>`;
+    if(!cluesFound.includes('phone')){
+      cluesFound.push('phone');
+      checkForPuzzleUnlock();
     }
   };
 }
 
-// Recycle Bin with final puzzle piece
-function loadRecycleContent(){
-  const content=document.getElementById('recycleContent');
-  content.innerHTML=`<div style="padding:10px;">
-    <h3>Deleted Files</h3>
-    <div class="email" style="cursor:pointer;" onclick="openRecycleFile()">
-      <strong>deleted_message.txt</strong><br>
-      <small>Deleted: 2025-01-14 11:30 PM</small>
+// Explorer app with D:/ drive and encrypted file
+function loadExplorerContent(){
+  const content=document.getElementById('explorerContent');
+  content.innerHTML=`<div style="padding:10px;background:#fff;">
+    <div style="margin-bottom:10px;">
+      <strong>My Computer</strong>
     </div>
-    <div class="email" style="cursor:pointer;margin-top:10px;" onclick="openRecycleFile2()">
-      <strong>final_note.txt</strong><br>
-      <small>Deleted: 2025-01-15 12:01 AM</small>
+    <div style="padding:5px;cursor:pointer;border:1px solid #ccc;margin:5px 0;" onclick="showDrive('C')">
+      📁 Local Disk (C:)
+    </div>
+    <div style="padding:5px;cursor:pointer;border:1px solid #ccc;margin:5px 0;background:#e8f4f8;" onclick="showDrive('D')">
+      📁 Local Disk (D:)
+    </div>
+    <div id="driveContent" style="margin-top:15px;"></div>
+    <div style="margin-top:20px;border-top:2px solid #ccc;padding-top:15px;">
+      <h4>Search Files</h4>
+      <input type="text" id="fileSearch" placeholder="Search for file name..." style="padding:6px;width:300px;margin:10px 0;">
+      <button class="puzzleBtn" onclick="searchFiles()">Search</button>
+      <div id="searchResults" style="margin-top:15px;"></div>
     </div>
   </div>`;
   
-  window.openRecycleFile=function(){
-    content.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:Consolas,monospace;">
-The door code is: 4030
-
-Enter this in any locked file to unlock the truth.
-
-But beware... once you see it, you cannot unsee it.
-    </div>`;
-    if(!cluesFound.includes('recycle1')){
-      cluesFound.push('recycle1');
-      checkForPuzzleUnlock();
+  window.showDrive=function(drive){
+    const driveContent=document.getElementById('driveContent');
+    if(drive==='D'){
+      driveContent.innerHTML=`<div style="padding:10px;background:#f5f5f5;border:1px solid #ccc;">
+        <h4>D:/ Contents</h4>
+        <div style="padding:5px;cursor:pointer;margin:5px 0;background:#fff3cd;border:1px solid #ffc107;" onclick="openEncryptedFile()">
+          🔒 encrypted_file.dat
+        </div>
+        <p style="margin-top:10px;color:#666;font-size:12px;">This file is encrypted. You need a decryptor to open it.</p>
+      </div>`;
+      if(!cluesFound.includes('encryptedFile')){
+        cluesFound.push('encryptedFile');
+        checkForPuzzleUnlock();
+      }
+    }else{
+      driveContent.innerHTML=`<div style="padding:10px;background:#f5f5f5;border:1px solid #ccc;">
+        <h4>C:/ Contents</h4>
+        <p>System files and folders</p>
+      </div>`;
     }
   };
   
-  window.openRecycleFile2=function(){
-    content.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:Consolas,monospace;">
-I found the phrase. The complete text:
-
-"You're lying on your back, crying out for your mother. She is standing facing the wall. She has her back to you. A bell rings. Your mother turns to face you. She is silent, but her mouth is open wide. In her mouth is a door."
-
-This is what killed me. This is what will kill you too.
-
-- Clara
+  window.openEncryptedFile=function(){
+    const content=document.getElementById('explorerContent');
+    content.innerHTML+=`<div style="margin-top:15px;padding:10px;background:#fff3cd;border:2px solid #ffc107;">
+      <p><strong>Encrypted File Detected</strong></p>
+      <p>This file requires a decryption tool. Look for a File Decryptor application.</p>
     </div>`;
-    if(!cluesFound.includes('recycle2')){
-      cluesFound.push('recycle2');
+  };
+  
+  window.searchFiles=function(){
+    const searchTerm=document.getElementById('fileSearch').value.toLowerCase().trim();
+    const results=document.getElementById('searchResults');
+    
+    if(searchTerm===paymentPersonName.toLowerCase()||searchTerm.includes(paymentPersonName.toLowerCase().split(' ')[0])||searchTerm.includes(paymentPersonName.toLowerCase().split(' ')[1])){
+      results.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;">
+        <h4>Search Results</h4>
+        <div style="padding:5px;cursor:pointer;margin:5px 0;background:#fff3cd;border:1px solid #ffc107;" onclick="openLockedFile()">
+          🔒 ${paymentPersonName.toLowerCase().replace(' ','_')}_locked.txt
+        </div>
+        <p style="margin-top:10px;color:#666;font-size:12px;">This file is locked. You need a password to unlock it.</p>
+        <p style="margin-top:5px;color:#666;font-size:12px;">Hint: Use the first 4 digits of the phone number from the SMS messages.</p>
+      </div>`;
+      if(!cluesFound.includes('lockedFile')){
+        cluesFound.push('lockedFile');
+        checkForPuzzleUnlock();
+      }
+    }else{
+      results.innerHTML=`<div style="padding:10px;"><p>No files found matching "${searchTerm}". Try searching for a name from the bank records.</p></div>`;
+    }
+  };
+  
+  window.openLockedFile=function(){
+    openPuzzleWindow();
+  };
+}
+
+// Decryptor app
+function loadDecryptorContent(){
+  const content=document.getElementById('decryptorContent');
+  content.innerHTML=`<div style="padding:10px;">
+    <h3>File Decryptor</h3>
+    <p>Select encrypted file to decrypt:</p>
+    <div style="margin:15px 0;">
+      <button class="puzzleBtn" onclick="decryptFile()" style="padding:10px 20px;">Decrypt D:/encrypted_file.dat</button>
+    </div>
+    <div id="decryptResult" style="margin-top:15px;"></div>
+  </div>`;
+  
+  window.decryptFile=function(){
+    const result=document.getElementById('decryptResult');
+    result.innerHTML=`<div style="padding:15px;background:#d4edda;border:2px solid #28a745;color:#155724;">
+      <h4>✓ File Decrypted Successfully</h4>
+      <div style="margin-top:10px;padding:10px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:monospace;">
+god has your money
+      </div>
+    </div>`;
+    if(!cluesFound.includes('decrypted')){
+      cluesFound.push('decrypted');
       checkForPuzzleUnlock();
     }
   };
+}
+
+// Recycle Bin (simplified)
+function loadRecycleContent(){
+  const content=document.getElementById('recycleContent');
+  content.innerHTML=`<div style="padding:10px;">
+    <h3>Recycle Bin</h3>
+    <p>Empty</p>
+  </div>`;
 }
 
 // Puzzle system
 function checkForPuzzleUnlock(){
-  // Unlock puzzle window after finding enough clues
-  if(cluesFound.length>=3){
+  // Unlock decryptor after finding encrypted file
+  if(cluesFound.includes('encryptedFile')){
+    document.getElementById('decryptorMenuItem').style.display='block';
+  }
+  // Unlock puzzle window after finding locked file
+  if(cluesFound.includes('lockedFile')){
     if(!document.getElementById('puzzleWindow').dataset.unlocked){
       document.getElementById('puzzleWindow').dataset.unlocked='true';
       document.getElementById('puzzleMenuItem').style.display='block';
-      showPuzzle();
     }
   }
 }
@@ -753,10 +1070,13 @@ function openPuzzleWindow(){
 
 function showPuzzle(){
   const content=document.getElementById('puzzleContent');
+  // Get first 4 digits of phone number (convert letters to numbers on phone keypad)
+  const phoneDigits=cultPhoneNumber.replace(/-/g,'').substring(0,4);
   content.innerHTML=`<div style="padding:10px;">
     <p><strong>Locked File - Requires Password</strong></p>
-    <p>Enter the code you found (4 digits):</p>
-    <input type="text" id="puzzleCode" class="puzzleInput" maxlength="4" placeholder="Enter code">
+    <p>Enter the password (4 digits):</p>
+    <p style="font-size:11px;color:#666;">Hint: Use the first 4 digits of the phone number from the SMS messages</p>
+    <input type="text" id="puzzleCode" class="puzzleInput" maxlength="4" placeholder="Enter 4 digits">
     <button class="puzzleBtn" onclick="checkPuzzleCode()">Unlock</button>
     <div id="puzzleResult" style="margin-top:10px;"></div>
   </div>`;
@@ -766,16 +1086,18 @@ function showPuzzle(){
   makeDraggable(win);
   
   window.checkPuzzleCode=function(){
-    const code=document.getElementById('puzzleCode').value;
+    const code=document.getElementById('puzzleCode').value.trim();
     const result=document.getElementById('puzzleResult');
-    if(code==='4030'||code==='4050'){
+    const phoneDigits=cultPhoneNumber.replace(/-/g,'').substring(0,4);
+    
+    if(code===phoneDigits){
       puzzlesSolved++;
-      result.innerHTML='<div style="color:green;padding:10px;background:#d4edda;border:1px solid #28a745;">✓ Code accepted. Unlocking file...</div>';
+      result.innerHTML='<div style="color:green;padding:10px;background:#d4edda;border:1px solid #28a745;">✓ Password accepted. Unlocking file...</div>';
       setTimeout(()=>{
         content.innerHTML=`<div style="padding:10px;white-space:pre-wrap;font-family:Consolas,monospace;">
 FILE UNLOCKED
 
-${finalPhrase}
+your lying on your back
 
 [This file will self-destruct in 10 seconds...]
         </div>`;
@@ -785,7 +1107,7 @@ ${finalPhrase}
         },10000);
       },2000);
     }else{
-      result.innerHTML='<div style="color:red;padding:10px;background:#f8d7da;border:1px solid #dc3545;">✗ Incorrect code. Try again.</div>';
+      result.innerHTML='<div style="color:red;padding:10px;background:#f8d7da;border:1px solid #dc3545;">✗ Incorrect password. Try again. Hint: First 4 digits of the phone number.</div>';
     }
   };
 }
