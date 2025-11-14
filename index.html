@@ -78,6 +78,8 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
   z-index:150;
   box-shadow:0 4px 10px rgba(0,0,0,0.4);
 }
+.window.large{width:600px;height:500px;}
+.window.medium{width:500px;height:400px;}
 .window .titlebar{
   background:linear-gradient(#4c7cd2,#2453a6);
   color:#fff;
@@ -87,8 +89,85 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
   cursor:move;
   user-select:none;
 }
-.window .content{padding:10px;color:#000;font-family:Tahoma;font-size:13px;}
+.window .content{padding:10px;color:#000;font-family:Tahoma;font-size:13px;overflow-y:auto;max-height:450px;}
 .window .close{float:right;cursor:pointer;font-weight:bold;color:#fff;}
+.window .close:hover{color:#ff0000;}
+
+/* Start Menu */
+#startMenu{
+  position:absolute;
+  bottom:40px;
+  left:0;
+  width:200px;
+  background:#ece9d8;
+  border:2px solid #0a246a;
+  display:none;
+  z-index:160;
+  box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+.startMenuItem{
+  padding:8px 12px;
+  cursor:pointer;
+  font-family:Tahoma;
+  font-size:13px;
+  color:#000;
+  border-bottom:1px solid #ccc;
+}
+.startMenuItem:hover{background:#d4d0c8;}
+
+/* Death Screen */
+#deathScreen{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:10000;
+  color:#d20000;
+  font-family:ui-monospace,monospace;
+  text-align:center;
+}
+#deathText{
+  font-size:clamp(40px,8vw,120px);
+  font-weight:900;
+  text-shadow:0 0 20px #d20000;
+  margin-bottom:40px;
+  animation:pulse 1s infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;}
+  50%{opacity:0.7;}
+}
+#deathInfo{
+  font-size:clamp(18px,3vw,28px);
+  margin-top:30px;
+  line-height:1.8;
+}
+#finalMessage{
+  max-width:800px;
+  font-size:clamp(16px,2vw,20px);
+  margin-top:40px;
+  padding:20px;
+  border:2px solid #d20000;
+  background:rgba(210,0,0,0.1);
+  line-height:1.6;
+}
+
+/* Email styles */
+.email{background:#fff;border:1px solid #ccc;padding:8px;margin:5px 0;cursor:pointer;}
+.email:hover{background:#f0f0f0;}
+.email.unread{font-weight:bold;border-left:3px solid #0066cc;}
+
+/* Settings styles */
+.settingItem{padding:8px;border-bottom:1px solid #ccc;cursor:pointer;}
+.settingItem:hover{background:#d4d0c8;}
+
+/* Puzzle input */
+.puzzleInput{padding:6px;margin:5px;border:1px solid #666;font-family:Tahoma;width:200px;}
+.puzzleBtn{padding:6px 12px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;font-family:Tahoma;}
+.puzzleBtn:hover{background:#3a6bb8;}
 </style>
 </head>
 
@@ -134,9 +213,61 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
     <div class="content">A problem has been detected.<br><br><button onclick="closeErr()">OK</button></div>
   </div>
   <div class="taskbar">
-    <div class="startbtn">Start</div>
+    <div class="startbtn" id="startBtn">Start</div>
     <div id="clock"></div>
   </div>
+  <div id="startMenu">
+    <div class="startMenuItem" onclick="openWindow('email')">Outlook Express</div>
+    <div class="startMenuItem" onclick="openWindow('settings')">Control Panel</div>
+    <div class="startMenuItem" onclick="openWindow('notepad')">Notepad</div>
+    <div class="startMenuItem" onclick="openWindow('calculator')">Calculator</div>
+    <div class="startMenuItem" onclick="openWindow('internet')">Internet Explorer</div>
+    <div class="startMenuItem" onclick="openWindow('recycle')">Recycle Bin</div>
+    <div class="startMenuItem" id="puzzleMenuItem" onclick="openPuzzleWindow()" style="display:none;">Locked File</div>
+  </div>
+</div>
+
+<!-- Game Windows -->
+<div id="emailWindow" class="window large">
+  <div class="titlebar">Outlook Express - Inbox <span class="close" onclick="closeWindow('emailWindow')">X</span></div>
+  <div class="content" id="emailContent"></div>
+</div>
+
+<div id="settingsWindow" class="window medium">
+  <div class="titlebar">Control Panel <span class="close" onclick="closeWindow('settingsWindow')">X</span></div>
+  <div class="content" id="settingsContent"></div>
+</div>
+
+<div id="notepadWindow" class="window medium">
+  <div class="titlebar">Notepad <span class="close" onclick="closeWindow('notepadWindow')">X</span></div>
+  <div class="content" id="notepadContent"></div>
+</div>
+
+<div id="calculatorWindow" class="window">
+  <div class="titlebar">Calculator <span class="close" onclick="closeWindow('calculatorWindow')">X</span></div>
+  <div class="content" id="calculatorContent"></div>
+</div>
+
+<div id="internetWindow" class="window large">
+  <div class="titlebar">Internet Explorer <span class="close" onclick="closeWindow('internetWindow')">X</span></div>
+  <div class="content" id="internetContent"></div>
+</div>
+
+<div id="recycleWindow" class="window medium">
+  <div class="titlebar">Recycle Bin <span class="close" onclick="closeWindow('recycleWindow')">X</span></div>
+  <div class="content" id="recycleContent"></div>
+</div>
+
+<div id="puzzleWindow" class="window">
+  <div class="titlebar">Locked File <span class="close" onclick="closeWindow('puzzleWindow')">X</span></div>
+  <div class="content" id="puzzleContent"></div>
+</div>
+
+<!-- Death Screen -->
+<div id="deathScreen">
+  <div id="deathText">YOU DIED</div>
+  <div id="deathInfo">investigator<br>-1979-2025-<br>death: unknown</div>
+  <div id="finalMessage"></div>
 </div>
 
 <audio id="xpStart" src="start.mp3"></audio>
@@ -260,6 +391,7 @@ function showXPBoot(){
     xpStart.play();
     setTimeout(showBalloon,4000);
     startClock();
+    initGame();
   };
 }
 function showBalloon(){
@@ -306,6 +438,426 @@ function makeDraggable(win){
     win.style.top=(e.clientY - offsetY)+'px';
   });
 }
+
+// ---------- HORROR GAME ----------
+let gameStartTime=null;
+let puzzlesSolved=0;
+let cluesFound=[];
+let finalPhraseUnlocked=false;
+const totalPuzzles=5;
+const finalPhrase="You're lying on your back, crying out for your mother. She is standing facing the wall. She has her back to you. A bell rings. Your mother turns to face you. She is silent, but her mouth is open wide. In her mouth is a door.";
+
+// Start menu
+const startBtn=document.getElementById('startBtn');
+const startMenu=document.getElementById('startMenu');
+startBtn.addEventListener('click',(e)=>{
+  e.stopPropagation();
+  startMenu.style.display=startMenu.style.display==='block'?'none':'block';
+});
+document.addEventListener('click',(e)=>{
+  if(!startMenu.contains(e.target)&&!startBtn.contains(e.target)){
+    startMenu.style.display='none';
+  }
+});
+
+// Initialize game
+function initGame(){
+  gameStartTime=Date.now();
+  loadEmailContent();
+  loadSettingsContent();
+  loadNotepadContent();
+  loadCalculatorContent();
+  loadInternetContent();
+  loadRecycleContent();
+  
+  // Random easter egg - sometimes show a glitch
+  setTimeout(()=>{
+    if(Math.random()>0.7){
+      showGlitch();
+    }
+  },60000);
+  
+  // Periodic check for final sequence (every 30 seconds)
+  setInterval(()=>{
+    if(!finalPhraseUnlocked&&cluesFound.length>=5){
+      const elapsed=(Date.now()-gameStartTime)/1000/60;
+      if(elapsed>=5){
+        triggerFinalSequence();
+      }
+    }
+  },30000);
+}
+
+function showGlitch(){
+  const glitch=document.createElement('div');
+  glitch.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;color:#d20000;font-size:24px;font-family:monospace;';
+  glitch.textContent='SHE IS WATCHING';
+  document.body.appendChild(glitch);
+  setTimeout(()=>glitch.remove(),500);
+}
+
+// Window management
+function openWindow(type){
+  startMenu.style.display='none';
+  const windows={
+    email:'emailWindow',
+    settings:'settingsWindow',
+    notepad:'notepadWindow',
+    calculator:'calculatorWindow',
+    internet:'internetWindow',
+    recycle:'recycleWindow'
+  };
+  const winId=windows[type];
+  if(winId){
+    const win=document.getElementById(winId);
+    centerWindow(win);
+    win.style.display='block';
+    makeDraggable(win);
+  }
+}
+
+function closeWindow(winId){
+  const win=document.getElementById(winId);
+  if(win)win.style.display='none';
+}
+
+// Email content with clues
+function loadEmailContent(){
+  const content=document.getElementById('emailContent');
+  const emails=[
+    {from:'Higher Heaven',subject:'Meeting Tonight',body:'Clara, the ritual begins at midnight. Bring the key. The door awaits.',unread:true},
+    {from:'Mom',subject:'Re: Your last message',body:'I\'m worried about you. Please come home. The number is 1979.',unread:true},
+    {from:'Clara',subject:'Notes to self',body:'Password hint: My birth year backwards. The door code is in the calculator.',unread:false},
+    {from:'Unknown',subject:'They found me',body:'I saw it. The door in her mouth. It\'s real. 2025 is the year.',unread:true},
+    {from:'System',subject:'Backup reminder',body:'Files backed up to Recycle Bin. Check there for deleted items.',unread:false}
+  ];
+  content.innerHTML='';
+  emails.forEach((email,i)=>{
+    const div=document.createElement('div');
+    div.className='email'+(email.unread?' unread':'');
+    div.innerHTML=`<strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}`;
+    div.addEventListener('click',()=>{
+      content.innerHTML=`<div style="margin-bottom:10px;"><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div><hr><div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
+      if(!cluesFound.includes('email'+i)){
+        cluesFound.push('email'+i);
+        checkForPuzzleUnlock();
+      }
+    });
+    content.appendChild(div);
+  });
+}
+
+// Settings with hidden puzzle
+function loadSettingsContent(){
+  const content=document.getElementById('settingsContent');
+  const settings=[
+    'Display Properties',
+    'Mouse Properties',
+    'Keyboard Properties',
+    'System Properties',
+    'User Accounts',
+    'Date and Time',
+    'Network Connections'
+  ];
+  content.innerHTML='';
+  settings.forEach((setting,i)=>{
+    const div=document.createElement('div');
+    div.className='settingItem';
+    div.textContent=setting;
+    div.addEventListener('click',()=>{
+      if(setting==='Date and Time'){
+        content.innerHTML='<div style="padding:10px;"><strong>Current Date:</strong> 2025-01-15<br><strong>Time:</strong> 11:47 PM<br><br><div style="background:#fff3cd;padding:8px;border:1px solid #ffc107;margin-top:10px;">Hidden Note: Check Notepad for the sequence. The answer is in the numbers.</div></div>';
+        if(!cluesFound.includes('settings')){
+          cluesFound.push('settings');
+          checkForPuzzleUnlock();
+        }
+      }else{
+        content.innerHTML=`<div style="padding:10px;">${setting} settings panel.<br><br>No changes made.</div>`;
+      }
+    });
+    content.appendChild(div);
+  });
+}
+
+// Notepad with puzzle clue
+function loadNotepadContent(){
+  const content=document.getElementById('notepadContent');
+  content.innerHTML=`<div style="font-family:Consolas,monospace;white-space:pre-wrap;background:#fff;padding:10px;border:1px solid #ccc;min-height:300px;">NOTES - Clara's Journal
+
+Date: 2025-01-14
+
+I found something. The numbers don't add up.
+1979 - my birth year
+2025 - the year it happens
+46 - the difference
+
+The door code might be related to these numbers.
+Check the calculator. Add them together? Multiply?
+
+Something about a mother and a door.
+I keep seeing it in my dreams.
+
+The phrase... I need to remember it.
+"You're lying on your back, crying out for your mother..."
+
+I'm scared. They're watching me.</div>`;
+  if(!cluesFound.includes('notepad')){
+    cluesFound.push('notepad');
+    checkForPuzzleUnlock();
+  }
+}
+
+// Calculator with puzzle
+function loadCalculatorContent(){
+  const content=document.getElementById('calculatorContent');
+  let display='0';
+  let calcHTML=`<div style="background:#000;color:#0f0;padding:10px;font-family:monospace;font-size:20px;text-align:right;margin-bottom:10px;min-height:30px;" id="calcDisplay">${display}</div>`;
+  calcHTML+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">`;
+  const buttons=['7','8','9','/','4','5','6','*','1','2','3','-','C','0','=','+'];
+  buttons.forEach(btn=>{
+    calcHTML+=`<button class="puzzleBtn" style="padding:15px;" onclick="calcButton('${btn}')">${btn}</button>`;
+  });
+  calcHTML+=`</div>`;
+  calcHTML+=`<div style="margin-top:15px;padding:10px;background:#fff3cd;border:1px solid #ffc107;display:none;" id="calcSecret">Secret unlocked! The code is: 4030<br>Use this in the locked file.</div>`;
+  content.innerHTML=calcHTML;
+  
+  // Easter egg: if user calculates 1979+2025+46
+  window.calcButton=function(btn){
+    const displayEl=document.getElementById('calcDisplay');
+    if(btn==='C'){
+      display='0';
+    }else if(btn==='='){
+      try{
+        const result=eval(display);
+        display=result.toString();
+        if(result===4030||result===4050){
+          document.getElementById('calcSecret').style.display='block';
+          if(!cluesFound.includes('calculator')){
+            cluesFound.push('calculator');
+            checkForPuzzleUnlock();
+          }
+        }
+      }catch(e){
+        display='Error';
+      }
+    }else{
+      if(display==='0'||display==='Error')display=btn;
+      else display+=btn;
+    }
+    displayEl.textContent=display;
+  };
+}
+
+// Internet Explorer with web search puzzle
+function loadInternetContent(){
+  const content=document.getElementById('internetContent');
+  content.innerHTML=`<div style="background:#fff;padding:10px;">
+    <div style="margin-bottom:10px;">
+      <input type="text" id="searchBox" placeholder="Search the web..." style="width:70%;padding:5px;">
+      <button class="puzzleBtn" onclick="webSearch()" style="padding:5px 10px;">Search</button>
+    </div>
+    <div id="searchResults" style="margin-top:15px;"></div>
+  </div>`;
+  
+  window.webSearch=function(){
+    const query=document.getElementById('searchBox').value.toLowerCase();
+    const results=document.getElementById('searchResults');
+    
+    if(query.includes('door')||query.includes('mother')||query.includes('bell')){
+      results.innerHTML=`<div style="padding:10px;background:#e8f4f8;border:1px solid #0066cc;">
+        <h3>Search Results for "${query}"</h3>
+        <p><strong>Urban Legends Archive</strong><br>
+        There are stories of doors that appear in impossible places. Some say they appear in mouths, 
+        in walls, in dreams. The phrase is a warning: "You're lying on your back, crying out for your mother..."</p>
+        <p style="margin-top:10px;color:#666;">The full phrase is hidden in Clara's files. Search the Recycle Bin.</p>
+      </div>`;
+      if(!cluesFound.includes('internet')){
+        cluesFound.push('internet');
+        checkForPuzzleUnlock();
+      }
+    }else if(query.includes('clara')||query.includes('higher heaven')){
+      results.innerHTML=`<div style="padding:10px;background:#fff3cd;border:1px solid #ffc107;">
+        <h3>Search Results</h3>
+        <p>Clara was a member of Higher Heaven, a healing cult that turned dark. 
+        She was investigating something before her death. Check her emails for clues.</p>
+      </div>`;
+    }else{
+      results.innerHTML=`<div style="padding:10px;"><p>No results found. Try searching for: door, mother, bell, clara</p></div>`;
+    }
+  };
+}
+
+// Recycle Bin with final puzzle piece
+function loadRecycleContent(){
+  const content=document.getElementById('recycleContent');
+  content.innerHTML=`<div style="padding:10px;">
+    <h3>Deleted Files</h3>
+    <div class="email" style="cursor:pointer;" onclick="openRecycleFile()">
+      <strong>deleted_message.txt</strong><br>
+      <small>Deleted: 2025-01-14 11:30 PM</small>
+    </div>
+    <div class="email" style="cursor:pointer;margin-top:10px;" onclick="openRecycleFile2()">
+      <strong>final_note.txt</strong><br>
+      <small>Deleted: 2025-01-15 12:01 AM</small>
+    </div>
+  </div>`;
+  
+  window.openRecycleFile=function(){
+    content.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:Consolas,monospace;">
+The door code is: 4030
+
+Enter this in any locked file to unlock the truth.
+
+But beware... once you see it, you cannot unsee it.
+    </div>`;
+    if(!cluesFound.includes('recycle1')){
+      cluesFound.push('recycle1');
+      checkForPuzzleUnlock();
+    }
+  };
+  
+  window.openRecycleFile2=function(){
+    content.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:Consolas,monospace;">
+I found the phrase. The complete text:
+
+"You're lying on your back, crying out for your mother. She is standing facing the wall. She has her back to you. A bell rings. Your mother turns to face you. She is silent, but her mouth is open wide. In her mouth is a door."
+
+This is what killed me. This is what will kill you too.
+
+- Clara
+    </div>`;
+    if(!cluesFound.includes('recycle2')){
+      cluesFound.push('recycle2');
+      checkForPuzzleUnlock();
+    }
+  };
+}
+
+// Puzzle system
+function checkForPuzzleUnlock(){
+  // Unlock puzzle window after finding enough clues
+  if(cluesFound.length>=3){
+    if(!document.getElementById('puzzleWindow').dataset.unlocked){
+      document.getElementById('puzzleWindow').dataset.unlocked='true';
+      document.getElementById('puzzleMenuItem').style.display='block';
+      showPuzzle();
+    }
+  }
+}
+
+function openPuzzleWindow(){
+  if(document.getElementById('puzzleWindow').dataset.unlocked){
+    showPuzzle();
+  }
+}
+
+function showPuzzle(){
+  const content=document.getElementById('puzzleContent');
+  content.innerHTML=`<div style="padding:10px;">
+    <p><strong>Locked File - Requires Password</strong></p>
+    <p>Enter the code you found (4 digits):</p>
+    <input type="text" id="puzzleCode" class="puzzleInput" maxlength="4" placeholder="Enter code">
+    <button class="puzzleBtn" onclick="checkPuzzleCode()">Unlock</button>
+    <div id="puzzleResult" style="margin-top:10px;"></div>
+  </div>`;
+  const win=document.getElementById('puzzleWindow');
+  centerWindow(win);
+  win.style.display='block';
+  makeDraggable(win);
+  
+  window.checkPuzzleCode=function(){
+    const code=document.getElementById('puzzleCode').value;
+    const result=document.getElementById('puzzleResult');
+    if(code==='4030'||code==='4050'){
+      puzzlesSolved++;
+      result.innerHTML='<div style="color:green;padding:10px;background:#d4edda;border:1px solid #28a745;">✓ Code accepted. Unlocking file...</div>';
+      setTimeout(()=>{
+        content.innerHTML=`<div style="padding:10px;white-space:pre-wrap;font-family:Consolas,monospace;">
+FILE UNLOCKED
+
+${finalPhrase}
+
+[This file will self-destruct in 10 seconds...]
+        </div>`;
+        setTimeout(()=>{
+          // Trigger final sequence after showing the phrase
+          triggerFinalSequence();
+        },10000);
+      },2000);
+    }else{
+      result.innerHTML='<div style="color:red;padding:10px;background:#f8d7da;border:1px solid #dc3545;">✗ Incorrect code. Try again.</div>';
+    }
+  };
+}
+
+// Additional puzzles triggered by interactions
+let puzzleInteractions=0;
+document.addEventListener('click',()=>{
+  puzzleInteractions++;
+  if(puzzleInteractions===50&&!cluesFound.includes('interaction')){
+    cluesFound.push('interaction');
+    // Show hidden message
+    const msg=document.createElement('div');
+    msg.style.cssText='position:fixed;top:20px;right:20px;background:#fff3cd;border:2px solid #ffc107;padding:10px;z-index:1000;max-width:300px;font-family:Tahoma;';
+    msg.textContent='You\'re getting closer. Keep searching. The truth is hidden in plain sight.';
+    document.body.appendChild(msg);
+    setTimeout(()=>msg.remove(),5000);
+  }
+});
+
+// Final sequence
+let finalSequenceScheduled=false;
+function triggerFinalSequence(){
+  if(finalPhraseUnlocked)return;
+  
+  // Check if at least 5 minutes have passed
+  const elapsed=(Date.now()-gameStartTime)/1000/60;
+  const remaining=(5-elapsed)*60*1000;
+  
+  if(remaining>0&&!finalSequenceScheduled){
+    finalSequenceScheduled=true;
+    setTimeout(()=>{
+      finalPhraseUnlocked=true;
+      showDeathScreen();
+    },remaining);
+  }else if(remaining<=0){
+    finalPhraseUnlocked=true;
+    showDeathScreen();
+  }
+}
+
+function showDeathScreen(){
+  const deathScreen=document.getElementById('deathScreen');
+  const finalMsg=document.getElementById('finalMessage');
+  finalMsg.textContent=finalPhrase;
+  deathScreen.style.display='flex';
+  
+  // Add creepy effects
+  let flashCount=0;
+  const flash=setInterval(()=>{
+    document.body.style.background=flashCount%2===0?'#d20000':'#000';
+    flashCount++;
+    if(flashCount>=6){
+      clearInterval(flash);
+      document.body.style.background='#000';
+    }
+  },200);
+}
+
+// Make desktop icons clickable
+document.querySelectorAll('.icon').forEach(icon=>{
+  icon.style.cursor='pointer';
+  icon.addEventListener('dblclick',()=>{
+    const text=icon.textContent.trim();
+    if(text.includes('My Documents')){
+      openWindow('notepad');
+    }else if(text.includes('My Computer')){
+      openWindow('settings');
+    }else if(text.includes('Recycle Bin')){
+      openWindow('recycle');
+    }
+  });
+});
 </script>
 </body>
 </html>
