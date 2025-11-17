@@ -228,6 +228,7 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
     <div class="startMenuItem" onclick="openWindow('internet')">Internet Explorer</div>
     <div class="startMenuItem" onclick="openWindow('phone')">Phone</div>
     <div class="startMenuItem" onclick="openWindow('explorer')">Windows Explorer</div>
+    <div class="startMenuItem" onclick="openWindow('appstore')">App Store</div>
     <div class="startMenuItem" id="decryptorMenuItem" onclick="openWindow('decryptor')" style="display:none;">File Decryptor</div>
     <div class="startMenuItem" onclick="openWindow('recycle')">Recycle Bin</div>
     <div class="startMenuItem" id="puzzleMenuItem" onclick="openPuzzleWindow()" style="display:none;">Locked File</div>
@@ -238,6 +239,11 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 <div id="emailWindow" class="window large">
   <div class="titlebar">Outlook Express - Inbox <span class="close" onclick="closeWindow('emailWindow')">X</span></div>
   <div class="content" id="emailContent"></div>
+</div>
+
+<div id="appstoreWindow" class="window medium">
+  <div class="titlebar">App Store <span class="close" onclick="closeWindow('appstoreWindow')">X</span></div>
+  <div class="content" id="appstoreContent"></div>
 </div>
 
 <div id="settingsWindow" class="window medium">
@@ -468,6 +474,7 @@ let cluesFound=[];
 let finalPhraseUnlocked=false;
 const totalPuzzles=5;
 const finalPhrase="your lying on your back";
+let decryptorInstalled=false;
 
 // Start menu
 const startBtn=document.getElementById('startBtn');
@@ -500,6 +507,7 @@ function initGame(){
   loadPhoneContent();
   loadExplorerContent();
   loadDecryptorContent();
+  loadAppStoreContent();
   
   // Random easter egg - sometimes show a glitch
   setTimeout(()=>{
@@ -507,6 +515,13 @@ function initGame(){
       showGlitch();
     }
   },60000);
+
+  // Random horror flashes
+  setInterval(()=>{
+    if(Math.random()>0.85 && !finalPhraseUnlocked){
+      showHorrorFlash();
+    }
+  },30000);
   
   // Periodic check for final sequence (every 30 seconds)
   setInterval(()=>{
@@ -539,6 +554,7 @@ function openWindow(type){
     recycle:'recycleWindow',
     phone:'phoneWindow',
     explorer:'explorerWindow',
+    appstore:'appstoreWindow',
     decryptor:'decryptorWindow'
   };
   const winId=windows[type];
@@ -668,7 +684,6 @@ function loadSettingsContent(){
         content.innerHTML='<div style="padding:10px;">'
           +'<button onclick="loadSettingsContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Control Panel</button>'
           +'<div><strong>Current Date:</strong> 2025-01-15<br><strong>Time:</strong> 11:47 PM</div>'
-          +'<br><div style="background:#fff3cd;padding:8px;border:1px solid #ffc107;margin-top:10px;">Hidden Note: Check Notepad for the sequence. The answer is in the numbers.</div>'
           +'</div>';
         if(!cluesFound.includes('settings')){
           cluesFound.push('settings');
@@ -719,7 +734,7 @@ function loadCalculatorContent(){
     calcHTML+=`<button class="puzzleBtn" style="padding:15px;" onclick="calcButton('${btn}')">${btn}</button>`;
   });
   calcHTML+=`</div>`;
-  calcHTML+=`<div style="margin-top:15px;padding:10px;background:#fff3cd;border:1px solid #ffc107;display:none;" id="calcSecret">Secret unlocked! The code is: 4030<br>Use this in the locked file.</div>`;
+  calcHTML+=`<div style="margin-top:15px;padding:10px;background:#fff3cd;border:1px solid #ffc107;display:none;" id="calcSecret">Something is wrong with this total.</div>`;
   content.innerHTML=calcHTML;
   
   // Easter egg: if user calculates 1979+2025+46
@@ -784,7 +799,7 @@ function loadInternetContent(){
       showLinkedIn();
       currentWebsite='linkedin';
     }else{
-      content.innerHTML=`<div style="padding:10px;"><p>Page not found. Try: www.higherheaven.org, mybank.com, or search for a name.</p></div>`;
+      content.innerHTML=`<div style="padding:10px;"><p>Page not found.</p></div>`;
     }
   };
   
@@ -804,7 +819,7 @@ function loadInternetContent(){
         checkForPuzzleUnlock();
       }
     }else{
-      results.innerHTML=`<div style="padding:10px;"><p>No results found. Try searching for a name from the bank records.</p></div>`;
+      results.innerHTML=`<div style="padding:10px;"><p>No results found.</p></div>`;
     }
   };
   
@@ -915,7 +930,7 @@ function loadPhoneContent(){
     if(phoneNum===cultPhoneNumber){
       showPhoneMessages(phoneNum);
     }else{
-      messagesDiv.innerHTML='<div style="padding:10px;color:#d20000;">No messages found for this number. Try the number from the Higher Heaven website.</div>';
+      messagesDiv.innerHTML='<div style="padding:10px;color:#d20000;">No messages found for this number.</div>';
     }
   };
   
@@ -990,7 +1005,7 @@ function loadExplorerContent(){
         <div style="padding:5px;cursor:pointer;margin:5px 0;background:#fff3cd;border:1px solid #ffc107;" onclick="openEncryptedFile()">
           🔒 encrypted_file.dat
         </div>
-        <p style="margin-top:10px;color:#666;font-size:12px;">This file is encrypted. You need a decryptor to open it.</p>
+        <p style="margin-top:10px;color:#666;font-size:12px;">This file is encrypted and cannot be opened.</p>
       </div>`;
       if(!cluesFound.includes('encryptedFile')){
         cluesFound.push('encryptedFile');
@@ -1023,7 +1038,6 @@ function loadExplorerContent(){
           🔒 ${paymentPersonName.toLowerCase().replace(' ','_')}_locked.txt
         </div>
         <p style="margin-top:10px;color:#666;font-size:12px;">This file is locked. You need a password to unlock it.</p>
-        <p style="margin-top:5px;color:#666;font-size:12px;">Hint: Use the first 4 digits of the phone number from the SMS messages.</p>
       </div>`;
       if(!cluesFound.includes('lockedFile')){
         cluesFound.push('lockedFile');
@@ -1075,12 +1089,64 @@ function loadRecycleContent(){
   </div>`;
 }
 
+// App Store
+function loadAppStoreContent(){
+  const content=document.getElementById('appstoreContent');
+  if(!content)return;
+  content.innerHTML=`<div style="padding:10px;">
+    <h3>App Store</h3>
+    <p>Browse and install desktop applications.</p>
+    <div style="margin-top:15px;">
+      <div style="padding:8px;border:1px solid #ccc;margin-bottom:8px;background:#fff;">
+        <strong>Mini Notepad</strong><br>
+        <small>Lightweight text editor.</small><br>
+        <button class="puzzleBtn" onclick="installMiniNotepad()" style="margin-top:6px;">Install</button>
+      </div>
+      <div style="padding:8px;border:1px solid #ccc;margin-bottom:8px;background:#fff;">
+        <strong>Numbers Game</strong><br>
+        <small>Pointless little distraction.</small><br>
+        <button class="puzzleBtn" onclick="installNumbersGame()" style="margin-top:6px;">Install</button>
+      </div>
+      <div style="padding:8px;border:1px solid #ccc;margin-bottom:8px;background:#fff;">
+        <strong>File Decryptor</strong><br>
+        <small>Utility for handling encrypted data.</small><br>
+        <button class="puzzleBtn" onclick="installDecryptor()" style="margin-top:6px;">Install</button>
+      </div>
+    </div>
+    <div id="appstoreStatus" style="margin-top:12px;font-size:12px;color:#333;"></div>
+  </div>`;
+
+  window.installMiniNotepad=function(){
+    const status=document.getElementById('appstoreStatus');
+    status.textContent='Installing Mini Notepad...';
+    setTimeout(()=>{
+      status.textContent='Mini Notepad installed. (Nothing useful seems to happen.)';
+    },1000);
+  };
+
+  window.installNumbersGame=function(){
+    const status=document.getElementById('appstoreStatus');
+    status.textContent='Installing Numbers Game...';
+    setTimeout(()=>{
+      status.textContent='Numbers Game installed. A small window flickers and closes by itself.';
+      showHorrorFlash();
+    },1200);
+  };
+
+  window.installDecryptor=function(){
+    const status=document.getElementById('appstoreStatus');
+    status.textContent='Installing File Decryptor...';
+    setTimeout(()=>{
+      decryptorInstalled=true;
+      const item=document.getElementById('decryptorMenuItem');
+      if(item)item.style.display='block';
+      status.textContent='File Decryptor installed.';
+    },1500);
+  };
+}
+
 // Puzzle system
 function checkForPuzzleUnlock(){
-  // Unlock decryptor after finding encrypted file
-  if(cluesFound.includes('encryptedFile')){
-    document.getElementById('decryptorMenuItem').style.display='block';
-  }
   // Unlock puzzle window after finding locked file
   if(cluesFound.includes('lockedFile')){
     if(!document.getElementById('puzzleWindow').dataset.unlocked){
@@ -1103,7 +1169,6 @@ function showPuzzle(){
   content.innerHTML=`<div style="padding:10px;">
     <p><strong>Locked File - Requires Password</strong></p>
     <p>Enter the password (4 digits):</p>
-    <p style="font-size:11px;color:#666;">Hint: Use the first 4 digits of the phone number from the SMS messages</p>
     <input type="text" id="puzzleCode" class="puzzleInput" maxlength="4" placeholder="Enter 4 digits">
     <button class="puzzleBtn" onclick="checkPuzzleCode()">Unlock</button>
     <div id="puzzleResult" style="margin-top:10px;"></div>
@@ -1155,6 +1220,20 @@ document.addEventListener('click',()=>{
   }
 });
 
+// Random horror flash overlay
+function showHorrorFlash(){
+  const phrases=[
+    'YOU CANT ESCAPE IT',
+    'LET IT IN',
+    'IT WILL FIND YOU'
+  ];
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:#000;z-index:9998;display:flex;align-items:center;justify-content:center;color:#d20000;font-size:32px;font-family:ui-monospace,monospace;letter-spacing:2px;';
+  overlay.textContent=phrases[Math.floor(Math.random()*phrases.length)];
+  document.body.appendChild(overlay);
+  setTimeout(()=>overlay.remove(),600);
+}
+
 // Final sequence
 let finalSequenceScheduled=false;
 function triggerFinalSequence(){
@@ -1202,7 +1281,7 @@ document.querySelectorAll('.icon').forEach(icon=>{
     if(text.includes('My Documents')){
       openWindow('notepad');
     }else if(text.includes('My Computer')){
-      openWindow('settings');
+      openWindow('explorer');
     }else if(text.includes('Recycle Bin')){
       openWindow('recycle');
     }
