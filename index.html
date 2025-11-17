@@ -208,6 +208,10 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
     <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_full-5.png" alt="Recycle Bin">
     <br>Recycle Bin
   </div>
+  <div class="icon" style="top:340px;left:40px;">
+    <img src="https://win98icons.alexmeub.com/icons/png/directory_closed-4.png" alt="File Explorer">
+    <br>File Explorer
+  </div>
   <div id="balloon">
     <strong>New hardware found</strong><br>
     Click here to install drivers.
@@ -589,77 +593,100 @@ function loadEmailContent(){
   const second=Math.floor(Math.random()*9000)+1000;
   cultPhoneNumber=`${area}-${first}-${second}`;
   
-  content.innerHTML='';
-  content.innerHTML+=`<div style="margin-bottom:10px;border-bottom:2px solid #ccc;padding-bottom:5px;">
-    <button onclick="showInbox()" style="padding:5px 10px;margin-right:5px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Inbox</button>
-    <button onclick="showDeleted()" style="padding:5px 10px;background:#ccc;color:#000;border:none;cursor:pointer;">Deleted</button>
+  const deletedEmails=[
+    {from:'Spam',subject:'You won a prize!',body:'Congratulations! You have won $1,000,000!',unread:false},
+    {from:'Unknown',subject:'hey clara this is the website we are happy you joined',body:`Hey Clara, this is the website we are happy you joined. Visit us at: www.higherheaven.org`,unread:false}
+  ];
+  
+  content.innerHTML=`<div style="border:2px solid #7ba7ea;height:100%;display:flex;flex-direction:column;background:#ece9d8;font-family:Tahoma;">
+    <div style="background:linear-gradient(#3b6fd8,#274a94);color:#fff;padding:6px 10px;font-weight:bold;">Outlook Express</div>
+    <div style="flex:1;display:flex;">
+      <div style="width:170px;background:#d4d0c8;padding:10px;border-right:1px solid #999;">
+        <div onclick="showInbox()" style="padding:6px 8px;margin-bottom:6px;background:#fff;border:1px solid #999;cursor:pointer;">Inbox (${randomEmails.length})</div>
+        <div onclick="showDeleted()" style="padding:6px 8px;margin-bottom:6px;background:#fff;border:1px solid #999;cursor:pointer;">Deleted Items (${deletedEmails.length})</div>
+        <div style="padding:6px 8px;margin-bottom:6px;background:#f4f0e1;border:1px solid #bbb;color:#666;">Sent Items</div>
+        <div style="padding:6px 8px;background:#f4f0e1;border:1px solid #bbb;color:#666;">Outbox</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;">
+        <div style="background:#f0f0f0;padding:6px 10px;border-bottom:1px solid #999;font-size:12px;color:#333;">File   Edit   View   Tools   Message   Help</div>
+        <div id="emailView" style="flex:1;overflow:auto;background:#fff;"></div>
+      </div>
+    </div>
   </div>`;
   
-  const inboxDiv=document.createElement('div');
-  inboxDiv.id='emailInbox';
-  randomEmails.forEach((email,i)=>{
-    const div=document.createElement('div');
-    div.className='email'+(email.unread?' unread':'');
-    div.innerHTML=`<strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}`;
-    div.addEventListener('click',()=>{
-      content.innerHTML=`<div style="margin-bottom:10px;">
-        <button onclick="loadEmailContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Inbox</button>
-        <div><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div>
-      </div>
-      <hr>
-      <div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
+  const emailView=document.getElementById('emailView');
+  
+  function renderInbox(){
+    let rows='';
+    randomEmails.forEach((email,i)=>{
+      rows+=`<tr onclick="window.openInboxMessage(${i})" style="cursor:pointer;">
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;font-weight:${email.unread?'bold':'normal'};">${email.from}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;">${email.subject}</td>
+      </tr>`;
     });
-    inboxDiv.appendChild(div);
-  });
-  content.appendChild(inboxDiv);
+    emailView.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="background:#f4f4f4;border-bottom:1px solid #ccc;">
+          <th style="text-align:left;padding:6px 8px;width:30%;">From</th>
+          <th style="text-align:left;padding:6px 8px;">Subject</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+  
+  function renderDeleted(){
+    let rows='';
+    deletedEmails.forEach((email,i)=>{
+      rows+=`<tr onclick="window.openDeletedMessage(${i})" style="cursor:pointer;">
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;">${email.from}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;">${email.subject}</td>
+      </tr>`;
+    });
+    emailView.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="background:#f4f4f4;border-bottom:1px solid #ccc;">
+          <th style="text-align:left;padding:6px 8px;width:30%;">From</th>
+          <th style="text-align:left;padding:6px 8px;">Subject</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+  
+  function openMessage(email,backAction){
+    emailView.innerHTML=`<div style="padding:12px;font-size:12px;">
+      <button onclick="window.${backAction}()" style="padding:4px 8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;margin-bottom:10px;">Back</button>
+      <div><strong>From:</strong> ${email.from}</div>
+      <div><strong>Subject:</strong> ${email.subject}</div>
+      <hr style="margin:12px 0;">
+      <div style="white-space:pre-wrap;line-height:1.5;">${email.body}</div>
+    </div>`;
+  }
   
   window.showInbox=function(){
-    const inbox=document.getElementById('emailInbox');
-    if(inbox)inbox.style.display='block';
-    const deleted=document.getElementById('emailDeleted');
-    if(deleted)deleted.style.display='none';
+    renderInbox();
   };
   
   window.showDeleted=function(){
-    const inbox=document.getElementById('emailInbox');
-    if(inbox)inbox.style.display='none';
-    let deleted=document.getElementById('emailDeleted');
-    if(!deleted){
-      deleted=document.createElement('div');
-      deleted.id='emailDeleted';
-      const deletedEmails=[
-        {from:'Spam',subject:'You won a prize!',body:'Congratulations! You have won $1,000,000!',unread:false},
-        {from:'Unknown',subject:'hey clara this is the website we are happy you joined',body:`Hey Clara, this is the website we are happy you joined. Visit us at: <a href="#" onclick="openCultWebsite(); return false;" style="color:#0066cc;text-decoration:underline;">www.higherheaven.org</a>`,unread:false}
-      ];
-      deletedEmails.forEach((email,i)=>{
-        const div=document.createElement('div');
-        div.className='email';
-        div.innerHTML=`<strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}`;
-        div.addEventListener('click',()=>{
-          content.innerHTML=`<div style="margin-bottom:10px;">
-            <button onclick="loadEmailContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Inbox</button>
-            <div><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div>
-          </div>
-          <hr>
-          <div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
-          if(i===1&&!cluesFound.includes('cultEmail')){
-            cluesFound.push('cultEmail');
-            checkForPuzzleUnlock();
-          }
-        });
-        deleted.appendChild(div);
-      });
-      content.appendChild(deleted);
-    }
-    deleted.style.display='block';
+    renderDeleted();
   };
   
-  window.openCultWebsite=function(){
-    openWindow('internet');
-    setTimeout(()=>{
-      showCultWebsite();
-    },100);
+  window.openInboxMessage=function(idx){
+    const email=randomEmails[idx];
+    openMessage(email,'showInbox');
   };
+  
+  window.openDeletedMessage=function(idx){
+    const email=deletedEmails[idx];
+    openMessage(email,'showDeleted');
+    if(idx===1&&!cluesFound.includes('cultEmail')){
+      cluesFound.push('cultEmail');
+      checkForPuzzleUnlock();
+    }
+  };
+  
+  renderInbox();
 }
 
 // Settings with hidden puzzle
@@ -842,7 +869,7 @@ function loadInternetContent(){
       </div>
       <div style="text-align:center;margin-top:40px;padding:20px;background:#2c5f2d;color:#fff;">
         <p style="font-size:20px;font-weight:bold;">Contact Us</p>
-        <p style="font-size:18px;margin-top:10px;">Phone: <a href="#" onclick="openPhoneApp('${cultPhoneNumber}'); return false;" style="color:#fff;text-decoration:underline;cursor:pointer;">${cultPhoneNumber}</a></p>
+        <p style="font-size:18px;margin-top:10px;">Phone: ${cultPhoneNumber}</p>
       </div>
     </div>`;
     if(!cluesFound.includes('cultWebsite')){
@@ -978,79 +1005,134 @@ function loadPhoneContent(){
 // Explorer app with D:/ drive and encrypted file
 function loadExplorerContent(){
   const content=document.getElementById('explorerContent');
-  content.innerHTML=`<div style="padding:10px;background:#fff;">
-    <div style="margin-bottom:10px;">
-      <strong>My Computer</strong>
-    </div>
-    <div style="padding:5px;cursor:pointer;border:1px solid #ccc;margin:5px 0;" onclick="showDrive('C')">
-      📁 Local Disk (C:)
-    </div>
-    <div style="padding:5px;cursor:pointer;border:1px solid #ccc;margin:5px 0;background:#e8f4f8;" onclick="showDrive('D')">
-      📁 Local Disk (D:)
-    </div>
-    <div id="driveContent" style="margin-top:15px;"></div>
-    <div style="margin-top:20px;border-top:2px solid #ccc;padding-top:15px;">
-      <h4>Search Files</h4>
-      <input type="text" id="fileSearch" placeholder="Search for file name..." style="padding:6px;width:300px;margin:10px 0;">
-      <button class="puzzleBtn" onclick="searchFiles()">Search</button>
-      <div id="searchResults" style="margin-top:15px;"></div>
+  content.innerHTML=`<div style="border:2px solid #7ba7ea;font-family:Tahoma;height:100%;background:#ece9d8;">
+    <div style="background:linear-gradient(#4d76d9,#2a4ca3);color:#fff;padding:6px 10px;font-weight:bold;">Windows Explorer</div>
+    <div style="display:flex;height:360px;">
+      <div style="width:190px;background:#d4d0c8;padding:8px;border-right:1px solid #999;overflow:auto;font-size:12px;">
+        <div onclick="selectExplorerNode('desktop')" style="padding:4px;cursor:pointer;">Desktop</div>
+        <div onclick="selectExplorerNode('mydocs')" style="padding:4px;cursor:pointer;">My Documents</div>
+        <div onclick="selectExplorerNode('mycomputer')" style="padding:4px;cursor:pointer;font-weight:bold;">My Computer</div>
+        <div style="margin-left:12px;">
+          <div onclick="showDrive('C')" style="padding:4px;cursor:pointer;">Local Disk (C:)</div>
+          <div onclick="showDrive('D')" style="padding:4px;cursor:pointer;">Local Disk (D:)</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;">
+        <div style="background:#f0f0f0;padding:6px 10px;border-bottom:1px solid #999;font-size:12px;">Address: <span id="explorerPath">My Computer</span></div>
+        <div id="filePane" style="flex:1;padding:10px;background:#fff;overflow:auto;font-size:12px;"></div>
+        <div style="padding:8px;background:#f7f7f7;border-top:1px solid #ccc;font-size:12px;">
+          <div style="font-weight:bold;">Search Companion</div>
+          <input type="text" id="fileSearch" placeholder="Type exact file name..." style="padding:4px;width:65%;margin:6px 0;">
+          <button class="puzzleBtn" onclick="searchFiles()" style="padding:4px 10px;">Search</button>
+          <div id="searchResults" style="margin-top:6px;"></div>
+        </div>
+        <div id="statusBar" style="background:#d4d0c8;padding:4px 10px;border-top:1px solid #999;font-size:11px;">Ready</div>
+      </div>
     </div>
   </div>`;
   
+  const filePane=document.getElementById('filePane');
+  const pathEl=document.getElementById('explorerPath');
+  const statusEl=document.getElementById('statusBar');
+  
+  function renderMyComputer(){
+    pathEl.textContent='My Computer';
+    filePane.innerHTML=`<div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div ondblclick="showDrive('C')" style="width:120px;text-align:center;cursor:pointer;">
+        <img src="https://win98icons.alexmeub.com/icons/png/disk-2.png" alt="C:" style="width:48px;height:48px;"><br>Local Disk (C:)
+      </div>
+      <div ondblclick="showDrive('D')" style="width:120px;text-align:center;cursor:pointer;">
+        <img src="https://win98icons.alexmeub.com/icons/png/disk-1.png" alt="D:" style="width:48px;height:48px;"><br>Local Disk (D:)
+      </div>
+    </div>`;
+    statusEl.textContent='Objects: 2';
+  }
+  
+  window.selectExplorerNode=function(node){
+    if(node==='desktop'){
+      pathEl.textContent='Desktop';
+      filePane.innerHTML='<p>Empty workspace.</p>';
+      statusEl.textContent='Objects: 0';
+    }else if(node==='mydocs'){
+      pathEl.textContent='My Documents';
+      filePane.innerHTML='<p>Personal notes and letters.</p>';
+      statusEl.textContent='Objects: 1';
+    }else{
+      renderMyComputer();
+    }
+  };
+  
   window.showDrive=function(drive){
-    const driveContent=document.getElementById('driveContent');
     if(drive==='D'){
-      driveContent.innerHTML=`<div style="padding:10px;background:#f5f5f5;border:1px solid #ccc;">
-        <h4>D:/ Contents</h4>
-        <div style="padding:5px;cursor:pointer;margin:5px 0;background:#fff3cd;border:1px solid #ffc107;" onclick="openEncryptedFile()">
-          🔒 encrypted_file.dat
-        </div>
-        <p style="margin-top:10px;color:#666;font-size:12px;">This file is encrypted and cannot be opened.</p>
+      pathEl.textContent='My Computer > Local Disk (D:)';
+      filePane.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">
+        <div ondblclick="openArchiveFolder()" style="padding:6px;border:1px solid #ccc;background:#f8f8f8;cursor:pointer;">📁 Archive</div>
+        <div style="padding:6px;border:1px solid #ccc;background:#f8f8f8;color:#999;">📁 System (access denied)</div>
       </div>`;
+      statusEl.textContent='Objects: 2';
       if(!cluesFound.includes('encryptedFile')){
         cluesFound.push('encryptedFile');
         checkForPuzzleUnlock();
       }
     }else{
-      driveContent.innerHTML=`<div style="padding:10px;background:#f5f5f5;border:1px solid #ccc;">
-        <h4>C:/ Contents</h4>
-        <p>System files and folders</p>
-      </div>`;
+      pathEl.textContent='My Computer > Local Disk (C:)';
+      filePane.innerHTML='<p>System files are hidden.</p>';
+      statusEl.textContent='Objects: 0';
     }
   };
   
-  window.openEncryptedFile=function(){
-    const content=document.getElementById('explorerContent');
-    content.innerHTML+=`<div style="margin-top:15px;padding:10px;background:#fff3cd;border:2px solid #ffc107;">
-      <p><strong>Encrypted File Detected</strong></p>
-      <p>This file requires a decryption tool. Look for a File Decryptor application.</p>
+  window.openArchiveFolder=function(){
+    pathEl.textContent='My Computer > Local Disk (D:) > Archive';
+    filePane.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">
+      <div ondblclick="openTransfersFolder()" style="padding:6px;border:1px solid #ccc;background:#fffbe6;cursor:pointer;">📁 Transfers</div>
+      <div style="padding:6px;border:1px solid #ccc;background:#f8f8f8;color:#999;">📁 Photos (empty)</div>
     </div>`;
+    statusEl.textContent='Objects: 2';
+  };
+  
+  window.openTransfersFolder=function(){
+    pathEl.textContent='My Computer > Local Disk (D:) > Archive > Transfers';
+    filePane.innerHTML=`<div style="padding:6px;border:1px solid #ccc;background:#fff3cd;">
+      <div ondblclick="openEncryptedFile()" style="cursor:pointer;">🔒 encrypted_file.dat</div>
+      <p style="font-size:11px;color:#555;margin-top:6px;">Double-click to inspect.</p>
+    </div>`;
+    statusEl.textContent='Objects: 1';
+  };
+  
+  window.openEncryptedFile=function(){
+    filePane.innerHTML=`<div style="padding:12px;background:#fff3cd;border:2px solid #ffc107;">
+      <p><strong>Encrypted File Detected</strong></p>
+      <p>The system cannot read this archive. Additional software is required.</p>
+    </div>`;
+    statusEl.textContent='Objects: 1';
   };
   
   window.searchFiles=function(){
     const searchTerm=document.getElementById('fileSearch').value.toLowerCase().trim();
     const results=document.getElementById('searchResults');
     
-    if(searchTerm===paymentPersonName.toLowerCase()||searchTerm.includes(paymentPersonName.toLowerCase().split(' ')[0])||searchTerm.includes(paymentPersonName.toLowerCase().split(' ')[1])){
-      results.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;">
-        <h4>Search Results</h4>
-        <div style="padding:5px;cursor:pointer;margin:5px 0;background:#fff3cd;border:1px solid #ffc107;" onclick="openLockedFile()">
+    if(searchTerm===paymentPersonName.toLowerCase()){
+      results.innerHTML=`<div style="padding:8px;border:1px solid #ccc;background:#fff;">
+        <strong>Result:</strong>
+        <div style="padding:5px;margin-top:6px;background:#fff3cd;border:1px solid #ffc107;cursor:pointer;" onclick="openLockedFile()">
           🔒 ${paymentPersonName.toLowerCase().replace(' ','_')}_locked.txt
         </div>
-        <p style="margin-top:10px;color:#666;font-size:12px;">This file is locked. You need a password to unlock it.</p>
+        <p style="font-size:11px;color:#666;">Access requires authorization.</p>
       </div>`;
       if(!cluesFound.includes('lockedFile')){
         cluesFound.push('lockedFile');
         checkForPuzzleUnlock();
       }
     }else{
-      results.innerHTML=`<div style="padding:10px;"><p>No files found matching "${searchTerm}". Try searching for a name from the bank records.</p></div>`;
+      results.innerHTML=`<div style="padding:6px;color:#333;">No indexed files found. The name must match exactly.</div>`;
     }
   };
   
   window.openLockedFile=function(){
     openPuzzleWindow();
   };
+  
+  renderMyComputer();
 }
 
 // Decryptor app
@@ -1200,7 +1282,7 @@ your lying on your back
         },10000);
       },2000);
     }else{
-      result.innerHTML='<div style="color:red;padding:10px;background:#f8d7da;border:1px solid #dc3545;">✗ Incorrect password. Try again. Hint: First 4 digits of the phone number.</div>';
+      result.innerHTML='<div style="color:red;padding:10px;background:#f8d7da;border:1px solid #dc3545;">✗ Access denied. The code is rejected by the system.</div>';
     }
   };
 }
@@ -1284,6 +1366,8 @@ document.querySelectorAll('.icon').forEach(icon=>{
       openWindow('explorer');
     }else if(text.includes('Recycle Bin')){
       openWindow('recycle');
+    }else if(text.includes('File Explorer')){
+      openWindow('explorer');
     }
   });
 });
