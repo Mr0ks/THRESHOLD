@@ -77,6 +77,10 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
   display:none;
   z-index:150;
   box-shadow:0 4px 10px rgba(0,0,0,0.4);
+  resize:both;
+  overflow:hidden;
+  min-width:220px;
+  min-height:160px;
 }
 .window.large{width:600px;height:500px;}
 .window.medium{width:500px;height:400px;}
@@ -582,7 +586,12 @@ function loadEmailContent(){
     div.className='email'+(email.unread?' unread':'');
     div.innerHTML=`<strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}`;
     div.addEventListener('click',()=>{
-      content.innerHTML=`<div style="margin-bottom:10px;"><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div><hr><div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
+      content.innerHTML=`<div style="margin-bottom:10px;">
+        <button onclick="loadEmailContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Inbox</button>
+        <div><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div>
+      </div>
+      <hr>
+      <div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
     });
     inboxDiv.appendChild(div);
   });
@@ -611,7 +620,12 @@ function loadEmailContent(){
         div.className='email';
         div.innerHTML=`<strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}`;
         div.addEventListener('click',()=>{
-          content.innerHTML=`<div style="margin-bottom:10px;"><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div><hr><div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
+          content.innerHTML=`<div style="margin-bottom:10px;">
+            <button onclick="loadEmailContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Inbox</button>
+            <div><strong>From:</strong> ${email.from}<br><strong>Subject:</strong> ${email.subject}</div>
+          </div>
+          <hr>
+          <div style="margin-top:10px;white-space:pre-wrap;">${email.body}</div>`;
           if(i===1&&!cluesFound.includes('cultEmail')){
             cluesFound.push('cultEmail');
             checkForPuzzleUnlock();
@@ -651,13 +665,20 @@ function loadSettingsContent(){
     div.textContent=setting;
     div.addEventListener('click',()=>{
       if(setting==='Date and Time'){
-        content.innerHTML='<div style="padding:10px;"><strong>Current Date:</strong> 2025-01-15<br><strong>Time:</strong> 11:47 PM<br><br><div style="background:#fff3cd;padding:8px;border:1px solid #ffc107;margin-top:10px;">Hidden Note: Check Notepad for the sequence. The answer is in the numbers.</div></div>';
+        content.innerHTML='<div style="padding:10px;">'
+          +'<button onclick="loadSettingsContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Control Panel</button>'
+          +'<div><strong>Current Date:</strong> 2025-01-15<br><strong>Time:</strong> 11:47 PM</div>'
+          +'<br><div style="background:#fff3cd;padding:8px;border:1px solid #ffc107;margin-top:10px;">Hidden Note: Check Notepad for the sequence. The answer is in the numbers.</div>'
+          +'</div>';
         if(!cluesFound.includes('settings')){
           cluesFound.push('settings');
           checkForPuzzleUnlock();
         }
       }else{
-        content.innerHTML=`<div style="padding:10px;">${setting} settings panel.<br><br>No changes made.</div>`;
+        content.innerHTML=`<div style="padding:10px;">
+          <button onclick="loadSettingsContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Control Panel</button>
+          <div>${setting} settings panel.<br><br>No changes made.</div>
+        </div>`;
       }
     });
     content.appendChild(div);
@@ -790,6 +811,7 @@ function loadInternetContent(){
   window.showCultWebsite=function(){
     const content=document.getElementById('webContent');
     content.innerHTML=`<div style="padding:20px;background:#f5f5f5;font-family:Arial;">
+      <button onclick="loadInternetContent()" style="padding:5px 10px;margin-bottom:12px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Home</button>
       <h1 style="color:#2c5f2d;text-align:center;font-size:32px;">HIGHER HEAVEN</h1>
       <h2 style="color:#4a7c59;text-align:center;font-size:24px;">Animal Farms & Spiritual Community</h2>
       <div style="margin:30px 0;padding:20px;background:#fff;border:2px solid #2c5f2d;">
@@ -824,7 +846,10 @@ function loadInternetContent(){
       {date:'2025-01-14',description:'Coffee Shop',amount:'-$5.75'},
       {date:'2025-01-15',description:'Online Purchase',amount:'-$129.99'}
     ];
-    let paymentsHTML='<div style="padding:20px;background:#fff;"><h2 style="color:#0066cc;">Account Transactions</h2><table style="width:100%;border-collapse:collapse;margin-top:20px;"><tr style="background:#0066cc;color:#fff;"><th style="padding:10px;text-align:left;border:1px solid #ccc;">Date</th><th style="padding:10px;text-align:left;border:1px solid #ccc;">Description</th><th style="padding:10px;text-align:right;border:1px solid #ccc;">Amount</th></tr>';
+    let paymentsHTML='<div style="padding:20px;background:#fff;">'
+      +'<button onclick="loadInternetContent()" style="padding:5px 10px;margin-bottom:12px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Home</button>'
+      +'<h2 style="color:#0066cc;">Account Transactions</h2>'
+      +'<table style="width:100%;border-collapse:collapse;margin-top:20px;"><tr style="background:#0066cc;color:#fff;"><th style="padding:10px;text-align:left;border:1px solid #ccc;">Date</th><th style="padding:10px;text-align:left;border:1px solid #ccc;">Description</th><th style="padding:10px;text-align:right;border:1px solid #ccc;">Amount</th></tr>';
     randomPayments.forEach(p=>{
       paymentsHTML+=`<tr><td style="padding:8px;border:1px solid #ccc;">${p.date}</td><td style="padding:8px;border:1px solid #ccc;">${p.description}</td><td style="padding:8px;border:1px solid #ccc;text-align:right;color:${p.amount.startsWith('-')?'#d20000':'#006400'};font-weight:bold;">${p.amount}</td></tr>`;
     });
@@ -839,6 +864,7 @@ function loadInternetContent(){
   window.showLinkedIn=function(){
     const content=document.getElementById('webContent');
     content.innerHTML=`<div style="padding:20px;background:#fff;">
+      <button onclick="loadInternetContent()" style="padding:5px 10px;margin-bottom:12px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Home</button>
       <h2 style="color:#0077b5;">LinkedIn Profile</h2>
       <div style="margin-top:20px;padding:15px;background:#f5f5f5;border:1px solid #ccc;">
         <h3>${paymentPersonName}</h3>
@@ -851,6 +877,7 @@ function loadInternetContent(){
   window.showPersonWebsite=function(){
     const content=document.getElementById('webContent');
     content.innerHTML=`<div style="padding:20px;background:#fff;">
+      <button onclick="loadInternetContent()" style="padding:5px 10px;margin-bottom:12px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Home</button>
       <h2>${paymentPersonName}'s Personal Website</h2>
       <p style="margin-top:20px;">This website contains information about ${paymentPersonName}.</p>
       <p style="margin-top:15px;color:#666;">Search for files related to this person in Windows Explorer.</p>
@@ -903,6 +930,7 @@ function loadPhoneContent(){
     }
     const finalDiv=document.getElementById('phoneMessages')||content;
     finalDiv.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;">
+      <button onclick="loadPhoneContent()" style="padding:5px 10px;margin-bottom:8px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Phone</button>
       <h4>Messages with ${phoneNum}</h4>
       <div style="margin-top:15px;padding:10px;background:#f0f0f0;border-left:3px solid #0066cc;">
         <strong>Clara:</strong> where is money<br>
