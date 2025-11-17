@@ -119,7 +119,7 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 }
 .startMenuItem:hover{background:#d4d0c8;}
 
-/* Death Screen */
+/* Death Screen (legacy, mostly unused now) */
 #deathScreen{
   position:fixed;
   inset:0;
@@ -172,6 +172,35 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
 .puzzleInput{padding:6px;margin:5px;border:1px solid #666;font-family:Tahoma;width:200px;}
 .puzzleBtn{padding:6px 12px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;font-family:Tahoma;}
 .puzzleBtn:hover{background:#3a6bb8;}
+
+/* ASCEND overlay */
+#ascendOverlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:20000;
+}
+#ascendText{
+  font-family:ui-monospace,monospace;
+  font-size:clamp(40px,8vw,120px);
+  color:#ffffff;
+  text-shadow:0 0 10px #ff0000;
+  animation:ascendGlitch 0.15s infinite, ascendFade 3s forwards;
+}
+@keyframes ascendGlitch{
+  0%{transform:translate(0,0);}
+  25%{transform:translate(-2px,1px);}
+  50%{transform:translate(2px,-1px);}
+  75%{transform:translate(-1px,-2px);}
+  100%{transform:translate(0,0);}
+}
+@keyframes ascendFade{
+  0%{opacity:0;}
+  100%{opacity:1;}
+}
 </style>
 </head>
 
@@ -295,15 +324,21 @@ html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:ui-
   <div class="content" id="puzzleContent"></div>
 </div>
 
-<!-- Death Screen -->
+<!-- Death Screen (legacy) -->
 <div id="deathScreen">
   <div id="deathText">YOU DIED</div>
   <div id="deathInfo">investigator<br>-1979-2025-<br>death: unknown</div>
   <div id="finalMessage"></div>
 </div>
 
+<!-- ASCEND overlay -->
+<div id="ascendOverlay">
+  <div id="ascendText">ASCEND</div>
+</div>
+
 <audio id="xpStart" src="start.mp3"></audio>
 <audio id="xpErr" src="error.mp3"></audio>
+<audio id="scaryAudio" src="scary.mp3"></audio>
 
 <script>
 // ---------- AUDIO ----------
@@ -413,6 +448,7 @@ const xpErr=document.getElementById('xpErr');
 const balloon=document.getElementById('balloon');
 const errWin=document.getElementById('errWindow');
 const clock=document.getElementById('clock');
+const scaryAudio=document.getElementById('scaryAudio');
 
 function showXPBoot(){
   xpVideo.style.display='block';
@@ -480,6 +516,12 @@ const totalPuzzles=5;
 const finalPhrase="your lying on your back";
 let decryptorInstalled=false;
 
+// NEW STATE
+let miniNotepadInstalled=false;
+let numbersGameInstalled=false;
+let fixedFileAvailable=false;
+let finalAscendStarted=false;
+
 // Start menu
 const startBtn=document.getElementById('startBtn');
 const startMenu=document.getElementById('startMenu');
@@ -527,15 +569,7 @@ function initGame(){
     }
   },30000);
   
-  // Periodic check for final sequence (every 30 seconds)
-  setInterval(()=>{
-    if(!finalPhraseUnlocked&&cluesFound.length>=5){
-      const elapsed=(Date.now()-gameStartTime)/1000/60;
-      if(elapsed>=5){
-        triggerFinalSequence();
-      }
-    }
-  },30000);
+  // (Removed old automatic final sequence timer; now only the explicit chain triggers the ending)
 }
 
 function showGlitch(){
@@ -567,6 +601,7 @@ function openWindow(type){
     centerWindow(win);
     win.style.display='block';
     makeDraggable(win);
+    if(type==='recycle') loadRecycleContent();
   }
 }
 
@@ -750,7 +785,7 @@ ${randomReminders.join('\n')}</div>`;
   }
 }
 
-// Calculator with puzzle
+// Calculator with new 4532 trigger
 function loadCalculatorContent(){
   const content=document.getElementById('calculatorContent');
   let display='0';
@@ -761,10 +796,10 @@ function loadCalculatorContent(){
     calcHTML+=`<button class="puzzleBtn" style="padding:15px;" onclick="calcButton('${btn}')">${btn}</button>`;
   });
   calcHTML+=`</div>`;
-  calcHTML+=`<div style="margin-top:15px;padding:10px;background:#fff3cd;border:1px solid #ffc107;display:none;" id="calcSecret">Something is wrong with this total.</div>`;
+  // calcSecret div kept but unused (no hints)
+  calcHTML+=`<div style="margin-top:15px;padding:10px;background:#fff3cd;border:1px solid #ffc107;display:none;" id="calcSecret"></div>`;
   content.innerHTML=calcHTML;
   
-  // Easter egg: if user calculates 1979+2025+46
   window.calcButton=function(btn){
     const displayEl=document.getElementById('calcDisplay');
     if(btn==='C'){
@@ -773,12 +808,9 @@ function loadCalculatorContent(){
       try{
         const result=eval(display);
         display=result.toString();
-        if(result===4030||result===4050){
-          document.getElementById('calcSecret').style.display='block';
-          if(!cluesFound.includes('calculator')){
-            cluesFound.push('calculator');
-            checkForPuzzleUnlock();
-          }
+        // NEW: 4532 triggers fixed_savedvia.txt in Recycle Bin
+        if(result===4532){
+          createFixedSavedFile();
         }
       }catch(e){
         display='Error';
@@ -838,8 +870,7 @@ function loadInternetContent(){
       results.innerHTML=`<div style="padding:10px;background:#e8f4f8;border:1px solid #0066cc;">
         <h3>Search Results for "${query}"</h3>
         <p><strong>LinkedIn Profile</strong><br>
-        <a href="#" onclick="showLinkedIn(); return false;" style="color:#0066cc;">${paymentPersonName} - Professional Profile</a><br>
-        Visit their personal website: <a href="#" onclick="showPersonWebsite(); return false;" style="color:#0066cc;">${paymentPersonName.toLowerCase().replace(' ','')}.com</a></p>
+        <a href="#" onclick="showLinkedIn(); return false;" style="color:#0066cc;">${paymentPersonName} - Professional Profile</a></p>
       </div>`;
       if(!cluesFound.includes('linkedin')){
         cluesFound.push('linkedin');
@@ -911,23 +942,8 @@ function loadInternetContent(){
       <div style="margin-top:20px;padding:15px;background:#f5f5f5;border:1px solid #ccc;">
         <h3>${paymentPersonName}</h3>
         <p>Professional Profile</p>
-        <p style="margin-top:15px;">Visit personal website: <a href="#" onclick="showPersonWebsite(); return false;" style="color:#0066cc;">${paymentPersonName.toLowerCase().replace(' ','')}.com</a></p>
       </div>
     </div>`;
-  };
-  
-  window.showPersonWebsite=function(){
-    const content=document.getElementById('webContent');
-    content.innerHTML=`<div style="padding:20px;background:#fff;">
-      <button onclick="loadInternetContent()" style="padding:5px 10px;margin-bottom:12px;background:#4c7cd2;color:#fff;border:none;cursor:pointer;">Back to Home</button>
-      <h2>${paymentPersonName}'s Personal Website</h2>
-      <p style="margin-top:20px;">This website contains information about ${paymentPersonName}.</p>
-      <p style="margin-top:15px;color:#666;">Search for files related to this person in Windows Explorer.</p>
-    </div>`;
-    if(!cluesFound.includes('personWebsite')){
-      cluesFound.push('personWebsite');
-      checkForPuzzleUnlock();
-    }
   };
   
   window.openPhoneApp=function(phoneNum){
@@ -1002,7 +1018,7 @@ function loadPhoneContent(){
   };
 }
 
-// Explorer app with D:/ drive and encrypted file
+// Explorer app with D:/ drive and encrypted file + corrupted files + diary
 function loadExplorerContent(){
   const content=document.getElementById('explorerContent');
   content.innerHTML=`<div style="border:2px solid #7ba7ea;font-family:Tahoma;height:100%;background:#ece9d8;">
@@ -1055,7 +1071,9 @@ function loadExplorerContent(){
       statusEl.textContent='Objects: 0';
     }else if(node==='mydocs'){
       pathEl.textContent='My Documents';
-      filePane.innerHTML='<p>Personal notes and letters.</p>';
+      filePane.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">
+        <div ondblclick="openDiaryFile()" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">📄 Diary.txt</div>
+      </div>`;
       statusEl.textContent='Objects: 1';
     }else{
       renderMyComputer();
@@ -1068,8 +1086,14 @@ function loadExplorerContent(){
       filePane.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">
         <div ondblclick="openArchiveFolder()" style="padding:6px;border:1px solid #ccc;background:#f8f8f8;cursor:pointer;">📁 Archive</div>
         <div style="padding:6px;border:1px solid #ccc;background:#f8f8f8;color:#999;">📁 System (access denied)</div>
+        <div ondblclick="openCorruptedFile('dfj3K2.tmp')" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">🗎 dfj3K2.tmp</div>
+        <div ondblclick="openCorruptedFile('broken77.sys')" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">🗎 broken77.sys</div>
+        <div ondblclick="openCorruptedFile('ARCHIVE-99.bak')" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">🗎 ARCHIVE-99.bak</div>
+        <div ondblclick="openCorruptedFile('notes.old')" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">🗎 notes.old</div>
+        <div ondblclick="openCorruptedFile('x1x1x1.raw')" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">🗎 x1x1x1.raw</div>
+        <div ondblclick="openCorruptedFile('system_lock.err')" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;">🗎 system_lock.err</div>
       </div>`;
-      statusEl.textContent='Objects: 2';
+      statusEl.textContent='Objects: 8';
       if(!cluesFound.includes('encryptedFile')){
         cluesFound.push('encryptedFile');
         checkForPuzzleUnlock();
@@ -1102,9 +1126,21 @@ function loadExplorerContent(){
   window.openEncryptedFile=function(){
     filePane.innerHTML=`<div style="padding:12px;background:#fff3cd;border:2px solid #ffc107;">
       <p><strong>Encrypted File Detected</strong></p>
-      <p>The system cannot read this archive. Additional software is required.</p>
+      <p>The system cannot read this archive. Use File Decryptor to attempt decryption.</p>
     </div>`;
     statusEl.textContent='Objects: 1';
+  };
+  
+  window.openCorruptedFile=function(name){
+    filePane.innerHTML=`<div style="padding:12px;background:#000;color:#0f0;font-family:Consolas,monospace;white-space:pre-wrap;">
+${name}
+--------------------
+�▒█▒▒�▒▒▒▒▒█▓▒▒▒▒▒▒
+▒▒▒▒�█▒▒▒▒▒▒▒▓▒▒▒▒▒
+▒▒▒▒▒▒▒▒�▒▒▒▒▒▒▒▒▒▒
+DATA STREAM CORRUPTED
+    </div>`;
+    statusEl.textContent='1 item opened';
   };
   
   window.searchFiles=function(){
@@ -1117,7 +1153,6 @@ function loadExplorerContent(){
         <div style="padding:5px;margin-top:6px;background:#fff3cd;border:1px solid #ffc107;cursor:pointer;" onclick="openLockedFile()">
           🔒 ${paymentPersonName.toLowerCase().replace(' ','_')}_locked.txt
         </div>
-        <p style="font-size:11px;color:#666;">Access requires authorization.</p>
       </div>`;
       if(!cluesFound.includes('lockedFile')){
         cluesFound.push('lockedFile');
@@ -1132,27 +1167,51 @@ function loadExplorerContent(){
     openPuzzleWindow();
   };
   
+  window.openDiaryFile=function(){
+    filePane.innerHTML=`<div style="padding:12px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:Consolas,monospace;">
+dear diary, i dont know what to do,
+i lost my money,
+my only choice is to stay with them
+    </div>`;
+    statusEl.textContent='Diary.txt';
+  };
+  
   renderMyComputer();
 }
 
-// Decryptor app
+// Decryptor app — now requires selecting file and decrypts to "4532"
 function loadDecryptorContent(){
   const content=document.getElementById('decryptorContent');
   content.innerHTML=`<div style="padding:10px;">
     <h3>File Decryptor</h3>
     <p>Select encrypted file to decrypt:</p>
+    <select id="decryptFileSelect" class="puzzleInput">
+      <option value="">-- select file --</option>
+      <option value="encrypted_file.dat">D:/Archive/Transfers/encrypted_file.dat</option>
+      <option value="dfj3K2.tmp">dfj3K2.tmp</option>
+      <option value="broken77.sys">broken77.sys</option>
+    </select>
     <div style="margin:15px 0;">
-      <button class="puzzleBtn" onclick="decryptFile()" style="padding:10px 20px;">Decrypt D:/encrypted_file.dat</button>
+      <button class="puzzleBtn" onclick="decryptFile()" style="padding:10px 20px;">Decrypt Selected</button>
     </div>
     <div id="decryptResult" style="margin-top:15px;"></div>
   </div>`;
   
   window.decryptFile=function(){
     const result=document.getElementById('decryptResult');
+    const sel=document.getElementById('decryptFileSelect').value;
+    if(!sel){
+      result.innerHTML=`<div style="padding:10px;background:#f8d7da;border:1px solid #dc3545;color:#721c24;">No file selected.</div>`;
+      return;
+    }
+    if(sel!=='encrypted_file.dat'){
+      result.innerHTML=`<div style="padding:10px;background:#fff3cd;border:1px solid #ffc107;color:#856404;">This file cannot be decrypted.</div>`;
+      return;
+    }
     result.innerHTML=`<div style="padding:15px;background:#d4edda;border:2px solid #28a745;color:#155724;">
       <h4>✓ File Decrypted Successfully</h4>
       <div style="margin-top:10px;padding:10px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:monospace;">
-god has your money
+4532
       </div>
     </div>`;
     if(!cluesFound.includes('decrypted')){
@@ -1162,13 +1221,58 @@ god has your money
   };
 }
 
-// Recycle Bin (simplified)
+// Recycle Bin
 function loadRecycleContent(){
   const content=document.getElementById('recycleContent');
+  if(fixedFileAvailable){
+    content.innerHTML=`<div style="padding:10px;">
+      <h3>Recycle Bin</h3>
+      <div ondblclick="openFixedSavedFile()" style="padding:6px;border:1px solid #ccc;background:#fff;cursor:pointer;margin-top:10px;">📄 fixed_savedvia.txt</div>
+      <p style="font-size:11px;color:#666;margin-top:6px;">Double-click to open.</p>
+    </div>`;
+  }else{
+    content.innerHTML=`<div style="padding:10px;">
+      <h3>Recycle Bin</h3>
+      <p>Empty</p>
+    </div>`;
+  }
+}
+
+function createFixedSavedFile(){
+  if(!fixedFileAvailable){
+    fixedFileAvailable=true;
+    // If recycle window open, refresh contents
+    if(document.getElementById('recycleWindow').style.display==='block'){
+      loadRecycleContent();
+    }
+  }
+}
+
+function openFixedSavedFile(){
+  const content=document.getElementById('recycleContent');
   content.innerHTML=`<div style="padding:10px;">
-    <h3>Recycle Bin</h3>
-    <p>Empty</p>
+    <h3>fixed_savedvia.txt</h3>
+    <p>This file is protected. Enter password:</p>
+    <input type="text" id="fixedPassword" class="puzzleInput" placeholder="Enter password">
+    <button class="puzzleBtn" onclick="checkFixedPassword()">Unlock</button>
+    <div id="fixedResult" style="margin-top:10px;"></div>
   </div>`;
+}
+
+function checkFixedPassword(){
+  const val=(document.getElementById('fixedPassword').value||'').trim().toLowerCase();
+  const result=document.getElementById('fixedResult');
+  if(val==='higherheaven'){
+    result.innerHTML=`<div style="padding:10px;background:#fff;border:1px solid #ccc;white-space:pre-wrap;font-family:Consolas,monospace;">
+you are lying on your back, crying to your mother, your mother turns to face you her mouth is wide open, there is a door inside her mouth, it OPENS.
+    </div>`;
+    if(!finalAscendStarted){
+      finalAscendStarted=true;
+      setTimeout(startAscendSequence,10000);
+    }
+  }else{
+    result.innerHTML=`<div style="padding:10px;background:#f8d7da;border:1px solid #dc3545;color:#721c24;">Incorrect password.</div>`;
+  }
 }
 
 // App Store
@@ -1182,17 +1286,17 @@ function loadAppStoreContent(){
       <div style="padding:8px;border:1px solid #ccc;margin-bottom:8px;background:#fff;">
         <strong>Mini Notepad</strong><br>
         <small>Lightweight text editor.</small><br>
-        <button class="puzzleBtn" onclick="installMiniNotepad()" style="margin-top:6px;">Install</button>
+        <button class="puzzleBtn" id="miniNotepadBtn" onclick="installMiniNotepad()" style="margin-top:6px;">Install</button>
       </div>
       <div style="padding:8px;border:1px solid #ccc;margin-bottom:8px;background:#fff;">
         <strong>Numbers Game</strong><br>
         <small>Pointless little distraction.</small><br>
-        <button class="puzzleBtn" onclick="installNumbersGame()" style="margin-top:6px;">Install</button>
+        <button class="puzzleBtn" id="numbersGameBtn" onclick="installNumbersGame()" style="margin-top:6px;">Install</button>
       </div>
       <div style="padding:8px;border:1px solid #ccc;margin-bottom:8px;background:#fff;">
         <strong>File Decryptor</strong><br>
         <small>Utility for handling encrypted data.</small><br>
-        <button class="puzzleBtn" onclick="installDecryptor()" style="margin-top:6px;">Install</button>
+        <button class="puzzleBtn" id="decryptorBtn" onclick="installDecryptor()" style="margin-top:6px;">Install</button>
       </div>
     </div>
     <div id="appstoreStatus" style="margin-top:12px;font-size:12px;color:#333;"></div>
@@ -1200,29 +1304,52 @@ function loadAppStoreContent(){
 
   window.installMiniNotepad=function(){
     const status=document.getElementById('appstoreStatus');
+    const btn=document.getElementById('miniNotepadBtn');
+    if(miniNotepadInstalled){
+      status.textContent='Mini Notepad is already installed.';
+      return;
+    }
     status.textContent='Installing Mini Notepad...';
     setTimeout(()=>{
-      status.textContent='Mini Notepad installed. (Nothing useful seems to happen.)';
+      miniNotepadInstalled=true;
+      status.textContent='Mini Notepad installed.';
+      btn.textContent='Installed';
+      btn.disabled=true;
     },1000);
   };
 
   window.installNumbersGame=function(){
     const status=document.getElementById('appstoreStatus');
+    const btn=document.getElementById('numbersGameBtn');
+    if(numbersGameInstalled){
+      status.textContent='Numbers Game is already installed.';
+      return;
+    }
     status.textContent='Installing Numbers Game...';
     setTimeout(()=>{
-      status.textContent='Numbers Game installed. A small window flickers and closes by itself.';
+      numbersGameInstalled=true;
+      status.textContent='Numbers Game installed.';
+      btn.textContent='Installed';
+      btn.disabled=true;
       showHorrorFlash();
     },1200);
   };
 
   window.installDecryptor=function(){
     const status=document.getElementById('appstoreStatus');
+    const btn=document.getElementById('decryptorBtn');
+    if(decryptorInstalled){
+      status.textContent='File Decryptor is already installed.';
+      return;
+    }
     status.textContent='Installing File Decryptor...';
     setTimeout(()=>{
       decryptorInstalled=true;
       const item=document.getElementById('decryptorMenuItem');
       if(item)item.style.display='block';
       status.textContent='File Decryptor installed.';
+      btn.textContent='Installed';
+      btn.disabled=true;
     },1500);
   };
 }
@@ -1246,8 +1373,6 @@ function openPuzzleWindow(){
 
 function showPuzzle(){
   const content=document.getElementById('puzzleContent');
-  // Get first 4 digits of phone number (convert letters to numbers on phone keypad)
-  const phoneDigits=cultPhoneNumber.replace(/-/g,'').substring(0,4);
   content.innerHTML=`<div style="padding:10px;">
     <p><strong>Locked File - Requires Password</strong></p>
     <p>Enter the password (4 digits):</p>
@@ -1267,19 +1392,13 @@ function showPuzzle(){
     
     if(code===phoneDigits){
       puzzlesSolved++;
-      result.innerHTML='<div style="color:green;padding:10px;background:#d4edda;border:1px solid #28a745;">✓ Password accepted. Unlocking file...</div>';
+      result.innerHTML='<div style="color:green;padding:10px;background:#d4edda;border:1px solid #28a745;">✓ Password accepted. File unlocked.</div>';
       setTimeout(()=>{
         content.innerHTML=`<div style="padding:10px;white-space:pre-wrap;font-family:Consolas,monospace;">
 FILE UNLOCKED
 
-your lying on your back
-
-[This file will self-destruct in 10 seconds...]
+(no readable content)
         </div>`;
-        setTimeout(()=>{
-          // Trigger final sequence after showing the phrase
-          triggerFinalSequence();
-        },10000);
       },2000);
     }else{
       result.innerHTML='<div style="color:red;padding:10px;background:#f8d7da;border:1px solid #dc3545;">✗ Access denied. The code is rejected by the system.</div>';
@@ -1287,19 +1406,10 @@ your lying on your back
   };
 }
 
-// Additional puzzles triggered by interactions
+// Additional puzzles triggered by interactions (no hint message anymore)
 let puzzleInteractions=0;
 document.addEventListener('click',()=>{
   puzzleInteractions++;
-  if(puzzleInteractions===50&&!cluesFound.includes('interaction')){
-    cluesFound.push('interaction');
-    // Show hidden message
-    const msg=document.createElement('div');
-    msg.style.cssText='position:fixed;top:20px;right:20px;background:#fff3cd;border:2px solid #ffc107;padding:10px;z-index:1000;max-width:300px;font-family:Tahoma;';
-    msg.textContent='You\'re getting closer. Keep searching. The truth is hidden in plain sight.';
-    document.body.appendChild(msg);
-    setTimeout(()=>msg.remove(),5000);
-  }
 });
 
 // Random horror flash overlay
@@ -1316,25 +1426,10 @@ function showHorrorFlash(){
   setTimeout(()=>overlay.remove(),600);
 }
 
-// Final sequence
+// Legacy final sequence (now unused, kept for safety)
 let finalSequenceScheduled=false;
 function triggerFinalSequence(){
-  if(finalPhraseUnlocked)return;
-  
-  // Check if at least 5 minutes have passed
-  const elapsed=(Date.now()-gameStartTime)/1000/60;
-  const remaining=(5-elapsed)*60*1000;
-  
-  if(remaining>0&&!finalSequenceScheduled){
-    finalSequenceScheduled=true;
-    setTimeout(()=>{
-      finalPhraseUnlocked=true;
-      showDeathScreen();
-    },remaining);
-  }else if(remaining<=0){
-    finalPhraseUnlocked=true;
-    showDeathScreen();
-  }
+  // no-op now; final path uses new ASCEND sequence
 }
 
 function showDeathScreen(){
@@ -1342,17 +1437,33 @@ function showDeathScreen(){
   const finalMsg=document.getElementById('finalMessage');
   finalMsg.textContent=finalPhrase;
   deathScreen.style.display='flex';
-  
-  // Add creepy effects
-  let flashCount=0;
-  const flash=setInterval(()=>{
-    document.body.style.background=flashCount%2===0?'#d20000':'#000';
-    flashCount++;
-    if(flashCount>=6){
-      clearInterval(flash);
-      document.body.style.background='#000';
+}
+
+// ASCEND final sequence
+function startAscendSequence(){
+  const overlay=document.getElementById('ascendOverlay');
+  if(!overlay)return;
+  overlay.style.display='flex';
+  let flashes=0;
+  const maxTime=3000;
+  const interval=150;
+  const start=Date.now();
+  const flashInterval=setInterval(()=>{
+    const t=Date.now()-start;
+    if(t>=maxTime){
+      clearInterval(flashInterval);
+      overlay.style.background='#000';
+      window.location.href='https://www.google.com';
+      return;
     }
-  },200);
+    overlay.style.background = (flashes%2===0)?'#000000':'#8b0000';
+    flashes++;
+  },interval);
+  // Play scary audio
+  if(scaryAudio){
+    scaryAudio.currentTime=0;
+    scaryAudio.play().catch(()=>{});
+  }
 }
 
 // Make desktop icons clickable
@@ -1361,88 +1472,16 @@ document.querySelectorAll('.icon').forEach(icon=>{
   icon.addEventListener('dblclick',()=>{
     const text=icon.textContent.trim();
     if(text.includes('My Documents')){
-      openWindow('notepad');
-    }else if(text.includes('My Computer')){
+      openWindow('notepad'); // or explorer mydocs
+      openWindow('explorer');
+      selectExplorerNode('mydocs');
+    }else if(text.includes('My Computer') || text.includes('File Explorer')){
       openWindow('explorer');
     }else if(text.includes('Recycle Bin')){
       openWindow('recycle');
-    }else if(text.includes('File Explorer')){
-      openWindow('explorer');
     }
   });
 });
-
-
-// ===================================================================
-// ADDED: Final-message-based ending override (no original lines changed)
-// ===================================================================
-let finalMessageRevealed=false;
-let finalEndingStarted=false;
-
-// Watch the puzzle content for the final phrase "your lying on your back"
-(function(){
-  const target=document.getElementById('puzzleContent');
-  if(!target) return;
-  const observer=new MutationObserver(()=>{
-    const text=(target.textContent||'').toLowerCase();
-    if(!finalMessageRevealed && text.includes('your lying on your back')){
-      finalMessageRevealed=true;
-    }
-  });
-  observer.observe(target,{childList:true,subtree:true,characterData:true});
-})();
-
-// Preserve reference to original triggerFinalSequence
-const _originalTriggerFinalSequence = triggerFinalSequence;
-
-// New triggerFinalSequence: only run the ending if final message is actually revealed
-function triggerFinalSequence(){
-  // Only allow the true ending once the final note text has been seen
-  if(!finalMessageRevealed || finalEndingStarted) return;
-  finalEndingStarted=true;
-  showDeathScreen();
-}
-
-// Preserve reference to original showDeathScreen
-const _originalShowDeathScreen = showDeathScreen;
-
-// New death screen: fade to red, rotate, "ACCEPT YOUR FATE", then redirect
-function showDeathScreen(){
-  const deathScreen=document.getElementById('deathScreen');
-  const deathText=document.getElementById('deathText');
-  const deathInfo=document.getElementById('deathInfo');
-  const finalMsg=document.getElementById('finalMessage');
-
-  if(!deathScreen || !deathText || !deathInfo || !finalMsg){
-    if(typeof _originalShowDeathScreen==='function'){
-      _originalShowDeathScreen();
-    }
-    return;
-  }
-
-  // Replace text with ACCEPT YOUR FATE and hide extra info
-  deathText.textContent='ACCEPT YOUR FATE';
-  deathInfo.style.display='none';
-  finalMsg.style.display='none';
-
-  // Show overlay
-  deathScreen.style.display='flex';
-  deathScreen.style.background='#000';
-  deathScreen.style.transformOrigin='50% 50%';
-  deathScreen.style.transition='background 6s linear, transform 6s linear';
-
-  // Start slow red fade + rotate (lying on your back)
-  setTimeout(()=>{
-    deathScreen.style.background='#8b0000';
-    deathScreen.style.transform='rotate(90deg)';
-  },50);
-
-  // Redirect to Google after the sequence finishes
-  setTimeout(()=>{
-    window.location.href='https://www.google.com';
-  },6000);
-}
-
 </script>
 </body>
 </html>
