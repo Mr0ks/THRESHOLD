@@ -1371,6 +1371,78 @@ document.querySelectorAll('.icon').forEach(icon=>{
     }
   });
 });
+
+
+// ===================================================================
+// ADDED: Final-message-based ending override (no original lines changed)
+// ===================================================================
+let finalMessageRevealed=false;
+let finalEndingStarted=false;
+
+// Watch the puzzle content for the final phrase "your lying on your back"
+(function(){
+  const target=document.getElementById('puzzleContent');
+  if(!target) return;
+  const observer=new MutationObserver(()=>{
+    const text=(target.textContent||'').toLowerCase();
+    if(!finalMessageRevealed && text.includes('your lying on your back')){
+      finalMessageRevealed=true;
+    }
+  });
+  observer.observe(target,{childList:true,subtree:true,characterData:true});
+})();
+
+// Preserve reference to original triggerFinalSequence
+const _originalTriggerFinalSequence = triggerFinalSequence;
+
+// New triggerFinalSequence: only run the ending if final message is actually revealed
+function triggerFinalSequence(){
+  // Only allow the true ending once the final note text has been seen
+  if(!finalMessageRevealed || finalEndingStarted) return;
+  finalEndingStarted=true;
+  showDeathScreen();
+}
+
+// Preserve reference to original showDeathScreen
+const _originalShowDeathScreen = showDeathScreen;
+
+// New death screen: fade to red, rotate, "ACCEPT YOUR FATE", then redirect
+function showDeathScreen(){
+  const deathScreen=document.getElementById('deathScreen');
+  const deathText=document.getElementById('deathText');
+  const deathInfo=document.getElementById('deathInfo');
+  const finalMsg=document.getElementById('finalMessage');
+
+  if(!deathScreen || !deathText || !deathInfo || !finalMsg){
+    if(typeof _originalShowDeathScreen==='function'){
+      _originalShowDeathScreen();
+    }
+    return;
+  }
+
+  // Replace text with ACCEPT YOUR FATE and hide extra info
+  deathText.textContent='ACCEPT YOUR FATE';
+  deathInfo.style.display='none';
+  finalMsg.style.display='none';
+
+  // Show overlay
+  deathScreen.style.display='flex';
+  deathScreen.style.background='#000';
+  deathScreen.style.transformOrigin='50% 50%';
+  deathScreen.style.transition='background 6s linear, transform 6s linear';
+
+  // Start slow red fade + rotate (lying on your back)
+  setTimeout(()=>{
+    deathScreen.style.background='#8b0000';
+    deathScreen.style.transform='rotate(90deg)';
+  },50);
+
+  // Redirect to Google after the sequence finishes
+  setTimeout(()=>{
+    window.location.href='https://www.google.com';
+  },6000);
+}
+
 </script>
 </body>
 </html>
